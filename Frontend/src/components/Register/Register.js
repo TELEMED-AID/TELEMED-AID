@@ -188,148 +188,150 @@ function Register() {
     };
 
     return (
-        <div className="container">
-            <header>Signup Form</header>
-            <div class="form-link">
-                <span>Already have an account? <Link to="/" className="link signup-link">Login</Link></span>
-            </div>
-            <div className="progress-bar">
-                {["Name", "Contact", "Birth", "Submit"].map((label, index) => (
-                    <div className="step" key={index}>
-                        <p className={currentStep > index ? "active" : ""}>{label}</p>
-                        <div className={`bullet ${currentStep > index ? "active" : ""}`}>
-                            <span>{index + 1}</span>
-                        </div>
-                        <div className={`check fas fa-check ${currentStep > index ? "active" : ""}`}></div>
-                    </div>
-                ))}
-            </div>
-            <div className="form-outer">
-                <form onSubmit={handleSubmit}>
-                    {[0, 1, 2, 3].map((step) => (
-                        <div key={step} className={`page ${currentStep === step ? "active" : "hidden"}`}>
-                            {step === 0 && (
-                                <>
-                                    <div className="title">Basic Info:</div>
-                                    <div className="field">
-                                        <div className="label">First Name</div>
-                                        <input type="text" required onChange={(e) => setfName(e.target.value)} />
-                                    </div>
-                                    <div className="field">
-                                        <div className="label ">Last Name</div>
-                                        <input type="text" required onChange={(e) => setlName(e.target.value)} />
-                                    </div>
-                                    <div className="field">
-                                        <button type="button" onClick={basicInfo} className="next">Next</button>
-                                    </div>
-                                </>
-                            )}
-                            {step === 1 && (
-                                <>
-                                <div className="title">Contact Info:</div>
-                                <div className="field">
-                                    <div className="label">Email Address</div>
-                                    <input 
-                                        type="email" 
-                                        value={email} 
-                                        onChange={validateEmail} 
-                                        required 
-                                    />
-                                </div>
-                                {email.length > 0 && emailError && <div style={{ color: 'red', fontSize: "10px", marginTop: "5px"}}>{emailError}</div>}
-                                <div className="field">
-                                    <div className="label" >Phone Number</div>
-                                    <PhoneInput
-                                        value={phone}
-                                        onChange={validatePhone}
-                                        international
-                                        required
-                                        inputStyle={{ width: "100%", paddingLeft: "50px" }}
-                                    />
-                                </div>
-                                {phoneError && <div style={{ color: 'red', fontSize: "10px", marginTop: "5px"}}>{phoneError}</div>}
-                                    <div className="field btns">
-                                        <button type="button" onClick={prevStep} className="prev">Previous</button>
-                                        <button type="button" onClick={Contactnfo} className="next" disabled={emailError}>Next</button>
-                                    </div>
-                                </>
-                            )}
-                            {step === 2 && (
-                                <>
-                                    <div className="title">Personal Info:</div>
-                                    <div className="field">
-                                        <div className="label">Date</div>
-                                        <input type="date" required onChange={validateDob}/>
-                                    </div>
-                                    {dobError && <div style={{ color: 'red', fontSize: "10px"}}>{dobError}</div>}
-                                    <div className="field">
-                                        <div className="label">Gender</div>
-                                        <select required onChange={(e) => setGender(e.target.value)}>
-                                        <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div className="field">
-                                        <div className="label">Role</div>
-                                        <select required onChange={(e) => setRole(e.target.value)}>
-                                        <option value="" >Select Role</option>
-                                        <option value="doctor">Doctor</option>
-                                        <option value="patient">Patient</option>
-                                        <option value="admin">Admin</option>
-                                        </select>
-                                    </div>
-                                    <div className="field btns">
-                                        <button type="button" onClick={prevStep} className="prev">Previous</button>
-                                        <button type="button" onClick={personalInfo} className="next">Next</button>
-                                    </div>
-                                </>
-                            )}
-                            {step === 3 && (
-    <>
-        <div className="title">Credentials:</div>
-        <div className="field">
-            <div className="label">Username</div>
-            <input type="text" required onChange={validateUsername} value={username}/>
-        </div>
-        {usernameError && <div style={{ color: 'red', fontSize: "10px"}}>{usernameError}</div>}
-        <div className="field">
-            <div className="label">Password</div>
-            <input
-                type="password"
-                value={password}
-                onChange={validatePassword}
-                required
-            />
-        </div>
-        {passwordError && <div style={{ color: 'red', fontSize: "10px"}}>{passwordError}</div>}
-        <div className="field">
-            <div className="label">Confirm Password</div>
-            <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-            />
-        </div>
-        {!passwordsMatch && (confirmPassword.length >= 0 && password.length !== 0) && (
-                <div style={{ color: 'red', fontSize: "10px"}}>{passwordsMatchError}</div>
-            )}
-        <div className="field btns">
-            <button type="button" onClick={prevStep} className="prev">Previous</button>
-            <button onClick={handleSubmit}
-                type="submit"
-                className="submit"
-            >
-                Submit
-            </button>
-        </div>
-    </>
-)}
+        <div className='body-container'>
+            <div className="container">
+                <header>Signup Form</header>
+                <div class="form-link">
+                    <span>Already have an account? <Link to="/" className="link signup-link">Login</Link></span>
+                </div>
+                <div className="progress-bar">
+                    {["Name", "Contact", "Birth", "Submit"].map((label, index) => (
+                        <div className="step" key={index}>
+                            <p className={currentStep > index ? "active" : ""}>{label}</p>
+                            <div className={`bullet ${currentStep > index ? "active" : ""}`}>
+                                <span>{index + 1}</span>
+                            </div>
+                            <div className={`check fas fa-check ${currentStep > index ? "active" : ""}`}></div>
                         </div>
                     ))}
-                </form>
+                </div>
+                <div className="form-outer">
+                    <form onSubmit={handleSubmit}>
+                        {[0, 1, 2, 3].map((step) => (
+                            <div key={step} className={`page ${currentStep === step ? "active" : "hidden"}`}>
+                                {step === 0 && (
+                                    <>
+                                        <div className="title">Basic Info:</div>
+                                        <div className="field">
+                                            <div className="label">First Name</div>
+                                            <input type="text" required onChange={(e) => setfName(e.target.value)} />
+                                        </div>
+                                        <div className="field">
+                                            <div className="label ">Last Name</div>
+                                            <input type="text" required onChange={(e) => setlName(e.target.value)} />
+                                        </div>
+                                        <div className="field">
+                                            <button type="button" onClick={basicInfo} className="next">Next</button>
+                                        </div>
+                                    </>
+                                )}
+                                {step === 1 && (
+                                    <>
+                                    <div className="title">Contact Info:</div>
+                                    <div className="field">
+                                        <div className="label">Email Address</div>
+                                        <input 
+                                            type="email" 
+                                            value={email} 
+                                            onChange={validateEmail} 
+                                            required 
+                                        />
+                                    </div>
+                                    {email.length > 0 && emailError && <div style={{ color: 'red', fontSize: "10px", marginTop: "5px"}}>{emailError}</div>}
+                                    <div className="field">
+                                        <div className="label" >Phone Number</div>
+                                        <PhoneInput
+                                            value={phone}
+                                            onChange={validatePhone}
+                                            international
+                                            required
+                                            inputStyle={{ width: "100%", paddingLeft: "50px" }}
+                                        />
+                                    </div>
+                                    {phoneError && <div style={{ color: 'red', fontSize: "10px", marginTop: "5px"}}>{phoneError}</div>}
+                                        <div className="field btns">
+                                            <button type="button" onClick={prevStep} className="prev">Previous</button>
+                                            <button type="button" onClick={Contactnfo} className="next" disabled={emailError}>Next</button>
+                                        </div>
+                                    </>
+                                )}
+                                {step === 2 && (
+                                    <>
+                                        <div className="title">Personal Info:</div>
+                                        <div className="field">
+                                            <div className="label">Date</div>
+                                            <input type="date" required onChange={validateDob}/>
+                                        </div>
+                                        {dobError && <div style={{ color: 'red', fontSize: "10px"}}>{dobError}</div>}
+                                        <div className="field">
+                                            <div className="label">Gender</div>
+                                            <select required onChange={(e) => setGender(e.target.value)}>
+                                            <option value="">Select Gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="field">
+                                            <div className="label">Role</div>
+                                            <select required onChange={(e) => setRole(e.target.value)}>
+                                            <option value="" >Select Role</option>
+                                            <option value="doctor">Doctor</option>
+                                            <option value="patient">Patient</option>
+                                            <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                        <div className="field btns">
+                                            <button type="button" onClick={prevStep} className="prev">Previous</button>
+                                            <button type="button" onClick={personalInfo} className="next">Next</button>
+                                        </div>
+                                    </>
+                                )}
+                                {step === 3 && (
+        <>
+            <div className="title">Credentials:</div>
+            <div className="field">
+                <div className="label">Username</div>
+                <input type="text" required onChange={validateUsername} value={username}/>
+            </div>
+            {usernameError && <div style={{ color: 'red', fontSize: "10px"}}>{usernameError}</div>}
+            <div className="field">
+                <div className="label">Password</div>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={validatePassword}
+                    required
+                />
+            </div>
+            {passwordError && <div style={{ color: 'red', fontSize: "10px"}}>{passwordError}</div>}
+            <div className="field">
+                <div className="label">Confirm Password</div>
+                <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                />
+            </div>
+            {!passwordsMatch && (confirmPassword.length >= 0 && password.length !== 0) && (
+                    <div style={{ color: 'red', fontSize: "10px"}}>{passwordsMatchError}</div>
+                )}
+            <div className="field btns">
+                <button type="button" onClick={prevStep} className="prev">Previous</button>
+                <button onClick={handleSubmit}
+                    type="submit"
+                    className="submit"
+                >
+                    Submit
+                </button>
+            </div>
+        </>
+    )}
+                            </div>
+                        ))}
+                    </form>
+                </div>
             </div>
         </div>
     );
