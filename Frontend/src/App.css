@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+}
+
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: url("./images/login_background.jpg"), -webkit-linear-gradient(bottom, #0250c5, #d43f8d);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    
+}
+
+body::-webkit-scrollbar {
+    width: 15px; /* Width of the scrollbar */
+  }
+  
+  body::-webkit-scrollbar-track {
+    background: #00000039; /* Color of the track */
+    border-radius: 5px; /* Rounded corners for the track */
+}
+  
+  body::-webkit-scrollbar-thumb {
+    background: rgb(75, 71, 71); /* Color of the scrollbar thumb */
+    border-radius: 2px; /* Rounded corners for the thumb */
+  }
