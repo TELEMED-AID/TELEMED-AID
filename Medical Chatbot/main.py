@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from src.helper import load_embeddings, load_model
-from langchain.vectorstores import Pinecone as PC
+from langchain_pinecone import PineconeVectorStore
+from langchain_community.vectorstores import Pinecone as PC
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
@@ -12,13 +13,13 @@ load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_API_ENV = os.getenv("PINECONE_API_ENV")
 embeddings = load_embeddings()
-index_name = "mchatbot"
+index_name = 'mchatbot'
 
 # Create a Pinecone client instance
 pc = pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-
-semantic_search = PC.from_existing_index(index_name, embeddings)
-
+pinecone_index = pc.Index(index_name)
+# semantic_search = PC.from_existing_index(index_name, embeddings)
+semantic_search = PineconeVectorStore.from_existing_index(index_name=index_name,embedding=embeddings)
 PROMPT = PromptTemplate(template=prompt_template,input_variables=["context","question"])
 
 llm_prompt = {"prompt":PROMPT}
