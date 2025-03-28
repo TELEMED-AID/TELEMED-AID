@@ -6,15 +6,17 @@
     font-family: 'Poppins', sans-serif;
 }
 
-body{
+body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: url("./images/login_background.jpg"), -webkit-linear-gradient(bottom, #0250c5, #d43f8d);
+    height: 100vh;
+    margin: 0;
+    background: url("./images/login_background.jpg");
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    
+    background-attachment: fixed;
 }
 
 body::-webkit-scrollbar {
