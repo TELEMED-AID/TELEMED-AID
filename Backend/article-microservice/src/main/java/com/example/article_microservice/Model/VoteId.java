@@ -1,6 +1,5 @@
-package Model;
+package com.example.article_microservice.Model;
 
-import jakarta.persistence.Access;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 

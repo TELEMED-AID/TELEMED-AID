@@ -1,4 +1,4 @@
-package Model;
+package com.example.article_microservice.Model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,17 +11,14 @@ import java.time.Instant;
 @AllArgsConstructor
 @Entity
 @NoArgsConstructor
-public class Article {
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    private String category;
-    @Lob
     private String content;
+    private Instant time;
     @ManyToOne
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
-    private Instant articleTime;
-
+    private long questionId;
 }

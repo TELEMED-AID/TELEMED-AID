@@ -1,4 +1,4 @@
-package Model;
+package com.example.article_microservice.Model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;

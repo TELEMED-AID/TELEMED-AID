@@ -1,4 +1,4 @@
-package Model;
+package com.example.article_microservice.Model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 @Data
-@AllArgsConstructor
 @Entity
 @NoArgsConstructor
 public class Question {
@@ -21,4 +20,11 @@ public class Question {
     private String patientWrittenName;
     private String content;
     private Instant questionTime;
+    private String title;
+    public Question(String patientWrittenName, String title, String content, Instant questionTime) {
+        this.patientWrittenName = patientWrittenName;
+        this.title = title;
+        this.content = content;
+        this.questionTime = questionTime;
+    }
 }
