@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from src.prompt import *
 import os
 import pinecone
+from flask_cors import CORS
 
 load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -35,21 +36,30 @@ qa = RetrievalQA.from_chain_type(llm=llm,
                                  chain_type_kwargs={"prompt": PROMPT})
 
 app = Flask(__name__, static_folder='static')
+CORS(app)
 
-@app.route("/chatbot-homepg")
-def index():
-    return render_template('chatbot.html')
+# @app.route("/chatbot-homepg")
+# def index():
+#     return render_template('chatbot.html')
 
-@app.route("/get", methods=["GET","POST"])
+# @app.route("/get", methods=["GET","POST"])
+# def chatbot():
+#     msg = request.form["msg"]
+#     input = msg
+#     results = qa({"query": input})
+#     print("Response: ", results["result"])
+#     if results["result"] == "":
+#         return "Sorry, I don't understand that."
+#     return str(results["result"])
+@app.route("/get", methods=["POST"])
 def chatbot():
-    msg = request.form["msg"]
-    input = msg
+    data = request.get_json()
+    input = data.get("msg", "")
     results = qa({"query": input})
     print("Response: ", results["result"])
     if results["result"] == "":
-        return "Sorry, I don't understand that."
-    return str(results["result"])
-    
+        return {"response": "Sorry, I don't understand that."}, 200
+    return {"response": results["result"]}, 200    
 
 if __name__ == "__main__":
     app.run(debug=True)
