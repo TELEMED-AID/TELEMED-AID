@@ -18,5 +18,5 @@ This is the README file for the `Medical Chatbot` setup.
 - `# run the following command:`
   `python store_index.py`
 - `# Finally run the following command:`
-  `python app.py`
+  `python main.py`
 - open up localhost.
