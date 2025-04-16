@@ -5,4 +5,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface QuestionService {
     ResponseEntity<?> postQuestion(QuestionDTO questionDTO);
+
+    ResponseEntity<?> searchQuestion(String term);
 }
