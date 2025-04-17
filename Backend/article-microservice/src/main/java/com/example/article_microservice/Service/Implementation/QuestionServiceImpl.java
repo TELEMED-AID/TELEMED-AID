@@ -38,7 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
             questionRepository.save(question);
             return ResponseEntity.status(HttpStatus.CREATED).body("Question posted successfully");
         } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred. " +
+            return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
                     "Please try again later.");
         }
     }
