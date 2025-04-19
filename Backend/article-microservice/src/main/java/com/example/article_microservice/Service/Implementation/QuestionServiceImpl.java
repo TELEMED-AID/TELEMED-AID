@@ -1,24 +1,32 @@
 package com.example.article_microservice.Service.Implementation;
 
+import com.example.article_microservice.DTO.CommentDTO;
+import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.QuestionDTO;
+import com.example.article_microservice.Model.Comment;
+import com.example.article_microservice.Model.Doctor;
 import com.example.article_microservice.Model.Question;
+import com.example.article_microservice.Repository.CommentRepository;
+import com.example.article_microservice.Repository.DoctorRepository;
 import com.example.article_microservice.Repository.QuestionRepository;
 import com.example.article_microservice.Service.Interface.QuestionService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class QuestionServiceImpl implements QuestionService {
     @Autowired
     private QuestionRepository questionRepository;
-
+    @Autowired
+    private DoctorRepository doctorRepository;
+    @Autowired
+    private CommentRepository commentRepository;
     @Override
     public ResponseEntity<?> postQuestion(QuestionDTO questionDTO) {
         // Question DTO has no empty and null value
@@ -66,5 +74,60 @@ public class QuestionServiceImpl implements QuestionService {
 
     }
 
+    public ResponseEntity<?> commentOnQuestion(CommentDTO commentDTO) {
+        Optional<Doctor> doctorOptional = doctorRepository.findById(commentDTO.getDoctorId());
+        if (doctorOptional.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
 
+        Optional<Question> questionOptional = questionRepository.findById(commentDTO.getQuestionId());
+        if (questionOptional.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+
+        try {
+            Comment comment = new Comment();
+            comment.setDoctor(doctorOptional.get());
+            comment.setQuestion(questionOptional.get());
+            System.out.println(commentDTO.getContent());
+            comment.setContent(commentDTO.getContent());
+            comment.setTime(commentDTO.getQuestionTime());
+
+            commentRepository.save(comment);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body("Comment saved successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving comment, try again");
+        }
+    }
+    public ResponseEntity<?> addDoctor(DoctorDTO doctorDTO){
+        if (doctorRepository.existsById(doctorDTO.getId())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Doctor with this ID already exists");
+        }
+        try {
+            Doctor doctor = new Doctor();
+            doctor.setId(doctorDTO.getId());
+            doctor.setName(doctorDTO.getName());
+            doctor.setCareerLevel(doctorDTO.getCareerLevel());
+            doctor.setSpecializationName(doctorDTO.getSpecializationName());
+            doctor.setArticles(new ArrayList<>());
+            doctor.setComments(new ArrayList<>());
+
+            doctorRepository.save(doctor);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body("Doctor added successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving doctor, retry please");
+        }
+    }
+    @Transactional
+    public ResponseEntity<?> getCommentsOnQuestion(Long questionId) {
+        Optional<Question> questionOptional = questionRepository.findById(questionId);
+        if (questionOptional.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
+       // try{
+            return ResponseEntity.ok().body(commentRepository.findAllByQuestionId(questionId));
+       // } catch (Exception e){
+      //      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments" +
+        //            ", please retry");
+    //    }
+    }
 }

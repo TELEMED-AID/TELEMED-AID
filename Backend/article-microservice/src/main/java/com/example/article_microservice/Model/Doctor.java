@@ -1,5 +1,6 @@
 package com.example.article_microservice.Model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -14,8 +15,9 @@ public class Doctor {
     private String name;
     @OneToMany(mappedBy = "doctor")  // "doctor" refers to the field in the Article entity
     private List<Article> articles;
-    @OneToMany(mappedBy = "doctor")  // "doctor" refers to the field in the Article entity
-    private List<Comment> questions;
+    @OneToMany(mappedBy = "doctor")  // "doctor" refers to the field in the Comment entity
+    @JsonManagedReference
+    private List<Comment> comments;
     private String careerLevel;
     private String specializationName;
 }

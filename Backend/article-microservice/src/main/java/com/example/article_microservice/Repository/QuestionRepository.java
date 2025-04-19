@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface QuestionRepository extends
-        JpaRepository<Question, Integer> {
+        JpaRepository<Question, Long> {
     @Query(value = """
         SELECT * FROM question
         WHERE search_vector @@ to_tsquery(:term)
