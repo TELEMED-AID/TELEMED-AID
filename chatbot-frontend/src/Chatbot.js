@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { FaPaperPlane } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { FaPaperPlane } from "react-icons/fa";
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const chatContainerRef = useRef(null); // Reference for the chat container
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -32,33 +33,41 @@ const Chatbot = () => {
     setInput("");
   };
 
+  // Scroll to the last message whenever messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 px-4 py-8">
-      <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-2xl h-[80vh] bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center py-6 rounded-t-3xl shadow-md">
-          <h1 className="text-4xl font-bold tracking-wide mb-1">AI Chatbot</h1>
-          <p className="text-sm text-indigo-100">Your friendly assistant</p>
+          <h1 className="text-4xl font-bold tracking-wide mb-1">AI Medical Chatbot</h1>
+          <p className="text-sm text-indigo-100">Based on Trusted Medical References</p>
         </div>
 
         {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 custom-scrollbar">
+        <div
+          ref={chatContainerRef} // Attach the ref to the chat container
+          className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50 custom-scrollbar"
+        >
           {messages.map((msg, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className={`flex ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
-                className={`${
-                  msg.sender === "user"
+                className={`${msg.sender === "user"
                     ? "bg-indigo-500 text-white"
                     : "bg-gray-200 text-gray-800"
-                } px-5 py-3 rounded-2xl max-w-sm shadow-md`}
+                  } px-5 py-3 rounded-2xl max-w-sm shadow-md`}
               >
                 {msg.text}
               </div>
@@ -72,6 +81,11 @@ const Chatbot = () => {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                sendMessage(); // Call sendMessage when Enter is pressed
+              }
+            }}
             className="flex-1 px-5 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner text-sm"
             placeholder="Type your message..."
           />
