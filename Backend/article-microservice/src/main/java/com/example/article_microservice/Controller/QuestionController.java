@@ -3,6 +3,7 @@ package com.example.article_microservice.Controller;
 import com.example.article_microservice.DTO.CommentDTO;
 import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.QuestionDTO;
+import com.example.article_microservice.DTO.VoteDTO;
 import com.example.article_microservice.Service.Interface.QuestionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,5 +40,9 @@ public class QuestionController {
     @GetMapping("/getCommentsOnPost/{questionId}")
     public ResponseEntity<?> getCommentsOnQuestion(@PathVariable Long questionId) {
         return questionService.getCommentsOnQuestion(questionId);
+    }
+    @PostMapping("/addVote")
+    public ResponseEntity<?> addVote(@Valid @RequestBody VoteDTO voteDTO) {
+        return questionService.addVoteToQuestion(voteDTO);
     }
 }

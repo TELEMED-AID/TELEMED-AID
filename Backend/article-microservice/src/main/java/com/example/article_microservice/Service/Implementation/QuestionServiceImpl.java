@@ -3,12 +3,12 @@ package com.example.article_microservice.Service.Implementation;
 import com.example.article_microservice.DTO.CommentDTO;
 import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.QuestionDTO;
-import com.example.article_microservice.Model.Comment;
-import com.example.article_microservice.Model.Doctor;
-import com.example.article_microservice.Model.Question;
+import com.example.article_microservice.DTO.VoteDTO;
+import com.example.article_microservice.Model.*;
 import com.example.article_microservice.Repository.CommentRepository;
 import com.example.article_microservice.Repository.DoctorRepository;
 import com.example.article_microservice.Repository.QuestionRepository;
+import com.example.article_microservice.Repository.VoteRepository;
 import com.example.article_microservice.Service.Interface.QuestionService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +27,8 @@ public class QuestionServiceImpl implements QuestionService {
     private DoctorRepository doctorRepository;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private VoteRepository voteRepository;
     @Override
     public ResponseEntity<?> postQuestion(QuestionDTO questionDTO) {
         // Question DTO has no empty and null value
@@ -118,16 +120,44 @@ public class QuestionServiceImpl implements QuestionService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving doctor, retry please");
         }
     }
+    // Comments needs to be modified: get votes along with the request (Create comment response DTO)
     @Transactional
     public ResponseEntity<?> getCommentsOnQuestion(Long questionId) {
         Optional<Question> questionOptional = questionRepository.findById(questionId);
         if (questionOptional.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
-       // try{
+        try{
             return ResponseEntity.ok().body(commentRepository.findAllByQuestionId(questionId));
-       // } catch (Exception e){
-      //      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments" +
-        //            ", please retry");
-    //    }
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments" +
+                    ", please retry");
+        }
+    }
+    public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO){
+        Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());
+        if(commentOptional.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+        }
+        Optional<Doctor> doctor = doctorRepository.findById(voteDTO.getDoctorId());
+        if(doctor.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
+        }
+        VoteId voteId = new VoteId(voteDTO.getDoctorId(),
+                voteDTO.getCommentId());
+
+        Vote vote = new Vote();
+        vote.setVote(voteDTO.getRank());
+        vote.setComment(commentOptional.get());
+        vote.setDoctor(doctor.get());
+
+        vote.setVoteId(voteId);
+        try {
+            voteRepository.save(vote);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Vote added successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while adding your vote" +
+                    ", please retry");
+        }
+
     }
 }

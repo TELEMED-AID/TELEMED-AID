@@ -1,5 +1,6 @@
 package com.example.article_microservice.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class Vote {
     @ManyToOne
     @MapsId("commentId")
     @JoinColumn(name = "comment_id")
+    @JsonBackReference
     private Comment comment;
     private byte vote;
 }

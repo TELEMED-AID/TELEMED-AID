@@ -2,12 +2,15 @@ package com.example.article_microservice.Model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -21,10 +24,13 @@ public class Comment {
     private Instant time;
     @ManyToOne
     @JoinColumn(name = "doctor_id")
-    @JsonBackReference
+    @JsonManagedReference
     private Doctor doctor;
     @ManyToOne
     @JoinColumn(name = "question_id")
     @JsonIgnore
     private Question question;
+    @OneToMany(mappedBy = "comment")
+    @JsonManagedReference
+    private List<Vote> votes;
 }
