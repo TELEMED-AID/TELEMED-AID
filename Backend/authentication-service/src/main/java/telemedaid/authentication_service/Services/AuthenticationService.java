@@ -8,7 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import telemedaid.authentication_service.Config.PatientServiceClient;
 import telemedaid.authentication_service.DTOs.AuthResponse;
+import telemedaid.authentication_service.DTOs.CreatePatientRequest;
 import telemedaid.authentication_service.DTOs.LoginRequest;
 import telemedaid.authentication_service.DTOs.RegisterRequest;
 import telemedaid.authentication_service.Entities.User;
@@ -21,6 +23,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final PatientServiceClient patientServiceClient; // Feign Client
+
     /**
      * GUA_UA_U1
      **/
@@ -37,6 +41,17 @@ public class AuthenticationService {
 
         userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
+        // 2. Send remaining data to Patient Service
+        CreatePatientRequest patientRequest = new CreatePatientRequest();
+        patientRequest.setNationalId(request.getNationalId());
+        patientRequest.setName(request.getName());
+        patientRequest.setCountryName(request.getCountryName());
+        patientRequest.setCountryId(request.getCountryId());
+        patientRequest.setPhone(request.getPhone());
+        patientRequest.setGender(request.getGender());
+        patientRequest.setBirthDate("2001-02-15");
+
+        patientServiceClient.createPatient(patientRequest);
         return AuthResponse.builder()
                 .token(jwtToken)
                 .build();
