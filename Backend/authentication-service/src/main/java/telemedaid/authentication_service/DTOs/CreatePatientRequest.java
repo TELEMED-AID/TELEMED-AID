@@ -1,11 +1,13 @@
 package telemedaid.authentication_service.DTOs;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 
 @Getter
 @Setter
+@Builder
 public class CreatePatientRequest {
     private String nationalId;  // Must match exactly
     private String name;

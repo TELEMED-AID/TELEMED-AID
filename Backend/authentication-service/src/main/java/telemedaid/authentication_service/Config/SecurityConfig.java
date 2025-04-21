@@ -22,7 +22,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/signup","/auth/login","/auth/validate").permitAll()
+                        .requestMatchers("/auth/signup/patient",
+                                "/auth/signup/doctor",
+                                "/auth/login",
+                                "/auth/validate").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

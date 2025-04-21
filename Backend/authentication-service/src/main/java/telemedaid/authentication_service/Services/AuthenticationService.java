@@ -8,13 +8,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import telemedaid.authentication_service.Config.DoctorServiceClient;
 import telemedaid.authentication_service.Config.PatientServiceClient;
-import telemedaid.authentication_service.DTOs.AuthResponse;
-import telemedaid.authentication_service.DTOs.CreatePatientRequest;
-import telemedaid.authentication_service.DTOs.LoginRequest;
-import telemedaid.authentication_service.DTOs.RegisterRequest;
+import telemedaid.authentication_service.DTOs.*;
 import telemedaid.authentication_service.Entities.User;
 import telemedaid.authentication_service.Repositories.UserRepository;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 @Service
 @RequiredArgsConstructor
@@ -24,11 +23,12 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final PatientServiceClient patientServiceClient; // Feign Client
+    private final DoctorServiceClient doctorServiceClient;
 
     /**
      * GUA_UA_U1
      **/
-    public AuthResponse register(RegisterRequest request) {
+    public AuthResponse registerPatient(RegisterPatientRequest request) {
         if (nationalIdExists(request.getNationalId())) {
             throw new RuntimeException("National ID already exists");
         }
@@ -42,20 +42,48 @@ public class AuthenticationService {
         userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
         // 2. Send remaining data to Patient Service
-        CreatePatientRequest patientRequest = new CreatePatientRequest();
-        patientRequest.setNationalId(request.getNationalId());
-        patientRequest.setName(request.getName());
-        patientRequest.setCountryName(request.getCountryName());
-        patientRequest.setCountryId(request.getCountryId());
-        patientRequest.setPhone(request.getPhone());
-        patientRequest.setGender(request.getGender());
-        patientRequest.setBirthDate("2001-02-15");
-
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        CreatePatientRequest patientRequest = CreatePatientRequest.builder()
+                .nationalId(request.getNationalId()).name(request.getName())
+                .countryName(request.getCountryName())
+                .countryId(request.getCountryId())
+                .phone(request.getPhone()).gender(request.getGender())
+                .birthDate(sdf.format(request.getDateOfBirth())).build();
         patientServiceClient.createPatient(patientRequest);
         return AuthResponse.builder()
                 .token(jwtToken)
                 .build();
     }
+    public AuthResponse registerDoctor(RegisterDoctorRequest request) {
+        if (nationalIdExists(request.getNationalId())) {
+            throw new RuntimeException("National ID already exists");
+        }
+        User user = User.builder()
+                .nationalId(request.getNationalId())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .createdAt(new Date())
+                .build();
+        userRepository.save(user);
+        String jwtToken = jwtService.generateToken(user);
+
+        CreateDoctorRequest createDoctorRequest = CreateDoctorRequest.builder()
+                .name(request.getName())
+                .nationalId(request.getNationalId())
+                .birthDate(request.getDateOfBirth())
+                .careerLevelName(request.getCareerLevelName())
+                .countryId(request.getCountryId())
+                .countryName(request.getCountryName())
+                .gender(request.getGender())
+                .phone(request.getPhone())
+                .specializationName(request.getSpecializationName())
+                .build();
+        doctorServiceClient.addDoctor(createDoctorRequest);
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
     /**
      * GUA_UA_U3
      **/

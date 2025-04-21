@@ -9,7 +9,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import telemedaid.authentication_service.DTOs.AuthResponse;
 import telemedaid.authentication_service.DTOs.LoginRequest;
-import telemedaid.authentication_service.DTOs.RegisterRequest;
+import telemedaid.authentication_service.DTOs.RegisterDoctorRequest;
+import telemedaid.authentication_service.DTOs.RegisterPatientRequest;
 import telemedaid.authentication_service.Services.AuthenticationService;
 import telemedaid.authentication_service.Services.JwtService;
 
@@ -23,10 +24,15 @@ public class AuthController {
     /**
      * GUA_UA_U1
      **/
-    @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authenticationService.register(request));
+    @PostMapping("/signup/patient")
+    public ResponseEntity<AuthResponse> registerPatient(@RequestBody RegisterPatientRequest request) {
+        return ResponseEntity.ok(authenticationService.registerPatient(request));
     }
+    @PostMapping("/signup/doctor")
+    public ResponseEntity<AuthResponse> registerDoctor(@RequestBody RegisterDoctorRequest request) {
+        return ResponseEntity.ok(authenticationService.registerDoctor(request));
+    }
+
     /**
      * GUA_UA_U3
      **/
