@@ -89,7 +89,6 @@ public class QuestionServiceImpl implements QuestionService {
             Comment comment = new Comment();
             comment.setDoctor(doctorOptional.get());
             comment.setQuestion(questionOptional.get());
-            System.out.println(commentDTO.getContent());
             comment.setContent(commentDTO.getContent());
             comment.setTime(commentDTO.getQuestionTime());
 

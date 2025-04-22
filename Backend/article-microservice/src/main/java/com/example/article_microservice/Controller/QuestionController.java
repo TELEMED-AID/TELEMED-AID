@@ -7,13 +7,12 @@ import com.example.article_microservice.DTO.VoteDTO;
 import com.example.article_microservice.Service.Interface.QuestionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin
-@RequestMapping("/article")
+@RequestMapping("/question")
 // Now it can accept requests from any requester
 // If I set it to origins = "http://localhost:3000", it'll be
 // restricted to requests from this port only

@@ -18,6 +18,7 @@ public class Article {
     private String title;
     private String category;
     @Lob
+    @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne
     @JoinColumn(name = "doctor_id")
