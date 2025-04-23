@@ -15,7 +15,7 @@ public class AuthenticationServiceApplication {
 
 	public static void main(String[] args) {
 		String rootDir = Paths.get("").toAbsolutePath().toString();
-		String moduleDir = rootDir + "/authentication-service";
+		String moduleDir = rootDir + "/Backend/authentication-service";
 
 		Dotenv dotenv = Dotenv.configure()
 				.directory(moduleDir)
