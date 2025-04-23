@@ -13,8 +13,8 @@ public interface QuestionRepository extends
         JpaRepository<Question, Long> {
     @Query(value = """
         SELECT * FROM question
-        WHERE search_vector @@ to_tsquery(:term)
-        ORDER BY ts_rank(search_vector, to_tsquery(:term)) DESC
+        WHERE search_vector @@ to_tsquery('english', :term)
+        ORDER BY ts_rank(search_vector, to_tsquery('english', :term)) DESC
         """, nativeQuery = true)
     List<Question> searchByRelevance(@Param("term") String term);
 }

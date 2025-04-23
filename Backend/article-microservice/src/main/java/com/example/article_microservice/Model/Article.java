@@ -1,5 +1,6 @@
 package com.example.article_microservice.Model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,11 +18,11 @@ public class Article {
     private Long id;
     private String title;
     private String category;
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String content;
     @ManyToOne
     @JoinColumn(name = "doctor_id")
+    @JsonBackReference
     private Doctor doctor;
     private Instant articleTime;
 

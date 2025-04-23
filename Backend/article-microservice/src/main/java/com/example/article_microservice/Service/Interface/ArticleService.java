@@ -5,4 +5,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface ArticleService {
     ResponseEntity<?> publishArticle(ArticleDTO articleDTO);
+    ResponseEntity<?> searchArticle(String term);
+
 }

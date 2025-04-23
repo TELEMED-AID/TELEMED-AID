@@ -39,18 +39,19 @@ public class QuestionServiceImpl implements QuestionService {
         // error that needs to be returned the user to make retry the
         // operation
 
-        Question question = new Question
-                (questionDTO.getPatientWrittenName(),
-                questionDTO.getContent(),
-                questionDTO.getTitle(),
-                questionDTO.getQuestionTime());
-        try {
+        Question question = new Question();
+        question.setTitle(questionDTO.getTitle());
+        question.setContent(questionDTO.getContent());
+        question.setQuestionTime(questionDTO.getQuestionTime());
+        question.setPatientWrittenName(questionDTO.getPatientWrittenName());
+
+      //  try {
             questionRepository.save(question);
             return ResponseEntity.status(HttpStatus.CREATED).body("Question posted successfully");
-        } catch (Exception e){
-            return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
-                    "Please try again later.");
-        }
+        //} catch (Exception e){
+          //  return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
+            //        "Please try again later.");
+       // }
     }
 
     @Override
@@ -66,13 +67,13 @@ public class QuestionServiceImpl implements QuestionService {
         if (tsQuery.isBlank()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
-        try {
+        //try {
             List<Question> results = questionRepository.searchByRelevance(tsQuery);
             return ResponseEntity.ok(results);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
-                    " make them more distinctive and retry");
-        }
+        //} catch (Exception e){
+          //  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
+            //        " make them more distinctive and retry");
+        //}
 
     }
 

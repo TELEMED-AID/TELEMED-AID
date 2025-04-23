@@ -17,4 +17,8 @@ public class ArticleController {
     public ResponseEntity<?> publishArticle(@Valid @RequestBody ArticleDTO articleDTO) {
         return articleService.publishArticle(articleDTO);
     }
+    @GetMapping("/searchArticle")
+    public ResponseEntity<?> searchQuestion(@RequestBody String term) {
+        return articleService.searchArticle(term);
+    }
 }

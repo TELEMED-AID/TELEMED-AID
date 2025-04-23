@@ -16,7 +16,6 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String patientWrittenName;
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String content;
     private Instant questionTime;

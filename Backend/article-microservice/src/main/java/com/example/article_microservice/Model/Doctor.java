@@ -14,6 +14,7 @@ public class Doctor {
     @Id
     private Long id;
     private String name;
+    @JsonManagedReference
     @OneToMany(mappedBy = "doctor")  // "doctor" refers to the field in the Article entity
     private List<Article> articles;
     @OneToMany(mappedBy = "doctor")  // "doctor" refers to the field in the Comment entity
