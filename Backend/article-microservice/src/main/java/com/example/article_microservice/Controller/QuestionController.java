@@ -9,13 +9,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @CrossOrigin
-@RequestMapping("/question")
-// Now it can accept requests from any requester
-// If I set it to origins = "http://localhost:3000", it'll be
-// restricted to requests from this port only
+@RequestMapping("/article/question")
+
 public class QuestionController {
     @Autowired
     private QuestionService questionService;

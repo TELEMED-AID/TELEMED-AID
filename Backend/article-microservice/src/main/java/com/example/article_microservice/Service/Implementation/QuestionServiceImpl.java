@@ -29,15 +29,13 @@ public class QuestionServiceImpl implements QuestionService {
     private CommentRepository commentRepository;
     @Autowired
     private VoteRepository voteRepository;
+
     @Override
     public ResponseEntity<?> postQuestion(QuestionDTO questionDTO) {
-        // Question DTO has no empty and null value
-        // Guaranteed from the valid annotation in the controller
-        // Question DTO also has the right types of variables
-        // Guaranteed from the serialization before the controller itself
-        // Any save failure from the database is likely a strange server
-        // error that needs to be returned the user to make retry the
-        // operation
+        /*
+            SRS: Publishing questions
+            PATM: (PA_PHCF_P1)
+        */
 
         Question question = new Question();
         question.setTitle(questionDTO.getTitle());
@@ -45,13 +43,13 @@ public class QuestionServiceImpl implements QuestionService {
         question.setQuestionTime(questionDTO.getQuestionTime());
         question.setPatientWrittenName(questionDTO.getPatientWrittenName());
 
-      //  try {
+        try {
             questionRepository.save(question);
             return ResponseEntity.status(HttpStatus.CREATED).body("Question posted successfully");
-        //} catch (Exception e){
-          //  return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
-            //        "Please try again later.");
-       // }
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
+                    "Please try again later.");
+        }
     }
 
     @Override
@@ -67,13 +65,13 @@ public class QuestionServiceImpl implements QuestionService {
         if (tsQuery.isBlank()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
-        //try {
+        try {
             List<Question> results = questionRepository.searchByRelevance(tsQuery);
             return ResponseEntity.ok(results);
-        //} catch (Exception e){
-          //  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
-            //        " make them more distinctive and retry");
-        //}
+        } catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
+                    " make them more distinctive and retry");
+        }
 
     }
 

@@ -1,4 +1,4 @@
-package com.example.article_microservice.DTO;
+package com.example.article_microservice.DTO.Article;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.Instant;
 
 @Data
-public class ArticleDTO {
+public class ReceivedArticleDTO {
     @NotBlank(message = "Please give the article a name")
     private String title;
     @NotBlank(message = "Please assign the article a category")

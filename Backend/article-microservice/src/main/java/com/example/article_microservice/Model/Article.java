@@ -25,5 +25,4 @@ public class Article {
     @JsonBackReference
     private Doctor doctor;
     private Instant articleTime;
-
 }

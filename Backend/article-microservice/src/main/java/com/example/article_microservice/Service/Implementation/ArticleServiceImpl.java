@@ -1,9 +1,13 @@
 package com.example.article_microservice.Service.Implementation;
 
-import com.example.article_microservice.DTO.ArticleDTO;
+import com.example.article_microservice.DTO.Article.ReceivedArticleDTO;
+import com.example.article_microservice.DTO.Article.ArticleSearchResponseDTO;
+import com.example.article_microservice.DTO.Article.SingleArticleResponseDTO;
 import com.example.article_microservice.Model.Article;
 import com.example.article_microservice.Model.Doctor;
-import com.example.article_microservice.Model.Question;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import com.example.article_microservice.Repository.ArticleRepository;
 import com.example.article_microservice.Repository.DoctorRepository;
 import com.example.article_microservice.Service.Interface.ArticleService;
@@ -15,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,13 +28,13 @@ public class ArticleServiceImpl implements ArticleService {
     private ArticleRepository articleRepository;
     @Autowired
     private DoctorRepository doctorRepository;
-    public ResponseEntity<?> publishArticle(ArticleDTO articleDTO){
+    public ResponseEntity<?> publishArticle(ReceivedArticleDTO receivedArticleDTO){
         Article article = new Article();
-        article.setTitle(articleDTO.getTitle());
-        article.setContent(articleDTO.getContent());
-        article.setArticleTime(articleDTO.getArticleTime());
-        article.setCategory(articleDTO.getCategory());
-        Optional<Doctor> doctorOptional = doctorRepository.findById(articleDTO.getDoctorNationalId());
+        article.setTitle(receivedArticleDTO.getTitle());
+        article.setContent(receivedArticleDTO.getContent());
+        article.setArticleTime(receivedArticleDTO.getArticleTime());
+        article.setCategory(receivedArticleDTO.getCategory());
+        Optional<Doctor> doctorOptional = doctorRepository.findById(receivedArticleDTO.getDoctorNationalId());
         if (doctorOptional.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
         article.setDoctor(doctorOptional.get());
@@ -44,25 +47,42 @@ public class ArticleServiceImpl implements ArticleService {
     }
     @Transactional
     @Override
-    public ResponseEntity<?> searchArticle(String term){
+    public ResponseEntity<?> searchArticle(String term, int page, int size) {
         if (term == null || term.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Search term cannot be empty");
         }
+
         String cleanedTerm = term.trim();
         String tsQuery = Arrays.stream(cleanedTerm.split("\\s+"))
-                .filter(word -> word.length() > 1) // filter stop-words better
+                .filter(word -> word.length() > 1)
                 .collect(Collectors.joining(" | "));
-        System.out.println(tsQuery);
+
         if (tsQuery.isBlank()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
-      //  try {
-            List<Article> results = articleRepository.searchByRelevance(tsQuery);
-            return ResponseEntity.ok(results);
-        //} catch (Exception e){
-          //  return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
-            //        " make them more distinctive and retry");
-        //}
 
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Article> resultPage = articleRepository.searchByRelevance(tsQuery, pageable);
+            Page<ArticleSearchResponseDTO> responsePage = resultPage.map(ArticleSearchResponseDTO::new);
+            return ResponseEntity.ok(responsePage);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Change the search terms to make them more distinctive and retry");
+        }
+    }
+    public ResponseEntity<?> getCertainArticle(Long id){
+        if(id < 0)
+            return ResponseEntity.badRequest().body("id cannot be negative");
+        try {
+            Optional<Article> article = articleRepository.findById(id);
+            if(article.isEmpty()){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
+            }
+            return ResponseEntity.ok(new SingleArticleResponseDTO(article.get()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Something wrong occurred, please try again");
+        }
     }
 }

@@ -1,3 +1,6 @@
 export {default as Register} from './Register/Register'
 export {default as Login} from './Login/Login'
 export {default as Profile} from './Profile/Profile'
+export {default as AskQuestion} from './Article/Question/AskQuestion'
+export {default as ArticleSearchPage} from './Article/Articles/ArticleSearchPage'
+export {default as ArticlePage} from './Article/Articles/ArticlePage'

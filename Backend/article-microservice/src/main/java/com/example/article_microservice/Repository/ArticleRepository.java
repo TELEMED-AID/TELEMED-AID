@@ -1,11 +1,13 @@
 package com.example.article_microservice.Repository;
 
 import com.example.article_microservice.Model.Article;
-import com.example.article_microservice.Model.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 
 import java.util.List;
 
@@ -16,6 +18,12 @@ public interface ArticleRepository extends
         SELECT * FROM article
         WHERE search_vector @@ to_tsquery('english', :term)
         ORDER BY ts_rank(search_vector, to_tsquery('english', :term)) DESC
-        """, nativeQuery = true)
-    List<Article> searchByRelevance(@Param("term") String term);
+        """,
+            countQuery = """
+        SELECT count(*) FROM article
+        WHERE search_vector @@ to_tsquery('english', :term)
+        """,
+            nativeQuery = true)
+    Page<Article> searchByRelevance(@Param("term") String term, Pageable pageable);
+
 }
