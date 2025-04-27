@@ -28,6 +28,10 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         MultiValueMap<String, HttpCookie> cookies = exchange.getRequest().getCookies();
+        String path = exchange.getRequest().getPath().toString();
+        if (path.startsWith("/auth/")) {
+            return chain.filter(exchange);
+        }
 
         if (cookies.isEmpty() || cookies.get("jwt") == null || cookies.get("jwt").isEmpty()) {
             return setUnauthorizedResponse(exchange);
