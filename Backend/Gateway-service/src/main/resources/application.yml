@@ -1,0 +1,114 @@
+spring:
+  application:
+    name: "Gateway-service"
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      discovery:
+        locator: true
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 10s
+      routes:
+        - id: "patient-service"
+          uri: lb://Patient-Service
+          predicates:
+            - Path=/patient/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: patient-service
+        - id: "doctor-service"
+          uri: lb://Doctor-Service
+          predicates:
+            - Path=/doctor/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: doctor-service
+        - id: "user-authentication-service"
+          uri: lb://Auth-Service
+          predicates:
+            - Path=/auth/**
+        - id: "ai-chatbot-service"
+          uri: lb://Ai-Chatbot-Service
+          predicates:
+            - Path=/chatbot/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: ai-chatbot-service
+        - id: "chatting-service"
+          uri: lb://Chatting-Service
+          predicates:
+            - Path=/Chatting/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: chatting-service
+        - id: "article-and-forum-service"
+          uri: lb://Article-Service
+          predicates:
+            - Path=/article/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: article-and-forum-service
+        - id: "appointment-service"
+          uri: lb://Appointment-Service
+          predicates:
+            - Path=/appointment/**
+          filters:
+            - name: JwtValidationFilter
+            - name: CircuitBreaker
+              args:
+                name: appointment-service
+
+server:
+  port: 8080
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    gateway:
+      enabled: true
+      lowerCaseServiceId: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      sliding-window-size: 10
+      permitted-number-of-calls-in-half-open-state: 4
+      failure-rate-threshold: 50
+      wait-duration-in-open-state: 10000
+
+info:
+  app:
+    name: "Gateway-service"
+    description: "Gateway-service"
+
+jwt:
+  secret-key: "3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b"
