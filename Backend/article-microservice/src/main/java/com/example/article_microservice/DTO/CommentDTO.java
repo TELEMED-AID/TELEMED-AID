@@ -17,6 +17,7 @@ public class CommentDTO {
     private Long questionId;
 
     @NotNull(message = "No given time")
-    private Instant questionTime;
+    private Instant commentTime;
 }
+
 

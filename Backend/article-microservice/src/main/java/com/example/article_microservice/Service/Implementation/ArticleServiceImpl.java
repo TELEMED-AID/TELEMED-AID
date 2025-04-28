@@ -3,9 +3,11 @@ package com.example.article_microservice.Service.Implementation;
 import com.example.article_microservice.DTO.Article.ReceivedArticleDTO;
 import com.example.article_microservice.DTO.Article.ArticleSearchResponseDTO;
 import com.example.article_microservice.DTO.Article.SingleArticleResponseDTO;
+import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
 import com.example.article_microservice.Model.Article;
 import com.example.article_microservice.Model.Doctor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.example.article_microservice.Repository.ArticleRepository;
@@ -58,7 +60,8 @@ public class ArticleServiceImpl implements ArticleService {
                 .collect(Collectors.joining(" | "));
 
         if (tsQuery.isBlank()) {
-            return ResponseEntity.ok(Collections.emptyList());
+            Page<QuestionSearchResponseDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), 0);
+            return ResponseEntity.ok(emptyPage);
         }
 
         try {

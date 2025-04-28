@@ -2,7 +2,10 @@ package com.example.article_microservice.Service.Implementation;
 
 import com.example.article_microservice.DTO.CommentDTO;
 import com.example.article_microservice.DTO.DoctorDTO;
-import com.example.article_microservice.DTO.QuestionDTO;
+import com.example.article_microservice.DTO.Question.CommentResponseDTO;
+import com.example.article_microservice.DTO.Question.QuestionDetailsResponseDTO;
+import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
+import com.example.article_microservice.DTO.Question.ReceivedQuestionDTO;
 import com.example.article_microservice.DTO.VoteDTO;
 import com.example.article_microservice.Model.*;
 import com.example.article_microservice.Repository.CommentRepository;
@@ -12,6 +15,10 @@ import com.example.article_microservice.Repository.VoteRepository;
 import com.example.article_microservice.Service.Interface.QuestionService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,7 +38,7 @@ public class QuestionServiceImpl implements QuestionService {
     private VoteRepository voteRepository;
 
     @Override
-    public ResponseEntity<?> postQuestion(QuestionDTO questionDTO) {
+    public ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO) {
         /*
             SRS: Publishing questions
             PATM: (PA_PHCF_P1)
@@ -53,28 +60,31 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public ResponseEntity<?> searchQuestion(String term){
+    public ResponseEntity<?> searchQuestion(String term, int page, int size){
         if (term == null || term.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Search term cannot be empty");
         }
         String cleanedTerm = term.trim();
-        String tsQuery = Arrays.stream(cleanedTerm.split("\\s+"))
+        String tsQuery = Arrays.stream(cleanedTerm.split("\\..s+"))
                 .filter(word -> word.length() > 1) // filter stop-words better
                 .collect(Collectors.joining(" | "));
 
         if (tsQuery.isBlank()) {
-            return ResponseEntity.ok(Collections.emptyList());
+            Page<QuestionSearchResponseDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), 0);
+            return ResponseEntity.ok(emptyPage);
         }
         try {
-            List<Question> results = questionRepository.searchByRelevance(tsQuery);
-            return ResponseEntity.ok(results);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Question> resultPage = questionRepository.searchByRelevance(tsQuery, pageable);
+            Page<QuestionSearchResponseDTO> responsePage = resultPage.map(QuestionSearchResponseDTO::new);
+            return ResponseEntity.ok(responsePage);
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Change the search terms to" +
                     " make them more distinctive and retry");
         }
-
     }
 
+    @Override
     public ResponseEntity<?> commentOnQuestion(CommentDTO commentDTO) {
         Optional<Doctor> doctorOptional = doctorRepository.findById(commentDTO.getDoctorId());
         if (doctorOptional.isEmpty())
@@ -89,7 +99,7 @@ public class QuestionServiceImpl implements QuestionService {
             comment.setDoctor(doctorOptional.get());
             comment.setQuestion(questionOptional.get());
             comment.setContent(commentDTO.getContent());
-            comment.setTime(commentDTO.getQuestionTime());
+            comment.setTime(commentDTO.getCommentTime());
 
             commentRepository.save(comment);
 
@@ -98,6 +108,8 @@ public class QuestionServiceImpl implements QuestionService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving comment, try again");
         }
     }
+
+    @Override
     public ResponseEntity<?> addDoctor(DoctorDTO doctorDTO){
         if (doctorRepository.existsById(doctorDTO.getId())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Doctor with this ID already exists");
@@ -120,17 +132,46 @@ public class QuestionServiceImpl implements QuestionService {
     }
     // Comments needs to be modified: get votes along with the request (Create comment response DTO)
     @Transactional
+    @Override
     public ResponseEntity<?> getCommentsOnQuestion(Long questionId) {
         Optional<Question> questionOptional = questionRepository.findById(questionId);
-        if (questionOptional.isEmpty())
+        if (questionOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
-        try{
-            return ResponseEntity.ok().body(commentRepository.findAllByQuestionId(questionId));
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments" +
-                    ", please retry");
+        }
+        try {
+            Question question = questionOptional.get();
+            List<CommentResponseDTO> commentResponses = new ArrayList<>();
+
+            for (Comment comment : question.getComments()) {
+                int voteCount = comment.getVotes().stream()
+                        .mapToInt(vote -> vote.getVote())
+                        .sum();
+
+                CommentResponseDTO commentResponse = new CommentResponseDTO(
+                        comment.getId(),
+                        comment.getContent(),
+                        comment.getTime(),
+                        comment.getDoctor().getName(),
+                        voteCount
+                );
+                commentResponses.add(commentResponse);
+            }
+
+            QuestionDetailsResponseDTO questionDetails = new QuestionDetailsResponseDTO(
+                    question.getId(),
+                    question.getTitle(),
+                    question.getContent(),
+                    question.getPatientWrittenName(),
+                    question.getQuestionTime(),
+                    commentResponses
+            );
+
+            return ResponseEntity.ok().body(questionDetails);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments, please retry");
         }
     }
+
     public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO){
         Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());
         if(commentOptional.isEmpty()){

@@ -2,19 +2,19 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const ArticleSearchPage = () => {
+const QuestionSearchPage = () => {
   const [term, setTerm] = useState('');
-  const [articles, setArticles] = useState([]);
+  const [question, setQuestions] = useState([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
 
   const search = async (p = 0) => {
     try {
-      const response = await axios.get(`http://localhost:8081/article/article/searchArticle`, {
+      const response = await axios.get(`http://localhost:8081/article/question/searchQuestion`, {
         params: { term, page: p, size: 10 }
       });
-      setArticles(response.data.content);
+      setQuestions(response.data.content);
       setPage(response.data.number);
       setTotalPages(response.data.totalPages);
     } catch (err) {
@@ -33,7 +33,7 @@ const ArticleSearchPage = () => {
             type="text"
             value={term}
             onChange={e => setTerm(e.target.value)}
-            placeholder="Search for articles"
+            placeholder="Search for questions"
             className="flex-1 p-2 border border-gray-300 rounded-md"
           />
           <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">
@@ -44,32 +44,31 @@ const ArticleSearchPage = () => {
 
       <div className="flex-1 overflow-auto p-6">
         <div className="space-y-4">
-          {articles.map(article => (
+          {question.map(question => (
             <div
-            key={article.id}
-            onClick={() => navigate(`/article/${article.id}`)}
-            className="p-6 bg-white rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-1 cursor-pointer border border-gray-100"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {article.title}
-              </h2>
-              <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                {article.category}
-              </span>
+              key={question.id}
+              onClick={() => navigate(`/question/${question.id}`)}
+              className="p-5 bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer"
+            >
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-2xl font-semibold text-gray-800">
+                        {question.title}
+                    </h2>
+                    <span className="text-xs text-gray-400">
+                        {new Date(question.questionTime).toLocaleString()}
+                    </span>
+                </div>
+                <p className="text-gray-600 text-sm line-clamp-3">
+                    {question.contentSnippet}
+                </p>
+                <div className="mt-4 flex items-center space-x-2">
+                    <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                        {question.patientWrittenName?.charAt(0).toUpperCase()}
+                    </div>
+                        <span className="text-gray-700 text-sm">{question.patientWrittenName}</span>
+                </div>
+
             </div>
-          
-            <p className="text-gray-600 text-sm mt-2 line-clamp-3">
-              {article.contentSnippet}
-            </p>
-          
-            <div className="mt-4 text-sm text-gray-500 flex items-center space-x-2">
-              <span>{article.doctorName}</span>
-              <span> • </span>
-              <span>{article.doctorCareerLevel}</span>
-            </div>
-          </div>
-          
           ))}
         </div>
 
@@ -89,4 +88,4 @@ const ArticleSearchPage = () => {
   );
 };
 
-export default ArticleSearchPage;
+export default QuestionSearchPage;

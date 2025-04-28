@@ -1,6 +1,7 @@
 import './App.css';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Import BrowserRouter and Route
-import { Login, Register, AskQuestion, ArticleSearchPage, ArticlePage } from './components/exports'; // Import your components
+import { Login, Register, AskQuestion, QuestionSearchPage, 
+  QuestionDetailPage, ArticleSearchPage, ArticlePage } from './components/exports'; // Import your components
 
 function App() {
   return (
@@ -11,6 +12,9 @@ function App() {
         <Route path="/ask" element={<AskQuestion />} /> {/* Ask Question route */}
         <Route path="/searchArticle" element={<ArticleSearchPage />} /> {/* Article search route */}
         <Route path="/article/:id" element={<ArticlePage />} />
+        <Route path="/searchQuestion" element={<QuestionSearchPage />} /> {/* Question search route */}
+        <Route path="/question/:id" element={<QuestionDetailPage />} />
+
         </Routes>
     </Router>
   );
