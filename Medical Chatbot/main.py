@@ -9,6 +9,8 @@ from src.prompt import *
 import os
 import pinecone
 from flask_cors import CORS
+from py_eureka_client import eureka_client
+
 
 load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -35,6 +37,21 @@ qa = RetrievalQA.from_chain_type(llm=llm,
                                  return_source_documents=True,
                                  chain_type_kwargs={"prompt": PROMPT})
 
+# Configure Eureka Client
+EUREKA_SERVER = "http://localhost:8761/eureka/"  # Default Eureka server URL
+APP_NAME = "Ai-Chatbot-Service"  # Service name in Eureka
+FLASK_PORT = 5000  # Port your Flask app runs on
+
+# Initialize Eureka Client
+eureka_client.init(
+    eureka_server=EUREKA_SERVER,
+    app_name=APP_NAME,
+    instance_port=FLASK_PORT,
+    instance_ip="localhost",  
+    instance_host="localhost",
+)
+
+
 app = Flask(__name__, static_folder='static')
 CORS(app)
 
@@ -51,7 +68,7 @@ CORS(app)
 #     if results["result"] == "":
 #         return "Sorry, I don't understand that."
 #     return str(results["result"])
-@app.route("/get", methods=["POST"])
+@app.route("/chatbot/get", methods=["POST"])
 def chatbot():
     data = request.get_json()
     input = data.get("msg", "")
