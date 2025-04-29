@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: "VerificationService"
+  cloud:
+    config:
+      enabled: false
+
+server:
+  port: 8082
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+
+endpoints:
+  shutdown:
+    enabled: true
+
+
+persona:
+  secret-key: persona_sandbox_bf8d63ed-1776-4a15-af11-22485d69ca70
+
+inquiry:
+  template-id: itmpl_EsFy863H5Rt5uLyqw7gcJfyB8geq
