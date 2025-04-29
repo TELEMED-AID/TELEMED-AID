@@ -7,9 +7,6 @@ spring:
     gateway:
       discovery:
         locator: true
-      httpclient:
-        connect-timeout: 1000
-        response-timeout: 10s
       routes:
         - id: "patient-service"
           uri: lb://Patient-Service
