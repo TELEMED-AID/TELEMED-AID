@@ -23,7 +23,7 @@ public interface ArticleRepository extends
         SELECT count(*) FROM article
         WHERE search_vector @@ to_tsquery('english', :term)
         """,
-            nativeQuery = true)
+            nativeQuery = true) // @Param prevents SQL Injection attack
     Page<Article> searchByRelevance(@Param("term") String term, Pageable pageable);
 
 }

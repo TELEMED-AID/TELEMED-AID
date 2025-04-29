@@ -1,12 +1,12 @@
 package com.example.article_microservice.Service.Implementation;
 
-import com.example.article_microservice.DTO.CommentDTO;
+import com.example.article_microservice.DTO.Question.CommentDTO;
 import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.Question.CommentResponseDTO;
 import com.example.article_microservice.DTO.Question.QuestionDetailsResponseDTO;
 import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
 import com.example.article_microservice.DTO.Question.ReceivedQuestionDTO;
-import com.example.article_microservice.DTO.VoteDTO;
+import com.example.article_microservice.DTO.Question.VoteDTO;
 import com.example.article_microservice.Model.*;
 import com.example.article_microservice.Repository.CommentRepository;
 import com.example.article_microservice.Repository.DoctorRepository;
@@ -101,10 +101,13 @@ public class QuestionServiceImpl implements QuestionService {
             comment.setContent(commentDTO.getContent());
             comment.setTime(commentDTO.getCommentTime());
 
-            commentRepository.save(comment);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body("Comment saved successfully");
-        } catch (Exception e) {
+            Comment response = commentRepository.save(comment);
+            CommentResponseDTO commentResponseDTO = new CommentResponseDTO(response.getId(), response.getContent(),
+                    response.getTime(), response.getDoctor().getName(),
+                    0);
+            return ResponseEntity.status(HttpStatus.CREATED).body(commentResponseDTO);
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving comment, try again");
         }
     }
@@ -144,7 +147,7 @@ public class QuestionServiceImpl implements QuestionService {
 
             for (Comment comment : question.getComments()) {
                 int voteCount = comment.getVotes().stream()
-                        .mapToInt(vote -> vote.getVote())
+                        .mapToInt(vote -> vote.getRank())
                         .sum();
 
                 CommentResponseDTO commentResponse = new CommentResponseDTO(
@@ -183,16 +186,27 @@ public class QuestionServiceImpl implements QuestionService {
         }
         VoteId voteId = new VoteId(voteDTO.getDoctorId(),
                 voteDTO.getCommentId());
-
-        Vote vote = new Vote();
-        vote.setVote(voteDTO.getRank());
+        Optional<Vote> voteExist = voteRepository.findById(voteId);
+        int r;
+        if(voteExist.isPresent() && (voteDTO.getRank() + voteExist.get().getRank() == 0))
+            r = 0;
+        else
+            r = voteDTO.getRank();
+        Vote vote = voteExist.orElseGet(Vote::new);
+        vote.setRank(r);
         vote.setComment(commentOptional.get());
         vote.setDoctor(doctor.get());
 
         vote.setVoteId(voteId);
         try {
-            voteRepository.save(vote);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Vote added successfully");
+            Vote response = voteRepository.save(vote);
+            Comment comm = commentRepository.findById(voteDTO.getCommentId()).get();
+
+            VoteDTO responseVoteDTO = new VoteDTO(response.getComment().getId(), response.getDoctor().getId(),
+                    comm.getVotes().stream()
+                            .mapToInt(v -> v.getRank())
+                            .sum());
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseVoteDTO);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while adding your vote" +
                     ", please retry");

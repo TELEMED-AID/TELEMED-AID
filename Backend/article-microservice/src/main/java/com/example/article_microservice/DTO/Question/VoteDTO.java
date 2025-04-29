@@ -1,10 +1,11 @@
-package com.example.article_microservice.DTO;
+package com.example.article_microservice.DTO.Question;
 
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.Instant;
 @Data
+@AllArgsConstructor
 public class VoteDTO {
     @NotNull(message = "No comment chosen")
     private Long commentId;
@@ -13,7 +14,7 @@ public class VoteDTO {
     @NotNull(message = "No rank given")
     @Min(-1)
     @Max(1)
-    private Byte rank;
+    private Integer rank;
     @AssertTrue(message = "Rank cannot be zero")
     public boolean isRankNotZero() {
         return rank != 0;

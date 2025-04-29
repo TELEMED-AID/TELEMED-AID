@@ -22,5 +22,5 @@ public class Vote {
     @JoinColumn(name = "comment_id")
     @JsonBackReference
     private Comment comment;
-    private byte vote;
+    private Integer rank;
 }

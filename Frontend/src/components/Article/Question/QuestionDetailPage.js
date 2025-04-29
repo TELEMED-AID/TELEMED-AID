@@ -7,6 +7,7 @@ const QuestionDetailPage = () => {
   const [question, setQuestion] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Effect for fetching the question data
   useEffect(() => {
@@ -18,6 +19,7 @@ const QuestionDetailPage = () => {
         setQuestion(response.data);
       } catch (err) {
         console.error(err);
+        setErrorMessage('Something went wrong, please try again')
       }
     };
 
@@ -31,12 +33,16 @@ const QuestionDetailPage = () => {
 
   const handleCommentChange = (e) => {
     setNewComment(e.target.value);
+    setErrorMessage('');
   };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
 
-    if (!newComment.trim()) return;
+    if (!newComment.trim()) {
+      setErrorMessage('Empty comment, please write a useful comment.');
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -51,17 +57,18 @@ const QuestionDetailPage = () => {
       const response = await axios.post('http://localhost:8081/article/question/commentQuestion', commentDTO);
 
       if (response.status === 201) {
-        // Add the new comment to the state without re-fetching from the backend
+        console.log('Comment POST response:', response.data); // <-- Add this
+
         setQuestion((prevQuestion) => ({
           ...prevQuestion,
           comments: [
             ...prevQuestion.comments,
             {
               id: response.data.id,
-              content: newComment,
-              doctorName: 'Doctor Name', // Replace with actual doctor name
-              time: new Date().toISOString(),
-              voteCount: 0, // Initial vote count
+              content: response.data.content,
+              doctorName: response.data.doctorName, 
+              time: response.data.time,
+              voteCount: response.data.voteCount, 
             },
           ],
         }));
@@ -69,10 +76,38 @@ const QuestionDetailPage = () => {
       }
     } catch (err) {
       console.error('Error adding comment:', err);
+      setErrorMessage('Failed to add comment. Please try again later.');
+
     } finally {
       setIsSubmitting(false);
     }
   };
+  const handleVote = async (commentId, rank) => {
+    try {
+      const voteDTO = {
+        commentId,
+        doctorId: 1, // Replace with actual doctor ID
+        rank, // +1 for upvote, -1 for downvote
+      };
+  
+      const response = await axios.post('http://localhost:8081/article/question/addVote', voteDTO);
+  
+      if (response.status === 201) {
+        setQuestion((prevQuestion) => ({
+          ...prevQuestion,
+          comments: prevQuestion.comments.map((comment) =>
+            comment.id === response.data.commentId
+              ? { ...comment, voteCount: response.data.rank }
+              : comment
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error('Voting failed:', error);
+      setErrorMessage('Unable to register vote. Please try again later.');
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 overflow-y-auto">
@@ -104,17 +139,55 @@ const QuestionDetailPage = () => {
                   <span className="text-xs text-gray-400">{new Date(comment.time).toLocaleString()}</span>
                 </div>
                 <p className="text-gray-700 mb-3 whitespace-pre-line">{comment.content}</p>
-                <div className={`text-sm font-medium ${comment.voteCount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {comment.voteCount >= 0 ? `+${comment.voteCount}` : comment.voteCount} votes
+                <div className="flex items-center gap-3 text-sm font-medium">
+                  <button
+                    onClick={() => handleVote(comment.id, 1)}
+                    className="text-green-600 hover:text-green-800 focus:outline-none"
+                    title="Upvote"
+                  >
+                    ▲
+                  </button>
+                    <span className={`${comment.voteCount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {comment.voteCount >= 0 ? `+${comment.voteCount}` : comment.voteCount}
+                    </span>
+                  <button
+                    onClick={() => handleVote(comment.id, -1)}
+                    className="text-red-600 hover:text-red-800 focus:outline-none"
+                    title="Downvote"
+                  >
+                    ▼
+                  </button>
                 </div>
+
               </div>
             ))}
           </div>
         )}
+        
 
         <hr className="my-8 border-gray-300" />
 
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Add a Comment</h3>
+        {errorMessage && (
+          <div className="mb-4 flex items-start p-4 bg-red-50 border border-red-300 text-red-800 rounded-lg shadow-sm">
+            <svg
+              className="w-5 h-5 mr-3 mt-1 text-red-500 flex-shrink-0"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856C18.07 19 19 18.07 19 16.938V7.062C19 5.93 18.07 5 16.938 5H7.062C5.93 5 5 5.93 5 7.062v9.876C5 18.07 5.93 19 7.062 19z"
+              />
+            </svg>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleCommentSubmit} className="space-y-4">
           <textarea
             value={newComment}

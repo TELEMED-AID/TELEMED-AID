@@ -1,4 +1,4 @@
-package com.example.article_microservice.DTO;
+package com.example.article_microservice.DTO.Question;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

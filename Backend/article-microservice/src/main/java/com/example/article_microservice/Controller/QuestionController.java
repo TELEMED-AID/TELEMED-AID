@@ -1,9 +1,9 @@
 package com.example.article_microservice.Controller;
 
-import com.example.article_microservice.DTO.CommentDTO;
+import com.example.article_microservice.DTO.Question.CommentDTO;
 import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.Question.ReceivedQuestionDTO;
-import com.example.article_microservice.DTO.VoteDTO;
+import com.example.article_microservice.DTO.Question.VoteDTO;
 import com.example.article_microservice.Service.Interface.QuestionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
