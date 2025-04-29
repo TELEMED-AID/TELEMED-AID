@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
+@Service
 public class OcrService {
 
     @Value("${persona.secret-key}")
