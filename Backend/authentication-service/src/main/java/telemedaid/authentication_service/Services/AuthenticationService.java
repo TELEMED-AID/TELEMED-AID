@@ -2,6 +2,7 @@ package telemedaid.authentication_service.Services;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import telemedaid.authentication_service.Config.DoctorServiceClient;
 import telemedaid.authentication_service.Config.PatientServiceClient;
+import telemedaid.authentication_service.Config.VerificationServiceClient;
 import telemedaid.authentication_service.DTOs.*;
 import telemedaid.authentication_service.Entities.User;
 import telemedaid.authentication_service.Exceptions.AuthenticationFailedException;
@@ -19,6 +21,8 @@ import telemedaid.authentication_service.Exceptions.UserNotFoundException;
 import telemedaid.authentication_service.Repositories.UserRepository;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -28,6 +32,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final PatientServiceClient patientServiceClient; // Feign Client
     private final DoctorServiceClient doctorServiceClient;
+    private final VerificationServiceClient verificationServiceClient;
 
     /**
      * GUA_UA_U1
@@ -45,9 +50,8 @@ public class AuthenticationService {
                     .createdAt(new Date())
                     .build();
 
+            validateInquiryStatus(request.getInquiryId());
             userRepository.save(user);
-            String jwtToken = jwtService.generateToken(user);
-
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             CreatePatientRequest patientRequest = CreatePatientRequest.builder()
                     .nationalId(request.getNationalId())
@@ -62,7 +66,7 @@ public class AuthenticationService {
             //patientServiceClient.createPatient(patientRequest); /* Feign client to patient-service*/
 
             return AuthResponse.builder()
-                    .token(jwtToken)
+                    .token("Registered Successfully")
                     .build();
 
         } catch (Exception e) {
@@ -83,9 +87,9 @@ public class AuthenticationService {
                     .createdAt(new Date())
                     .build();
 
-            userRepository.save(user);
-            String jwtToken = jwtService.generateToken(user);
+            validateInquiryStatus(request.getInquiryId());
 
+            userRepository.save(user);
             CreateDoctorRequest createDoctorRequest = CreateDoctorRequest.builder()
                     .name(request.getName())
                     .nationalId(request.getNationalId())
@@ -101,13 +105,34 @@ public class AuthenticationService {
             //doctorServiceClient.addDoctor(createDoctorRequest); /* Feign client to doctor-service*/
 
             return AuthResponse.builder()
-                    .token(jwtToken)
+                    .token("Registered Successfully")
                     .build();
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to register doctor: " + e.getMessage());
         }
     }
+    /**
+     * GUA_UA_U2
+     **/
+    public InquiryResponse verifyNationalId() {
+        ResponseEntity<?> response = verificationServiceClient.createOcrInquiry();
+        System.out.println(response.getStatusCode());
+        System.out.println(response.getBody());
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            Map<String, String> responseBody = (Map<String, String>) response.getBody();
+
+            assert responseBody != null;
+            return InquiryResponse.builder()
+                    .inquiryId(responseBody.get("inquiryId"))
+                    .verificationLink(responseBody.get("verificationLink"))
+                    .build();
+        } else {
+            throw new RuntimeException("Failed to initiate national ID verification");
+        }
+    }
+
 
 
     /**
@@ -141,6 +166,17 @@ public class AuthenticationService {
     public UserDetails getUserByNationalId(String nationalId) {
         return userRepository.findByNationalId(nationalId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with national ID: " + nationalId));
+    }
+
+    public void validateInquiryStatus(String inquiryId) {
+        String status = verificationServiceClient.inquiryState(inquiryId);
+        System.out.println("Status is :" + status);
+        if (status == null) {
+            throw new RuntimeException("Failed to verify inquiry status");
+        }
+        if (!"approved".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Identity verification failed. Status: " + status);
+        }
     }
 
 }

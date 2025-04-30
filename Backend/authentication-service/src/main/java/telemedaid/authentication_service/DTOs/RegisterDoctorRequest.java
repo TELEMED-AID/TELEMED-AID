@@ -22,4 +22,5 @@ public class RegisterDoctorRequest {
     private Role role;
     private String careerLevelName;
     private String specializationName;
+    private String inquiryId;
 }

@@ -20,5 +20,6 @@ public class RegisterPatientRequest {
     private Date dateOfBirth;
     private String gender;
     private Role role;
+    private String inquiryId;
 
 }

@@ -9,16 +9,11 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import telemedaid.authentication_service.DTOs.AuthResponse;
-import telemedaid.authentication_service.DTOs.LoginRequest;
-import telemedaid.authentication_service.DTOs.RegisterDoctorRequest;
-import telemedaid.authentication_service.DTOs.RegisterPatientRequest;
+import telemedaid.authentication_service.DTOs.*;
 import telemedaid.authentication_service.Exceptions.AuthenticationFailedException;
 import telemedaid.authentication_service.Exceptions.UserAlreadyExistsException;
 import telemedaid.authentication_service.Exceptions.UserNotFoundException;
 import telemedaid.authentication_service.Services.AuthenticationService;
-import telemedaid.authentication_service.Services.JwtService;
-import telemedaid.authentication_service.DTOs.ErrorResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,7 +21,6 @@ import telemedaid.authentication_service.DTOs.ErrorResponse;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
-    private final JwtService jwtService;
     /**
      * GUA_UA_U1
      **/
@@ -52,6 +46,20 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Registration failed", "An unexpected error occurred"));
+        }
+    }
+    /**
+     * GUA_UA_U2
+     **/
+
+    @GetMapping("/verify-id")
+    public ResponseEntity<?> verifyNationalId() {
+        try {
+            InquiryResponse dto = authenticationService.verifyNationalId();
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Verification failed", e.getMessage()));
         }
     }
 

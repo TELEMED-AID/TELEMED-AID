@@ -9,6 +9,6 @@ import telemedaid.authentication_service.DTOs.CreatePatientRequest;
 @FeignClient(name = "patient-service", url = "http://localhost:8082")
 public interface PatientServiceClient {
 
-    @PostMapping("/patients/register")
+    @PostMapping("/patient/register")
     ResponseEntity<String> createPatient(@RequestBody CreatePatientRequest request);
 }
