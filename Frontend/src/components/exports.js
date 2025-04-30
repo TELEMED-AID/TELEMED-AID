@@ -6,3 +6,4 @@ export {default as QuestionSearchPage} from './Article/Question/QuestionSearchPa
 export {default as ArticleSearchPage} from './Article/Articles/ArticleSearchPage'
 export {default as ArticlePage} from './Article/Articles/ArticlePage'
 export {default as QuestionDetailPage} from './Article/Question/QuestionDetailPage'
+export {default as PublishArticlePage} from './Article/Articles/PublishArticle'
