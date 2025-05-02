@@ -1,9 +1,9 @@
-package Service;
+package com.appointments.appointmentservice.Service;
 
-import Entities.Appointment;
-import Entities.AppointmentID;
-import Entities.AppointmentState;
-import Repositories.MakeAppointment;
+import com.appointments.appointmentservice.Entities.Appointment;
+import com.appointments.appointmentservice.Entities.AppointmentID;
+import com.appointments.appointmentservice.Entities.AppointmentState;
+import com.appointments.appointmentservice.Repositories.MakeAppointment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

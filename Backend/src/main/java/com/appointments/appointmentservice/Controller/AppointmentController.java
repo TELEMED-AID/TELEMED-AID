@@ -1,6 +1,8 @@
-package Controller;
+package com.appointments.appointmentservice.Controller;
 
-import DTOs.MakeAppointment;
+import com.appointments.appointmentservice.DTOs.MakeAppointment;
+import com.appointments.appointmentservice.Service.BookAppointment;
+import com.appointments.appointmentservice.Service.CancelAppointment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import Service.*;
 
 @RestController
 @RequestMapping("/api/appointments")

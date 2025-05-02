@@ -1,7 +1,7 @@
 package com.appointments.appointmentservice;
 
-import Entities.Appointment;
-import Repositories.MakeAppointment;
+import com.appointments.appointmentservice.Entities.Appointment;
+import com.appointments.appointmentservice.Repositories.MakeAppointment;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;

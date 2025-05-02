@@ -1,6 +1,6 @@
-package DTOs;
+package com.appointments.appointmentservice.DTOs;
 
-import Entities.AppointmentState;
+import com.appointments.appointmentservice.Entities.AppointmentState;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

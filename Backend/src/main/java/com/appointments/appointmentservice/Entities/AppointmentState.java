@@ -1,4 +1,4 @@
-package Entities;
+package com.appointments.appointmentservice.Entities;
 
 public enum AppointmentState {
     PENDING,

@@ -1,7 +1,7 @@
-package Service;
+package com.appointments.appointmentservice.Service;
 
-import Entities.AppointmentID;
-import Repositories.MakeAppointment;
+import com.appointments.appointmentservice.Entities.AppointmentID;
+import com.appointments.appointmentservice.Repositories.MakeAppointment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

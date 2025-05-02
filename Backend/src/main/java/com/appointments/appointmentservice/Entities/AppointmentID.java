@@ -1,4 +1,4 @@
-package Entities;
+package com.appointments.appointmentservice.Entities;
 
 import jakarta.persistence.Embeddable;
 import java.io.Serializable;
