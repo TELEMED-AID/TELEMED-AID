@@ -6,7 +6,7 @@ spring:
       enabled: false
 
 server:
-  port: 8082
+  port: 8050
 
 eureka:
   instance:
