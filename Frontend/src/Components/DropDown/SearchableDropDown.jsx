@@ -21,7 +21,7 @@ const SearchableDropDown = ({
                                 dropDownError,
                                 helperText,
                                 loading = false, // Default value set to false
-                                disabled
+                                disabled,
                             }) => {
     const initializedItems = Array.isArray(items) ? items : [];
 
@@ -52,7 +52,6 @@ const SearchableDropDown = ({
                         {...params}
                         label={label}
                         variant="outlined"
-                        error={dropDownError}
                         fullWidth
                         InputLabelProps={{ shrink: true }}
                         placeholder={loading?"Loading options...":placeholder}
@@ -67,16 +66,17 @@ const SearchableDropDown = ({
                         }}
                         disabled = {disabled}
                     />
+
                 )}
                 loadingText="Loading options..." // Customize loading text
             />
             {isEmpty && (
-                <Typography variant="body2" color="error" marginTop={1}>
+                <Typography variant="body2" color="red" marginTop={1}>
                     {name} is required
                 </Typography>
             )}
             {helperText && (
-                <Typography variant="body2" color="error" marginTop={1}>
+                <Typography variant="body2" color="red" marginTop={1}>
                     {helperText}
                 </Typography>
             )}
