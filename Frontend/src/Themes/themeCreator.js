@@ -192,9 +192,11 @@ const themeCreator = (theme) => {
         },
       },
     },
-    shadows: {
-      main: "0px 0px 14px 0px rgba(211, 211, 211, 0.4)",
-    },
+    shadows: [
+      "none", // elevation 0
+      "0px 0px 14px 0px rgba(211, 211, 211, 0.4)", // elevation 1 (your custom shadow)
+      ...Array(23).fill("none") // fill the rest to avoid errors
+    ],
     pageHeight: `calc(100vh - ${navbarHeight}px)`,
     sidebar :{sidebarWidth} ,
     navbar:{navbarHeight},
