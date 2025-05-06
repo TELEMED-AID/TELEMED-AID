@@ -1,5 +1,7 @@
 package telemedaid.authentication_service.Config;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,11 +27,31 @@ public class SecurityConfig {
                         .requestMatchers("/auth/signup/patient",
                                 "/auth/signup/doctor",
                                 "/auth/login",
-                                "/auth/validate").permitAll()
+                                "/auth/validate",
+                                "/auth/get-current-user",
+                                "/auth/logout").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider);
+                .authenticationProvider(authenticationProvider).logout(logout -> logout
+                .logoutUrl("/auth/logout")
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    Cookie[] cookies = request.getCookies();
+                    if (cookies != null) {
+                        for (Cookie cookie : cookies) {
+                            if ("jwt".equals(cookie.getName())) {
+                                cookie.setValue("");
+                                cookie.setPath("/");
+                                cookie.setMaxAge(0);
+                                cookie.setSecure(false);
+                                cookie.setHttpOnly(true);
+                                response.addCookie(cookie);
+                            }
+                        }
+                    }
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.getWriter().write("Logged out successfully");
+                }));
 
         return http.build();
     }

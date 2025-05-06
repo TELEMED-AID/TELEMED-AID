@@ -54,6 +54,7 @@ public class AuthenticationService {
             userRepository.save(user);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             CreatePatientRequest patientRequest = CreatePatientRequest.builder()
+                    .id(user.getId())
                     .nationalId(request.getNationalId())
                     .name(request.getName())
                     .countryName(request.getCountryName())
@@ -63,7 +64,7 @@ public class AuthenticationService {
                     .birthDate(sdf.format(request.getDateOfBirth()))
                     .build();
 
-            //patientServiceClient.createPatient(patientRequest); /* Feign client to patient-service*/
+            patientServiceClient.createPatient(patientRequest); /* Feign client to patient-service*/
 
             return AuthResponse.builder()
                     .token("Registered Successfully")
@@ -91,6 +92,7 @@ public class AuthenticationService {
 
             userRepository.save(user);
             CreateDoctorRequest createDoctorRequest = CreateDoctorRequest.builder()
+                    .id(user.getId())
                     .name(request.getName())
                     .nationalId(request.getNationalId())
                     .birthDate(request.getDateOfBirth())
@@ -102,7 +104,7 @@ public class AuthenticationService {
                     .specializationName(request.getSpecializationName())
                     .build();
 
-            //doctorServiceClient.addDoctor(createDoctorRequest); /* Feign client to doctor-service*/
+            doctorServiceClient.addDoctor(createDoctorRequest); /* Feign client to doctor-service*/
 
             return AuthResponse.builder()
                     .token("Registered Successfully")
@@ -163,9 +165,19 @@ public class AuthenticationService {
         return userRepository.findByNationalId(nationalId).isPresent();
     }
 
-    public UserDetails getUserByNationalId(String nationalId) {
-        return userRepository.findByNationalId(nationalId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with national ID: " + nationalId));
+    public UserDTO getUserByNationalId(String nationalId) {
+        User user = userRepository.findByNationalId(nationalId)
+                .orElseThrow(() ->
+                        new UserNotFoundException
+                                ("User not found with national ID: "
+                                        + nationalId));
+        return UserDTO.builder()
+                .id(user.getId())
+                .role(user.getRole())
+                .build();
+    }
+    public String extractUsername(String token) {
+        return jwtService.extractUsername(token); // from your JWT utility/service
     }
 
     public void validateInquiryStatus(String inquiryId) {

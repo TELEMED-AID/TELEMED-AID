@@ -5,8 +5,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import telemedaid.authentication_service.DTOs.*;
@@ -90,5 +88,27 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse("Authentication failed", "An unexpected error occurred"));
         }
+    }
+    @GetMapping("/get-current-user")
+    public ResponseEntity<?> getCurrentUser(@CookieValue(name = "jwt", required = false) String token){
+        try {
+            if (token == null || token.isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(new ErrorResponse("Unauthorized", "No JWT token found"));
+            }
+
+            String nationalId = authenticationService.extractUsername(token);
+            UserDTO user = authenticationService.getUserByNationalId(nationalId);
+
+
+            return ResponseEntity.ok(user);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("User not found", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse("Error", "An unexpected error occurred"));
+        }
+
     }
 }

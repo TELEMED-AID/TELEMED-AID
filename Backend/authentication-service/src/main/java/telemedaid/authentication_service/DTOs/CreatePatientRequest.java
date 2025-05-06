@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class CreatePatientRequest {
+    private Long id;
     private String nationalId;  // Must match exactly
     private String name;
     private String countryName;
