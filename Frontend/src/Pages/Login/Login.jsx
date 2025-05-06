@@ -18,7 +18,7 @@ import { useState, useRef, useEffect } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 import SearchableDropDown from "../../Components/DropDown/SearchableDropDown";
-import { countries } from "../../Utils/HelpingObjects";
+import { countries } from "../../Utils/HelperObjects";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import ToggleOffIcon from "@mui/icons-material/ToggleOff";
 const Login = () => {
@@ -69,24 +69,24 @@ const Login = () => {
 
   return (
     <LoginPageStyles>
+      <LogoTitle/>
       <form onSubmit={handleSubmit(onLoginSubmit)} className="formWrapper">
         <Box
           sx={{
             minHeight: "100vh",
             display: "flex",
             justifyContent: "center",
-            alignItems: "center",
             bgcolor: "#fff",
           }}
         >
-          <Box sx={{ width: 400, p: 3 }}>
+          <Box sx={{ width: 400 }}>
             <Grid item xs={12} sx={{ mb: 3 }}>
               <Typography variant="h3" className="loginTitle">
                 Login Page
               </Typography>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item ms={12}>
               <Typography
                 variant="body1"
                 sx={{ mt: 2, mb: 1, fontSize: "1.1rem" }}
@@ -108,7 +108,7 @@ const Login = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item md={12}>
               <Typography variant="body1" sx={{ mb: 1, fontSize: "1.1rem" }}>
                 Country
               </Typography>
@@ -124,6 +124,7 @@ const Login = () => {
                 name="country"
                 placeholder="Select Your Country"
                 items={countries}
+                renderItem={(item) => `${item.flag} ${item.name}`}
                 dropDownError={errors.country}
                 helperText={errors.country?.message}
               />
@@ -176,7 +177,6 @@ const Login = () => {
                 Are You a Doctor?
               </Typography>
               <IconButton
-                sx={{ pl: 5 }}
                 onClick={() => toggelVisabiltyForPlannerEmail(!isDoctor)}
               >
                 {isDoctor ? (
@@ -195,7 +195,7 @@ const Login = () => {
                 py: 1.5,
                 fontSize: "1.1rem",
                 textTransform: "none",
-                bgcolor: "#56c2b3",
+                bgcolor: "#33b4d4",
                 "&:hover": {
                   bgcolor: "#48a89d",
                 },
