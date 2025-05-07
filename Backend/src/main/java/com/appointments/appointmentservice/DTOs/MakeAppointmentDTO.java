@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Builder
-public class MakeAppointment {
+public class MakeAppointmentDTO {
     private String UserId;
     private String DoctorId;
     private LocalDate Date;

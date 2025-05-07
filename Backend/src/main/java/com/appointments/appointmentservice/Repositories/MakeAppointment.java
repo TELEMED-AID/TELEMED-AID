@@ -13,4 +13,5 @@ public interface MakeAppointment extends JpaRepository<Appointment, AppointmentI
     boolean existsById(@NonNull AppointmentID id);
     List<Appointment> findByIdUserID(String userID);
     List<Appointment> findByIdDoctorID(String doctorID);
+    List<Appointment> findByIdUserIDAndIdDoctorID(String userID, String doctorID);
 }

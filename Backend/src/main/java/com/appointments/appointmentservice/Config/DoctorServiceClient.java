@@ -1,12 +1,15 @@
 package com.appointments.appointmentservice.Config;
 
-import org.springframework.http.ResponseEntity;
+import com.appointments.appointmentservice.DTOs.DoctorDataDTO;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 
-//@FeignClient(name = "doctor-service", url = "http://localhost:9090")
+@FeignClient(name = "doctor-service", url = "${doctor.service.url}")
 public interface DoctorServiceClient {
 //    @GetMapping("/doctor/availability")
 //    ResponseEntity<String> getDoctors(@RequestBody CreatePatientRequest request);
+@GetMapping("/api/doctor/{nationalId}")
+DoctorDataDTO getDoctorById(@PathVariable("nationalId") String nationalId);
 }
