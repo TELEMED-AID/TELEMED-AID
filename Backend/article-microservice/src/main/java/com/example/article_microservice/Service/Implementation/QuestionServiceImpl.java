@@ -176,29 +176,29 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO){
-        Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());
-        if(commentOptional.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
-        }
-        Optional<Doctor> doctor = doctorRepository.findById(voteDTO.getDoctorId());
-        if(doctor.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
-        }
-        VoteId voteId = new VoteId(voteDTO.getDoctorId(),
+        try{
+            Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());
+            if(commentOptional.isEmpty()){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
+            }
+            Optional<Doctor> doctor = doctorRepository.findById(voteDTO.getDoctorId());
+            if(doctor.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
+            }
+            VoteId voteId = new VoteId(voteDTO.getDoctorId(),
                 voteDTO.getCommentId());
-        Optional<Vote> voteExist = voteRepository.findById(voteId);
-        int r;
-        if(voteExist.isPresent() && (voteDTO.getRank() + voteExist.get().getRank() == 0))
-            r = 0;
-        else
-            r = voteDTO.getRank();
-        Vote vote = voteExist.orElseGet(Vote::new);
-        vote.setRank(r);
-        vote.setComment(commentOptional.get());
-        vote.setDoctor(doctor.get());
+            Optional<Vote> voteExist = voteRepository.findById(voteId);
+            int r;
+            if(voteExist.isPresent() && (voteDTO.getRank() + voteExist.get().getRank() == 0))
+                r = 0;
+            else
+                r = voteDTO.getRank();
+            Vote vote = voteExist.orElseGet(Vote::new);
+            vote.setRank(r);
+            vote.setComment(commentOptional.get());
+            vote.setDoctor(doctor.get());
 
-        vote.setVoteId(voteId);
-        try {
+            vote.setVoteId(voteId);
             Vote response = voteRepository.save(vote);
             Comment comm = commentRepository.findById(voteDTO.getCommentId()).get();
 

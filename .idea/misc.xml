@@ -6,7 +6,13 @@
       <list>
         <option value="$PROJECT_DIR$/Backend/article-microservice/demo/pom.xml" />
         <option value="$PROJECT_DIR$/Backend/article-microservice/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/content-enricher-microservice/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/Backend/content-enricher-microservice/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK">
