@@ -33,6 +33,7 @@ public class PatientServiceTest {
         MockitoAnnotations.openMocks(this);
 
         createPatientRequest = new CreatePatientRequest();
+        createPatientRequest.setId(1L);
         createPatientRequest.setNationalId("12345");
         createPatientRequest.setCountryName("USA");
         createPatientRequest.setCountryId("UA");
@@ -49,13 +50,13 @@ public class PatientServiceTest {
     @Test
     public void getPatientTest() {
         // Arrange
-        Patient existingPatient = new Patient("12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
+        Patient existingPatient = new Patient(1L,"12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
 
-        when(patientRepository.findById("12345"))
+        when(patientRepository.findById(1L))
                 .thenReturn(Optional.of(existingPatient));
 
         // Act
-        GetPatientRequest result = patientService.getPatient("12345");
+        GetPatientRequest result = patientService.getPatient(1L);
 
         // Assert
         assertNotNull(result);
@@ -63,7 +64,7 @@ public class PatientServiceTest {
         assertEquals("123456789", result.getPhone());
         assertEquals("USA", result.getCountryName());
 
-        verify(patientRepository, times(1)).findById("12345");
+        verify(patientRepository, times(1)).findById(1L);
         verifyNoMoreInteractions(patientRepository);
     }
     @Test
@@ -76,10 +77,10 @@ public class PatientServiceTest {
 
     @Test
     public void testUpdatePatientInfo_PatientExists() {
-        Patient existingPatient = new Patient("12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
-        when(patientRepository.findById("12345")).thenReturn(Optional.of(existingPatient));
+        Patient existingPatient = new Patient(1L,"12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(existingPatient));
 
-        boolean updated = patientService.updatePatientInfo("12345", updatePatientRequest);
+        boolean updated = patientService.updatePatientInfo(1L, updatePatientRequest);
 
         assertTrue(updated);
         verify(patientRepository, times(1)).save(any(Patient.class));
@@ -87,9 +88,9 @@ public class PatientServiceTest {
 
     @Test
     public void testUpdatePatientInfo_PatientNotFound() {
-        when(patientRepository.findById("12345")).thenReturn(Optional.empty());
+        when(patientRepository.findById(1L)).thenReturn(Optional.empty());
 
-        boolean updated = patientService.updatePatientInfo("12345", updatePatientRequest);
+        boolean updated = patientService.updatePatientInfo(1L, updatePatientRequest);
 
         assertFalse(updated);
     }

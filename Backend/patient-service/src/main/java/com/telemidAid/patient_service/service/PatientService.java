@@ -36,7 +36,7 @@ public class PatientService {
         patientRepository.save(patient);
     }
     @Transactional(readOnly = true)
-    public GetPatientRequest getPatient(String patientId) {
+    public GetPatientRequest getPatient(Long patientId) {
         return patientRepository.findById(patientId)
                 .map(GetPatientRequest::fromEntity)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -45,7 +45,7 @@ public class PatientService {
                 ));
     }
 
-    public boolean updatePatientInfo(String userId, UpdatePatientRequest request) {
+    public boolean updatePatientInfo(Long userId, UpdatePatientRequest request) {
         Optional<Patient> optionalPatient = patientRepository.findById(userId);
         if (optionalPatient.isEmpty()) {
             return false;
