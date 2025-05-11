@@ -15,6 +15,9 @@ import java.sql.Date;
 @Builder
 public class Patient {
     @Id
+    @Column(name = "id", nullable = false)
+    private Long id;
+
     @Column(name = "national_id", length = 20)
     private String nationalId;
 

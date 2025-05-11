@@ -14,6 +14,7 @@ import java.sql.Date;
 @Setter
 @AllArgsConstructor
 public class GetPatientRequest {
+    private Long id;
     private String name;
     private String countryName;
     private String countryId;
@@ -23,6 +24,7 @@ public class GetPatientRequest {
 
     public static GetPatientRequest fromEntity(Patient patient) {
         return new GetPatientRequest(
+                patient.getId(),
                 patient.getName(),
                 patient.getCountryName(),
                 patient.getCountryId(),

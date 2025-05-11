@@ -24,7 +24,7 @@ public class PatientService {
 
     public void createPatient(CreatePatientRequest request) {
         Patient patient = Patient.builder()
-                .nationalId(request.getNationalId())
+                .id(request.getId())
                 .countryName(request.getCountryName())
                 .countryId(request.getCountryId())
                 .name(request.getName())
