@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @RequiredArgsConstructor
 public class CancelAppointment {
     private final MakeAppointment appointmentRepository;
-    public boolean cancelAppointment(String userID, String doctorID, LocalDate date, LocalTime time) {
+    public boolean cancelAppointment(String userID, Long doctorID, LocalDate date, LocalTime time) {
         if (userID == null || doctorID == null || date == null || time == null) {
             return false;
         }

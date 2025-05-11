@@ -13,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 public class AppointmentID implements Serializable {
     private String userID;
-    private String doctorID;
+    private Long doctorID;
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
 }

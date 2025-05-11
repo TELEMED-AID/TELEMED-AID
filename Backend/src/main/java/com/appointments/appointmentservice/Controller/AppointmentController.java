@@ -47,7 +47,11 @@ public class AppointmentController {
     @GetMapping("/patient/{userId}/doctor/{doctorId}")
     public ResponseEntity<List<AppointmentResponseDTO>> getPatientAppointmentsWithDoctor(
             @PathVariable String userId,
+<<<<<<< Updated upstream
             @PathVariable String doctorId) {
+=======
+            @PathVariable Long doctorId) {
+>>>>>>> Stashed changes
         return ResponseEntity.ok(appointmentQueryService.getAppointmentsForPatient(userId, doctorId));
     }
 }

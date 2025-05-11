@@ -17,7 +17,11 @@ public class AppointmentQueryService {
     private final MakeAppointment appointmentRepository;
     private final DoctorServiceClient doctorServiceClient;
 
+<<<<<<< Updated upstream
     public List<AppointmentResponseDTO> getAppointmentsForPatient(String userId, String doctorIdFilter) {
+=======
+    public List<AppointmentResponseDTO> getAppointmentsForPatient(String userId, Long doctorIdFilter) {
+>>>>>>> Stashed changes
         List<Appointment> appointments;
         if (doctorIdFilter != null) {
             appointments = appointmentRepository.findByIdUserIDAndIdDoctorID(userId, doctorIdFilter);

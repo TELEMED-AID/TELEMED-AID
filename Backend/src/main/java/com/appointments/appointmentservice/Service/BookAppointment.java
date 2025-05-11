@@ -16,7 +16,7 @@ import java.time.LocalTime;
 public class BookAppointment {
     private final MakeAppointment appointmentRepository;
     @Transactional
-    public boolean bookAppointment(String userID, String doctorID, LocalDate date, LocalTime time) {
+    public boolean bookAppointment(String userID, Long doctorID, LocalDate date, LocalTime time) {
         if (userID == null || doctorID == null || date == null || time == null) {
             return false;
         }

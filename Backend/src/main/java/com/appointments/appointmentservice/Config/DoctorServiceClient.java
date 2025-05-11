@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface DoctorServiceClient {
 //    @GetMapping("/doctor/availability")
 //    ResponseEntity<String> getDoctors(@RequestBody CreatePatientRequest request);
+<<<<<<< Updated upstream
 @GetMapping("/api/doctor/{nationalId}")
 DoctorDataDTO getDoctorById(@PathVariable("nationalId") String nationalId);
+=======
+@GetMapping("/api/doctor/{Id}")
+DoctorDataDTO getDoctorById(@PathVariable("Id") Long nationalId);
+>>>>>>> Stashed changes
 }

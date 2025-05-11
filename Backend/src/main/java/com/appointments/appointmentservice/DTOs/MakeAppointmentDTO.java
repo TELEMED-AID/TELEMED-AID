@@ -13,7 +13,11 @@ import java.time.LocalTime;
 @Builder
 public class MakeAppointmentDTO {
     private String UserId;
+<<<<<<< Updated upstream
     private String DoctorId;
+=======
+    private Long DoctorId;
+>>>>>>> Stashed changes
     private LocalDate Date;
     private LocalTime time;
     private AppointmentState State;
