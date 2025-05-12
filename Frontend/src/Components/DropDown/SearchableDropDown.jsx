@@ -26,11 +26,11 @@ const SearchableDropDown = ({
     const initializedItems = Array.isArray(items) ? items : [];
 
     // Derive the selected option from the id stored in state
-    const selectedOption = initializedItems.find(option => option.id === state) || null;
+    const selectedOption = initializedItems.find(option => option.name === state) || null;
 
     function handleOnChange(_, selectedOption) {
         if (selectedOption) {
-            setState(selectedOption.id); // update state with the id only
+            setState(selectedOption.name); // update state with the id only
         } else {
             setState(""); // or set to null if you prefer
         }

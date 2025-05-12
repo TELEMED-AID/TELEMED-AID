@@ -1,463 +1,554 @@
-import React from "react";
+import React, { use, useEffect } from "react";
 import {
-    Box,
-    Button,
-    TextField,
-    Typography,
-    Link,
-    Grid,
-    IconButton,
-    InputAdornment,
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Link,
+  Grid,
+  IconButton,
+  InputAdornment,
 } from "@mui/material";
-import DropdownBox from "../../Components/DropDown/DropdownBox";
 import LogoTitle from "../../Components/LogoTitle/LogoTitle";
 import SignupPageStyle from "./SignupPageStyle";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { countries } from "../../Utils/HelperObjects";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import ToggleOffIcon from "@mui/icons-material/ToggleOff";
-const Signup = () => {
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        formState: { errors },
-        watch,
-    } = useForm();
+import { submitFormWithValidation } from "../../Utils/Validations/FormValidation";
+import {
+  DropDownValidation,
+  NationalIdValidation,
+  NameValidation,
+  pastOrNowDateValidation,
+  PhoneValidation,
+  WithoutValidation,
+  PasswordValidation,
+} from "../../Utils/Validations/ValidationSchema";
+import Joi from "joi";
+import SearchableDropDown from "../../Components/DropDown/SearchableDropDown";
+export default function Signup() {
+  const { handleSubmit, setValue } = useForm();
 
-    const navigate = useNavigate();
+  const [errors, setErrors] = useState({});
 
-    const [showPassword, setShowPassword] = useState(false);
-    const [isDoctor, setIsDoctor] = useState(false);
+  let validationSchema = Joi.object({
+    name: NameValidation("Full Name"),
+    nationalId: NationalIdValidation("National Id"),
+    countryName: DropDownValidation("Country Name", false),
+    phone: PhoneValidation("Phone Number"),
+    birthDate: pastOrNowDateValidation,
+    gender: DropDownValidation("Gender", false),
+    password: PasswordValidation("Password"),
+    inquiryId: WithoutValidation,
+  });
 
-    const handleTogglePassword = () => {
-        setShowPassword((prev) => !prev);
-    };
+  const initialFormState = {
+    name: "",
+    nationalId: "",
+    countryName: "",
+    phone: "",
+    dateOfBirth: "",
+    gender: "",
+    password: "",
+    specializationName: "",
+    careerLevelName: "",
+    inquiryId: "",
+  };
+  const [requestState, setRequestState] = useState(initialFormState);
 
-    const onSignupSubmit = (data) => {
-        console.log("Signup data", data);
-    };
+  const navigate = useNavigate();
 
-    const toggelRole = async (state) => {
-        setIsDoctor(state);
-    };
+  const [showPassword, setShowPassword] = useState(false);
+  const [isDoctor, setIsDoctor] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSignupButtonEnabled, setIsSignupButtonEnabled] = useState(false);
 
-    return (
-        <SignupPageStyle>
-            <LogoTitle />
-            <form
-                onSubmit={handleSubmit(onSignupSubmit)}
-                className="formWrapper"
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  const toggelRole = async (state) => {
+    setIsDoctor(state);
+  };
+  const findCountryPhoneCode = (countryName) => {
+    let country = countries.find((country) => country.name === countryName);
+    return country?.phoneCode;
+  };
+
+  const handleValidationIdentityButton = () => {
+    console.log("handleValidationIdentityButton ... ");
+    //api call to get verification link
+  };
+  const validatePasswordMatch = () => {
+    if (requestState.password !== confirmPassword) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        confirmPassword: "Passwords do not match",
+      }));
+    } else {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        confirmPassword: "",
+      }));
+    }
+  };
+
+  const onSignupSubmit = async () => {
+
+    if (!isDoctor) {
+      const { specializationName, careerLevelName, ...patientRequestState } =
+        requestState;
+      const patientRequest = await submitFormWithValidation(
+        patientRequestState,
+        false,
+        null,
+        setErrors,
+        validationSchema
+      );
+      validatePasswordMatch();
+      if (Object.keys(errors).length != 0 || patientRequest == null) {
+        return;
+      }
+      // api to call request for user signup user request
+    } else {
+      validationSchema = validationSchema.keys({
+        specializationName: DropDownValidation("Specialization", false),
+        careerLevelName: DropDownValidation("Career Level", false),
+      });
+      const doctorRequest = await submitFormWithValidation(
+        requestState,
+        false,
+        null,
+        setErrors,
+        validationSchema
+      );
+
+      validatePasswordMatch();
+      if (Object.keys(errors).length != 0 || doctorRequest == null) {
+        return;
+      }
+      // api to call request for user signup doctor request
+    }
+  };
+
+  return (
+    <SignupPageStyle>
+      <LogoTitle />
+      <form onSubmit={handleSubmit(onSignupSubmit)} className="formWrapper">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            // alignItems: "center",
+          }}
+        >
+          <Box sx={{ width: { xs: "400px", sm: "800px" } }}>
+            <Grid>
+              <Typography variant="h3" className="loginTitle">
+                Signup Page
+              </Typography>
+            </Grid>
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
+                gap: 2, // Consistent spacing between items
+                justifyContent: "space-evenly",
+              }}
             >
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Full Name
+                </Typography>
+                <TextField
+                  variant="outlined"
+                  placeholder="Full Name"
+                  value={requestState.name}
+                  onChange={(e) => {
+                    setRequestState({
+                      ...requestState,
+                      name: e.target.value,
+                    });
+                    setErrors({ ...errors, name: "" });
+                  }}
+                  sx={{ width: "100%" }}
+                  helperText={errors?.name}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  National ID
+                </Typography>
+                <TextField
+                  variant="outlined"
+                  placeholder="National ID"
+                  value={requestState.nationalId}
+                  onChange={(e) => {
+                    setRequestState({
+                      ...requestState,
+                      nationalId: e.target.value,
+                    });
+                    setErrors({ ...errors, nationalId: "" });
+                  }}
+                  helperText={errors?.nationalId}
+                  sx={{ mb: 2, width: "100%" }}
+                />
+              </Box>
+            </Box>
+
+            {/* ***************************** */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
+                gap: 2, // Consistent spacing between items
+                justifyContent: "space-evenly",
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Country
+                </Typography>
+                <SearchableDropDown
+                  placeholder="Select your country"
+                  name="country"
+                  state={requestState.countryName}
+                  setState={(value) => {
+                    setRequestState({ ...requestState, countryName: value });
+                    setErrors({ ...errors, countryName: "" }); // Clear error message on selection
+                  }}
+                  helperText={errors?.countryName}
+                  items={countries}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Phone Number
+                </Typography>
+                <TextField
+                  variant="outlined"
+                  fullWidth
+                  placeholder="Phone Number"
+                  helperText={errors?.phone}
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        {findCountryPhoneCode(requestState.countryName)}
+                      </InputAdornment>
+                    ),
+                  }}
+                  onChange={(e) => {
+                    setRequestState({
+                      ...requestState,
+                      phone: e.target.value,
+                    });
+                    setErrors({ ...errors, phone: "" });
+                  }}
+                />
+              </Box>
+            </Box>
+            {/* ***************************** */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
+                gap: 2, // Consistent spacing between items
+                justifyContent: "space-evenly",
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Date of Birth
+                </Typography>
+                <TextField
+                  type="date"
+                  fullWidth
+                  InputLabelProps={{ shrink: true }}
+                  helperText={errors?.birthDate}
+                  onChange={(e) => {
+                    setRequestState({
+                      ...requestState,
+                      birthDate: e.target.value,
+                    });
+                    setErrors({ ...errors, birthDate: "" });
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Gender
+                </Typography>
+                <SearchableDropDown
+                  placeholder="Select your gender"
+                  name="gender"
+                  state={requestState.gender}
+                  setState={(value) => {
+                    setRequestState({ ...requestState, gender: value });
+                    setErrors({ ...errors, gender: "" }); // Clear error message on selection
+                  }}
+                  helperText={errors?.gender}
+                  items={[{ name: "Male" }, { name: "Female" }]}
+                />
+              </Box>
+            </Box>
+            {/* ***************************** */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
+                gap: 2, // Consistent spacing between items
+                justifyContent: "space-evenly",
+                mt: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Password
+                </Typography>
+                <TextField
+                  type={showPassword ? "text" : "password"}
+                  fullWidth
+                  placeholder="Password"
+                  helperText={errors?.password}
+                  onChange={(e) => {
+                    setRequestState({
+                      ...requestState,
+                      password: e.target.value,
+                    });
+                    setErrors({ ...errors, password: "" });
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={handleTogglePassword} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  Confirm Password
+                </Typography>
+                <TextField
+                  type={showPassword ? "text" : "password"}
+                  fullWidth
+                  placeholder="Confirm Password"
+                  helperText={errors?.confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setErrors({ ...errors, confirmPassword: "" });
+                  }}
+                />
+              </Box>
+            </Box>
+            {/* ********************* */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontSize: "1.1rem",
+              }}
+            >
+              <Typography
+                variant="body1"
+                sx={{ fontSize: "1rem", fontWeight: "bold" }}
+              >
+                Are You a Doctor?
+              </Typography>
+              <IconButton onClick={() => toggelRole(!isDoctor)}>
+                {isDoctor ? (
+                  <ToggleOnIcon color="primary" sx={{ fontSize: 50 }} />
+                ) : (
+                  <ToggleOffIcon color="disabled" sx={{ fontSize: 50 }} />
+                )}
+              </IconButton>
+            </Box>
+
+            {isDoctor && (
+              <>
                 <Box
-                    sx={{
-                        minHeight: "100vh",
-                        display: "flex",
-                        justifyContent: "center",
-                        // alignItems: "center",
-                    }}
+                  sx={{
+                    display: "flex",
+                    flexDirection: {
+                      xs: "column",
+                      sm: "row",
+                    }, // Stack on mobile, row on desktop
+                    gap: 2, // Consistent spacing between items
+                    justifyContent: "space-evenly",
+                    mb: 2,
+                  }}
                 >
-                    <Box sx={{ width: { xs: "400px", sm: "800px" } }}>
-                        <Grid>
-                            <Typography variant="h3" className="loginTitle">
-                                Signup Page
-                            </Typography>
-                        </Grid>
-
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
-                                gap: 2, // Consistent spacing between items
-                                justifyContent: "space-evenly",
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Full Name
-                                </Typography>
-                                <TextField
-                                    variant="outlined"
-                                    placeholder="Full Name"
-                                    {...register("fullName", {
-                                        required: "Full Name is required",
-                                    })}
-                                    helperText={errors.fullName?.message}
-                                    sx={{ width: "100%" }}
-                                />
-                            </Box>
-
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    National ID
-                                </Typography>
-                                <TextField
-                                    variant="outlined"
-                                    placeholder="National ID"
-                                    {...register("nationalId", {
-                                        required: "National ID is required",
-                                    })}
-                                    helperText={errors.nationalId?.message}
-                                    sx={{ mb: 2, width: "100%" }}
-                                />
-                            </Box>
-                        </Box>
-
-                        {/* ***************************** */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
-                                gap: 2, // Consistent spacing between items
-                                justifyContent: "space-evenly",
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Country
-                                </Typography>
-                                <DropdownBox
-                                    label="Select your country"
-                                    name="country"
-                                    register={register}
-                                    setValue={setValue}
-                                    error={errors.country}
-                                    helperText={errors.country?.message}
-                                    options={countries}
-                                />
-                            </Box>
-
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Phone Number
-                                </Typography>
-                                <TextField
-                                    variant="outlined"
-                                    fullWidth
-                                    placeholder="Phone Number"
-                                    {...register("phoneNumber", {
-                                        required: "Phone number is required",
-                                    })}
-                                    helperText={errors.phoneNumber?.message}
-                                    sx={{ mb: 2 }}
-                                />
-                            </Box>
-                        </Box>
-                        {/* ***************************** */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
-                                gap: 2, // Consistent spacing between items
-                                justifyContent: "space-evenly",
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Date of Birth
-                                </Typography>
-                                <TextField
-                                    type="date"
-                                    fullWidth
-                                    InputLabelProps={{ shrink: true }}
-                                    {...register("dob", {
-                                        required: "Date of Birth is required",
-                                    })}
-                                    helperText={errors.dob?.message}
-                                />
-                            </Box>
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Gender
-                                </Typography>
-                                <DropdownBox
-                                    label="Select your gender"
-                                    name="gender"
-                                    register={register}
-                                    setValue={setValue}
-                                    error={errors.gender}
-                                    helperText={errors.gender?.message}
-                                    options={[
-                                        { name: "Male" },
-                                        { name: "Female" },
-                                    ]}
-                                />
-                            </Box>
-                        </Box>
-                        {/* ***************************** */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
-                                gap: 2, // Consistent spacing between items
-                                justifyContent: "space-evenly",
-                                mt: 2,
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Password
-                                </Typography>
-                                <TextField
-                                    type={showPassword ? "text" : "password"}
-                                    fullWidth
-                                    placeholder="Password"
-                                    {...register("password", {
-                                        required: "Password is required",
-                                        minLength: {
-                                            value: 8,
-                                            message:
-                                                "Password must be at least 8 characters",
-                                        },
-                                    })}
-                                    helperText={errors.password?.message}
-                                    InputProps={{
-                                        endAdornment: (
-                                            <InputAdornment position="end">
-                                                <IconButton
-                                                    onClick={
-                                                        handleTogglePassword
-                                                    }
-                                                    edge="end"
-                                                >
-                                                    {showPassword ? (
-                                                        <VisibilityOff />
-                                                    ) : (
-                                                        <Visibility />
-                                                    )}
-                                                </IconButton>
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            </Box>
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Typography variant="body1" sx={{ mb: 1 }}>
-                                    Confirm Password
-                                </Typography>
-                                <TextField
-                                    type={showPassword ? "text" : "password"}
-                                    fullWidth
-                                    placeholder="Confirm Password"
-                                    {...register("confirmPassword", {
-                                        required:
-                                            "Please confirm your password",
-                                        validate: (value) => {
-                                            if (watch("password") !== value) {
-                                                return "Passwords do not match";
-                                            }
-                                        },
-                                    })}
-                                    helperText={errors.confirmPassword?.message}
-                                />
-                            </Box>
-                        </Box>
-                        {/* ********************* */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                fontSize: "1.1rem",
-                            }}
-                        >
-                            <Typography
-                                variant="body1"
-                                sx={{ fontSize: "1rem", fontWeight: "bold" }}
-                            >
-                                Are You a Doctor?
-                            </Typography>
-                            <IconButton onClick={() => toggelRole(!isDoctor)}>
-                                {isDoctor ? (
-                                    <ToggleOnIcon
-                                        color="primary"
-                                        sx={{ fontSize: 50 }}
-                                    />
-                                ) : (
-                                    <ToggleOffIcon
-                                        color="disabled"
-                                        sx={{ fontSize: 50 }}
-                                    />
-                                )}
-                            </IconButton>
-                        </Box>
-
-                        {isDoctor && (
-                            <>
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        flexDirection: {
-                                            xs: "column",
-                                            sm: "row",
-                                        }, // Stack on mobile, row on desktop
-                                        gap: 2, // Consistent spacing between items
-                                        justifyContent: "space-evenly",
-                                        mb: 2,
-                                    }}
-                                >
-                                    <Box
-                                        sx={{
-                                            width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ mb: 1 }}
-                                        >
-                                            Specialization
-                                        </Typography>
-                                        <DropdownBox
-                                            label="Select your specialization"
-                                            name="specialization"
-                                            register={register}
-                                            setValue={setValue}
-                                            error={errors.specialization}
-                                            helperText={
-                                                errors.specialization?.message
-                                            }
-                                            options={[]} // Fill it from the backend
-                                        />
-                                    </Box>
-                                    <Box
-                                        sx={{
-                                            width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ mb: 1 }}
-                                        >
-                                            Career Level
-                                        </Typography>
-                                        <DropdownBox
-                                            label="Select your career level"
-                                            name="career"
-                                            register={register}
-                                            setValue={setValue}
-                                            error={errors.career}
-                                            helperText={
-                                                errors.career?.message
-                                            }
-                                            options={[]} // Fill it from the backend
-                                        />
-                                    </Box>
-                                </Box>
-                            </>
-                        )}
-                        {/* ************************ */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
-                                gap: 2, // Consistent spacing between items
-                                justifyContent: "space-evenly",
-                                mt: 2,
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    sx={{
-                                        width: "100%",
-                                        py: 1.5,
-                                        fontSize: "1.1rem",
-                                        textTransform: "none",
-                                        bgcolor: "#c2185b",
-                                        "&:hover": { bgcolor: "#880e4f" },
-                                        display: "block", // Required for margin auto to work
-                                        mx: "auto", // Horizontal margin auto
-                                        mb: 2, // Optional bottom margin
-                                    }}
-                                >
-                                    Validate Your Identity
-                                </Button>
-                            </Box>
-                            <Box
-                                sx={{
-                                    width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                }}
-                            >
-                                <Button
-                                    type="submit"
-                                    variant="contained"
-                                    sx={{
-                                        width: "100%",
-                                        py: 1.5,
-                                        fontSize: "1.1rem",
-                                        textTransform: "none",
-                                        bgcolor: "#33b4d4",
-                                        "&:hover": { bgcolor: "#48a89d" },
-                                        display: "block", // Required for margin auto to work
-                                        mx: "auto", // Horizontal margin auto
-                                        mb: 2, // Optional bottom margin
-                                    }}
-                                >
-                                    Sign up
-                                </Button>
-                            </Box>
-                        </Box>
-
-                        <Typography
-                            variant="body1"
-                            align="center"
-                            sx={{ mt: 4, fontSize: "1rem" }}
-                        >
-                            Do you have an account?{" "}
-                            <Link
-                                component="button"
-                                underline="hover"
-                                sx={{ fontSize: "1rem" }}
-                                onClick={() => navigate("/login")}
-                            >
-                                Login
-                            </Link>
-                        </Typography>
-                    </Box>
+                  <Box
+                    sx={{
+                      width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ mb: 1 }}>
+                      Specialization
+                    </Typography>
+                    <SearchableDropDown
+                      placeholder="Select your specialization"
+                      name="specialization"
+                      state={requestState.specializationName}
+                      setState={(value) => {
+                        setRequestState({
+                          ...requestState,
+                          specializationName: value,
+                        });
+                        setErrors({ ...errors, specializationName: "" }); // Clear error message on selection
+                      }}
+                      helperText={errors?.specializationName}
+                      items={[{ name: "test1" }, { name: "test3" }]} // Fill it from the backend
+                    />
+                  </Box>
+                  <Box
+                    sx={{
+                      width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ mb: 1 }}>
+                      Career Level
+                    </Typography>
+                    <SearchableDropDown
+                      placeholder="Select your career level"
+                      name="career"
+                      state={requestState.careerLevelName}
+                      setState={(value) => {
+                        setRequestState({
+                          ...requestState,
+                          careerLevelName: value,
+                        });
+                        setErrors({ ...errors, careerLevelName: "" }); // Clear error message on selection
+                      }}
+                      helperText={errors?.careerLevelName}
+                      items={[{ name: "test1" }, { name: "test3" }]} // Fill it from the backend
+                    />
+                  </Box>
                 </Box>
-            </form>
-        </SignupPageStyle>
-    );
-};
+              </>
+            )}
+            {/* ************************ */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" }, // Stack on mobile, row on desktop
+                gap: 2, // Consistent spacing between items
+                justifyContent: "space-evenly",
+                mt: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Button
+                  type="submit"
+                  variant="contained"
+                  sx={{
+                    width: "100%",
+                    py: 1.5,
+                    fontSize: "1.1rem",
+                    textTransform: "none",
+                    bgcolor: "#c2185b",
+                    "&:hover": { bgcolor: "#880e4f" },
+                    display: "block", // Required for margin auto to work
+                    mx: "auto", // Horizontal margin auto
+                    mb: 2, // Optional bottom margin
+                  }}
+                  onClick={handleValidationIdentityButton}
+                >
+                  Validate Your Identity
+                </Button>
+              </Box>
+              <Box
+                sx={{
+                  width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
+                }}
+              >
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={!isSignupButtonEnabled}
+                  sx={{
+                    width: "100%",
+                    py: 1.5,
+                    fontSize: "1.1rem",
+                    textTransform: "none",
+                    bgcolor: "#33b4d4",
+                    "&:hover": { bgcolor: "#2a9cb3" },
+                    display: "block",
+                    mx: "auto", // Horizontal margin auto
+                    mb: 2, // Optional bottom margin
+                  }}
+                >
+                  Sign up
+                </Button>
+              </Box>
+            </Box>
 
-export default Signup;
+            <Typography
+              variant="body1"
+              align="center"
+              sx={{ mt: 2, fontSize: "1rem" }}
+            >
+              Do you have an account?{" "}
+              <Link
+                component="button"
+                underline="hover"
+                sx={{ fontSize: "1rem" }}
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </Link>
+            </Typography>
+          </Box>
+        </Box>
+      </form>
+    </SignupPageStyle>
+  );
+}
