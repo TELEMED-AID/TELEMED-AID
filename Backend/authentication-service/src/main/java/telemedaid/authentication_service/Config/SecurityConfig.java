@@ -28,6 +28,7 @@ public class SecurityConfig {
                                 "/auth/signup/doctor",
                                 "/auth/login",
                                 "/auth/validate",
+                                "/auth/verify-id",
                                 "/auth/get-current-user",
                                 "/auth/logout").permitAll()
                         .anyRequest().authenticated()

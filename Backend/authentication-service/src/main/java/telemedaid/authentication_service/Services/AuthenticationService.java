@@ -64,7 +64,7 @@ public class AuthenticationService {
                     .birthDate(sdf.format(request.getDateOfBirth()))
                     .build();
 
-            patientServiceClient.createPatient(patientRequest); /* Feign client to patient-service*/
+            /*patientServiceClient.createPatient(patientRequest);*/ /* Feign client to patient-service*/
 
             return AuthResponse.builder()
                     .token("Registered Successfully")
@@ -104,7 +104,7 @@ public class AuthenticationService {
                     .specializationName(request.getSpecializationName())
                     .build();
 
-            doctorServiceClient.addDoctor(createDoctorRequest); /* Feign client to doctor-service*/
+            /*doctorServiceClient.addDoctor(createDoctorRequest);*/ /* Feign client to doctor-service*/
 
             return AuthResponse.builder()
                     .token("Registered Successfully")
