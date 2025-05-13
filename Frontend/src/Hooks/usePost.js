@@ -28,8 +28,7 @@ const usePost = () => {
                 dispatch(
                     setSnackbar({
                         open: true,
-                        message:
-                            error.response?.data?.message || errorMessage || "Internal Server Error!",
+                        message: errorMessage || error.response?.data?.message  || "Internal Server Error!",
                         error: true,
                     })
                 );

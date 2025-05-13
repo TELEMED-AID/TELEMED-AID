@@ -19,12 +19,13 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 import ToggleOnIcon from "@mui/icons-material/ToggleOn";
 import ToggleOffIcon from "@mui/icons-material/ToggleOff";
-import usePostItem  from "../../Hooks/usePost";
+import usePostItem from "../../Hooks/usePost";
 import useGet from "../../Hooks/useGet";
-import {USER_LOGIN_URL, GET_CURRENT_USER } from "../../API/APIRoutes";
+import { USER_LOGIN_URL, GET_CURRENT_USER } from "../../API/APIRoutes";
 import { home } from "../../AppRoutes/DefaultRoutes";
+import { useDispatch } from "react-redux";
+import { setUser } from "../../Redux/userSlice";
 const Login = () => {
-
   const {
     register,
     handleSubmit,
@@ -32,6 +33,7 @@ const Login = () => {
   } = useForm();
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isDoctor, setIsDoctor] = useState(false);
@@ -40,22 +42,27 @@ const Login = () => {
   const { loading, postItem } = usePostItem();
   const { loading: getUserLoading, getItem } = useGet();
 
-
-
   const NationalIdField = useRef(null);
   const inputPassword = useRef(null);
 
+  const getCurrentUserCallBack = (data) => {
+    setUserData(data);
+    navigate(home);
+  };
 
-  const getCurrentUSerCallBack = () => {
-    //  set user slice
-    // navigate(home);
-  }
-
+  const setUserData = (data) => {
+    dispatch(
+      setUser({
+        role: data.role,
+        isLogged: true,
+        userId: data.id,
+      })
+    );
+  };
 
   useEffect(() => {
-   getItem(GET_CURRENT_USER, getCurrentUSerCallBack);
+    getItem(GET_CURRENT_USER, false, getCurrentUserCallBack);
   }, []);
-
 
   useEffect(() => {
     if (error) {
@@ -74,9 +81,9 @@ const Login = () => {
   };
 
   const loginRequestCallBack = (responseData, originalData) => {
-    console.log("Success response from server:", responseData);
-    console.log("Original data sent:", originalData);
+    setUserData(responseData);
     setError(false);
+    navigate(home);
   };
 
   const loginRequestErrorCallBack = (error) => {
@@ -84,13 +91,21 @@ const Login = () => {
     setError(true);
   };
   const onLoginSubmit = (data) => {
-
     let userRequest = {
       nationalId: data.nationalId,
       password: data.password,
-    }
-    postItem(USER_LOGIN_URL,userRequest,loginRequestCallBack,"Login Success","Login Failed",loginRequestErrorCallBack,true,"post");
-    console.log("Login data", data);
+      role:isDoctor? "DOCTOR":"PATIENT"
+    };
+    postItem(
+      USER_LOGIN_URL,
+      userRequest,
+      loginRequestCallBack,
+      "Login Success",
+      "Login Failed",
+      loginRequestErrorCallBack,
+      true,
+      "post"
+    );
   };
 
   const toggelRole = (state) => {
@@ -98,7 +113,7 @@ const Login = () => {
   };
 
   return (
-    <LoginPageStyles  sx={{mt:12}}>
+    <LoginPageStyles sx={{ mt: 12 }}>
       <LogoTitle />
       <form onSubmit={handleSubmit(onLoginSubmit)} className="formWrapper">
         <Box
@@ -197,17 +212,11 @@ const Login = () => {
               variant="contained"
               disabled={loading}
               sx={{
-
                 py: 1.5,
                 fontSize: "1.1rem",
                 textTransform: "none",
                 bgcolor: "#33b4d4",
-                "&:hover": {
-                  bgcolor: "#FFFFFF",
-                  color: "#33b4d4",
-                  border: "1px solid #33b4d4",
-                },
-
+                "&:hover": { bgcolor: "#2a9cb3" },
               }}
             >
               {!loading ? (

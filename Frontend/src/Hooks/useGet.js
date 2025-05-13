@@ -9,14 +9,16 @@ const useGet = () => {
 
   const getItem = async (
     URL,
+    snackbar = true,
     postCallback = () => {},
+    errorCallback = () => {},
     successMessage = null,
     errorMessage = "Internal Server Error!"
   ) => {
     setLoading(true);
     try {
       const response = await axiosInstance.get(URL);
-      if (successMessage) {
+      if (snackbar) {
         dispatch(
           setSnackbar({
             open: true,
@@ -25,17 +27,19 @@ const useGet = () => {
           })
         );
       }
-      postCallback(response.data); // Pass data to the callback
+      postCallback(response.data);
       return response.data;
     } catch (error) {
-      dispatch(
-        setSnackbar({
-          open: true,
-          message:
-            error.response?.data?.message || errorMessage,
-          error: true,
-        })
-      );
+      if (snackbar) {
+        dispatch(
+          setSnackbar({
+            open: true,
+            message: errorMessage || error.response?.data?.message,
+            error: true,
+          })
+        );
+      }
+      errorCallback(error);
       return null;
     } finally {
       setLoading(false);

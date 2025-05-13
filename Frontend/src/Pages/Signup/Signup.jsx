@@ -28,19 +28,26 @@ import {
   WithoutValidation,
   PasswordValidation,
 } from "../../Utils/Validations/ValidationSchema";
+import {
+  GET_VERIFICATION_LINK,
+  USER_SIGNUP_DOCTOR_URL,
+  USER_SIGNUP_PATIENT_URL,
+} from "../../API/APIRoutes";
 import Joi from "joi";
 import SearchableDropDown from "../../Components/DropDown/SearchableDropDown";
+import usePostItem from "../../Hooks/usePost";
+import useGet from "../../Hooks/useGet";
+import TimerIcon from "@mui/icons-material/Timer";
+
 export default function Signup() {
   const { handleSubmit, setValue } = useForm();
-
-  const [errors, setErrors] = useState({});
 
   let validationSchema = Joi.object({
     name: NameValidation("Full Name"),
     nationalId: NationalIdValidation("National Id"),
     countryName: DropDownValidation("Country Name", false),
     phone: PhoneValidation("Phone Number"),
-    birthDate: pastOrNowDateValidation,
+    dateOfBirth: pastOrNowDateValidation,
     gender: DropDownValidation("Gender", false),
     password: PasswordValidation("Password"),
     inquiryId: WithoutValidation,
@@ -58,15 +65,23 @@ export default function Signup() {
     careerLevelName: "",
     inquiryId: "",
   };
-  const [requestState, setRequestState] = useState(initialFormState);
 
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isDoctor, setIsDoctor] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSignupButtonEnabled, setIsSignupButtonEnabled] = useState(false);
+  const [isSignupButtonEnabled, setIsSignupButtonEnabled] = useState(
+    localStorage.getItem("inquiryId") ? true : false
+  );
+  const [inquiryId, setInquiryId] = useState(
+    localStorage.getItem("inquiryId") ? localStorage.getItem("inquiryId") : ""
+  );
+  const [requestState, setRequestState] = useState(initialFormState);
+  const [errors, setErrors] = useState({});
 
+  const { loading, postItem } = usePostItem();
+  const { loading: getUserLoading, getItem } = useGet();
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
@@ -79,8 +94,52 @@ export default function Signup() {
     return country?.phoneCode;
   };
 
+  const getVerificationLink = (data) => {
+    console.log(data);
+    window.open(data.verificationLink, "_blank");
+    setInquiryId(data.inquiryId);
+    localStorage.setItem("inquiryId", data.inquiryId);
+  };
+
+  const [isVerificationButtonEnabled, setIsVerificationButtonEnabled] =
+    useState(localStorage.getItem("lastClickTime") ? false : true);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
+  useEffect(() => {
+    const lastClickTime = localStorage.getItem("lastClickTime");
+
+    if (lastClickTime) {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - lastClickTime;
+
+      if (elapsedTime >= 1800000) {
+        setIsVerificationButtonEnabled(true);
+      } else {
+        setTimeRemaining(1800000 - elapsedTime);
+      }
+    }
+
+    const intervalId = setInterval(() => {
+      if (isVerificationButtonEnabled) return;
+      setTimeRemaining((prevTime) => {
+        if (prevTime <= 1000) {
+          setIsVerificationButtonEnabled(true);
+          localStorage.removeItem("lastClickTime"); // Clear stored time after 30 minutes
+          return 0;
+        }
+        return prevTime - 1000; // Decrease by 1 second
+      });
+    }, 1000); // Update every second for countdown
+
+    return () => clearInterval(intervalId);
+  }, [isVerificationButtonEnabled]);
+
   const handleValidationIdentityButton = () => {
     console.log("handleValidationIdentityButton ... ");
+    localStorage.setItem("lastClickTime", Date.now());
+    setIsVerificationButtonEnabled(false);
+    setIsSignupButtonEnabled(true);
+    getItem(GET_VERIFICATION_LINK, false, getVerificationLink);
     //api call to get verification link
   };
   const validatePasswordMatch = () => {
@@ -97,11 +156,17 @@ export default function Signup() {
     }
   };
 
-  const onSignupSubmit = async () => {
+  const signupRequestCallBack = (responseData, originalData) => {
+    navigate("/");
+  };
 
+  const onSignupSubmit = async () => {
+    setRequestState({ ...requestState, inquiryId: inquiryId });
     if (!isDoctor) {
       const { specializationName, careerLevelName, ...patientRequestState } =
         requestState;
+      console.log(patientRequestState);
+
       const patientRequest = await submitFormWithValidation(
         patientRequestState,
         false,
@@ -110,10 +175,22 @@ export default function Signup() {
         validationSchema
       );
       validatePasswordMatch();
-      if (Object.keys(errors).length != 0 || patientRequest == null) {
+
+      if (patientRequest == null) {
         return;
       }
       // api to call request for user signup user request
+
+      postItem(
+        USER_SIGNUP_PATIENT_URL,
+        patientRequest,
+        signupRequestCallBack,
+        "Signup Success",
+        null,
+        () => {},
+        true,
+        "post"
+      );
     } else {
       validationSchema = validationSchema.keys({
         specializationName: DropDownValidation("Specialization", false),
@@ -127,12 +204,28 @@ export default function Signup() {
         validationSchema
       );
 
+      postItem(
+        USER_SIGNUP_DOCTOR_URL,
+        doctorRequest,
+        signupRequestCallBack,
+        "Signup Success",
+        null,
+        () => {},
+        true,
+        "post"
+      );
       validatePasswordMatch();
       if (Object.keys(errors).length != 0 || doctorRequest == null) {
         return;
       }
       // api to call request for user signup doctor request
     }
+  };
+
+  const formatTime = (time) => {
+    const minutes = Math.floor(time / 60000);
+    const seconds = Math.floor((time % 60000) / 1000);
+    return `${minutes}m ${seconds}s`;
   };
 
   return (
@@ -292,13 +385,13 @@ export default function Signup() {
                   type="date"
                   fullWidth
                   InputLabelProps={{ shrink: true }}
-                  helperText={errors?.birthDate}
+                  helperText={errors?.dateOfBirth}
                   onChange={(e) => {
                     setRequestState({
                       ...requestState,
-                      birthDate: e.target.value,
+                      dateOfBirth: e.target.value,
                     });
-                    setErrors({ ...errors, birthDate: "" });
+                    setErrors({ ...errors, dateOfBirth: "" });
                   }}
                 />
               </Box>
@@ -499,11 +592,17 @@ export default function Signup() {
                     display: "block", // Required for margin auto to work
                     mx: "auto", // Horizontal margin auto
                     mb: 2, // Optional bottom margin
+                    opacity: isVerificationButtonEnabled ? 1 : 0.7, // Make the button slightly transparent when disabled
                   }}
+                  disabled={!isVerificationButtonEnabled}
                   onClick={handleValidationIdentityButton}
                 >
                   Validate Your Identity
                 </Button>
+                {!isVerificationButtonEnabled && <TimerIcon sx={{ mr: 1 }} />}
+
+                {!isVerificationButtonEnabled &&
+                  `Verification available in  ${formatTime(timeRemaining)}`}
               </Box>
               <Box
                 sx={{
