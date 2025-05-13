@@ -75,8 +75,8 @@ public class AuthController {
             jwtCookie.setPath("/");
             jwtCookie.setMaxAge(24 * 60 * 60); // 1 day
             response.addCookie(jwtCookie);
-
-            return ResponseEntity.ok(AuthResponse.builder().token("JWT set in cookie").build());
+            UserDTO user = authenticationService.getUserByNationalId(request.getNationalId());
+            return ResponseEntity.ok(user);
 
         } catch (AuthenticationFailedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
