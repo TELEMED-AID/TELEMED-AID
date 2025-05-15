@@ -14,11 +14,11 @@ import telemedaid.authentication_service.Config.DoctorServiceClient;
 import telemedaid.authentication_service.Config.PatientServiceClient;
 import telemedaid.authentication_service.Config.VerificationServiceClient;
 import telemedaid.authentication_service.DTOs.*;
+import telemedaid.authentication_service.Entities.Role;
 import telemedaid.authentication_service.Entities.User;
-import telemedaid.authentication_service.Exceptions.AuthenticationFailedException;
-import telemedaid.authentication_service.Exceptions.UserAlreadyExistsException;
-import telemedaid.authentication_service.Exceptions.UserNotFoundException;
+import telemedaid.authentication_service.Exceptions.*;
 import telemedaid.authentication_service.Repositories.UserRepository;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -39,19 +39,20 @@ public class AuthenticationService {
      **/
     public AuthResponse registerPatient(RegisterPatientRequest request) {
         if (nationalIdExists(request.getNationalId())) {
-            throw new UserAlreadyExistsException("National ID already exists");
+            throw new UserAlreadyExistsException("National ID " + request.getNationalId() + " is already registered");
         }
-
         try {
             User user = User.builder()
                     .nationalId(request.getNationalId())
                     .password(passwordEncoder.encode(request.getPassword()))
-                    .role(request.getRole())
+                    .role(Role.valueOf("PATIENT"))
                     .createdAt(new Date())
                     .build();
-
+            System.out.println("before validation");
             validateInquiryStatus(request.getInquiryId());
+            System.out.println("after validation");
             userRepository.save(user);
+            System.out.println("after saving user");
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             CreatePatientRequest patientRequest = CreatePatientRequest.builder()
                     .id(user.getId())
@@ -67,24 +68,27 @@ public class AuthenticationService {
             /*patientServiceClient.createPatient(patientRequest);*/ /* Feign client to patient-service*/
 
             return AuthResponse.builder()
-                    .token("Registered Successfully")
+                    .token("Patient registered successfully")
                     .build();
 
+        } catch (IdentityVerificationException e) {
+            throw new IdentityVerificationException("National ID verification failed: " + e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to register patient: " + e.getMessage());
+            System.out.println(e.getMessage()+e);
+            throw new RuntimeException("Failed to register"+e.getMessage());
         }
     }
 
     public AuthResponse registerDoctor(RegisterDoctorRequest request) {
         if (nationalIdExists(request.getNationalId())) {
-            throw new UserAlreadyExistsException("National ID already exists");
+            throw new UserAlreadyExistsException("National ID " + request.getNationalId() + " is already registered");
         }
 
         try {
             User user = User.builder()
                     .nationalId(request.getNationalId())
                     .password(passwordEncoder.encode(request.getPassword()))
-                    .role(request.getRole())
+                    .role(Role.valueOf("DOCTOR"))
                     .createdAt(new Date())
                     .build();
 
@@ -107,11 +111,13 @@ public class AuthenticationService {
             /*doctorServiceClient.addDoctor(createDoctorRequest);*/ /* Feign client to doctor-service*/
 
             return AuthResponse.builder()
-                    .token("Registered Successfully")
+                    .token("Doctor registered successfully")
                     .build();
 
+        } catch (IdentityVerificationException e) {
+            throw new IdentityVerificationException("National ID verification failed: " + e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to register doctor: " + e.getMessage());
+            throw new ServiceCommunicationException("Doctor Service", e.getMessage());
         }
     }
     /**
@@ -122,19 +128,26 @@ public class AuthenticationService {
         System.out.println(response.getStatusCode());
         System.out.println(response.getBody());
 
-        if (response.getStatusCode().is2xxSuccessful()) {
-            Map<String, String> responseBody = (Map<String, String>) response.getBody();
+        try {
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new ServiceCommunicationException("Verification Service",
+                        "Received status code: " + response.getStatusCode());
+            }
 
-            assert responseBody != null;
+            Map<String, String> responseBody = (Map<String, String>) response.getBody();
+            if (responseBody == null) {
+                throw new ServiceCommunicationException("Verification Service",
+                        "Empty response body");
+            }
             return InquiryResponse.builder()
                     .inquiryId(responseBody.get("inquiryId"))
                     .verificationLink(responseBody.get("verificationLink"))
                     .build();
-        } else {
-            throw new RuntimeException("Failed to initiate national ID verification");
+
+        } catch (Exception e) {
+            throw new ServiceCommunicationException("Verification Service", e.getMessage());
         }
     }
-
 
 
     /**
@@ -176,18 +189,24 @@ public class AuthenticationService {
                 .role(user.getRole())
                 .build();
     }
+
     public String extractUsername(String token) {
         return jwtService.extractUsername(token); // from your JWT utility/service
     }
 
     public void validateInquiryStatus(String inquiryId) {
-        String status = verificationServiceClient.inquiryState(inquiryId);
-        System.out.println("Status is :" + status);
-        if (status == null) {
-            throw new RuntimeException("Failed to verify inquiry status");
-        }
-        if (!"approved".equalsIgnoreCase(status)) {
-            throw new RuntimeException("Identity verification failed. Status: " + status);
+        try {
+            String status = verificationServiceClient.inquiryState(inquiryId);
+            System.out.println("Status: "+status);
+            if (status == null) {
+                throw new IdentityVerificationException("No status received for inquiry: " + inquiryId);
+            }
+
+            if (!"approved".equalsIgnoreCase(status)) {
+                throw new IdentityVerificationException("Inquiry " + inquiryId + " has status: " + status);
+            }
+        } catch (Exception e) {
+            throw new ServiceCommunicationException("Verification Service", e.getMessage());
         }
     }
 

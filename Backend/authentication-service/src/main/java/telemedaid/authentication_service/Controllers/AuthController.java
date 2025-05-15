@@ -1,6 +1,8 @@
 package telemedaid.authentication_service.Controllers;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -8,9 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import telemedaid.authentication_service.DTOs.*;
-import telemedaid.authentication_service.Exceptions.AuthenticationFailedException;
-import telemedaid.authentication_service.Exceptions.UserAlreadyExistsException;
-import telemedaid.authentication_service.Exceptions.UserNotFoundException;
+import telemedaid.authentication_service.Exceptions.*;
 import telemedaid.authentication_service.Services.AuthenticationService;
 
 @RestController
@@ -25,25 +25,39 @@ public class AuthController {
     @PostMapping("/signup/patient")
     public ResponseEntity<?> registerPatient(@RequestBody RegisterPatientRequest request) {
         try {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            String requestJson = objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(request);
+
+            System.out.println("Request body: " +requestJson);
             return ResponseEntity.ok(authenticationService.registerPatient(request));
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse("Registration failed", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Registration failed", "An unexpected error occurred"));
+                    .body(new ErrorResponse("Registration Conflict", e.getMessage()));
+        } catch (IdentityVerificationException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse("Verification Failed", e.getMessage()));
+        } catch (ServiceCommunicationException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorResponse("Service Unavailable", e.getMessage()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
     @PostMapping("/signup/doctor")
-    public ResponseEntity<?> registerDoctor(@RequestBody RegisterDoctorRequest request) {
+    public ResponseEntity<?> registerDoctor(@RequestBody RegisterDoctorRequest request) throws JsonProcessingException {
+
         try {
             return ResponseEntity.ok(authenticationService.registerDoctor(request));
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ErrorResponse("Registration failed", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Registration failed", "An unexpected error occurred"));
+                    .body(new ErrorResponse("Registration Conflict", e.getMessage()));
+        } catch (IdentityVerificationException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse("Verification Failed", e.getMessage()));
+        } catch (ServiceCommunicationException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorResponse("Service Unavailable", e.getMessage()));
         }
     }
     /**
@@ -53,11 +67,10 @@ public class AuthController {
     @GetMapping("/verify-id")
     public ResponseEntity<?> verifyNationalId() {
         try {
-            InquiryResponse dto = authenticationService.verifyNationalId();
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Verification failed", e.getMessage()));
+            return ResponseEntity.ok(authenticationService.verifyNationalId());
+        } catch (ServiceCommunicationException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(new ErrorResponse("Verification Service Error", e.getMessage()));
         }
     }
 
@@ -80,13 +93,10 @@ public class AuthController {
 
         } catch (AuthenticationFailedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("Authentication failed", e.getMessage()));
+                    .body(new ErrorResponse("Authentication Failed", e.getMessage()));
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse("Authentication failed", e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Authentication failed", "An unexpected error occurred"));
+                    .body(new ErrorResponse("User Not Found", e.getMessage()));
         }
     }
     @GetMapping("/get-current-user")
@@ -104,10 +114,10 @@ public class AuthController {
             return ResponseEntity.ok(user);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponse("User not found", e.getMessage()));
+                    .body(new ErrorResponse("User Not Found", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Error", "An unexpected error occurred"));
+                    .body(new ErrorResponse("Token Processing Error", "Invalid or expired token"));
         }
 
     }
