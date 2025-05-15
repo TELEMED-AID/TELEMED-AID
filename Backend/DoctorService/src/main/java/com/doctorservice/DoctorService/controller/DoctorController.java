@@ -19,30 +19,30 @@ public class DoctorController {
     private final DoctorService doctorService;
 
     @PostMapping
-    public ResponseEntity<DoctorResponse> addDoctor(
+    public ResponseEntity<?> createDoctor(
             @Valid @RequestBody CreateDoctorRequest request
     ) {
-        DoctorResponse response = doctorService.addDoctor(request);
+        DoctorResponse response = doctorService.createDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @PutMapping("/{nationalId}")
-    public ResponseEntity<DoctorResponse> updateDoctorProfile(
-            @PathVariable String nationalId,
+    public ResponseEntity<?> updateDoctor(
+            @PathVariable Long userId,
             @Valid @RequestBody DoctorUpdateRequest request) {
-        return ResponseEntity.ok(doctorService.updateDoctorProfile(nationalId, request));
+        return ResponseEntity.ok(doctorService.updateDoctor(userId, request));
     }
 
     @GetMapping("/{nationalId}")
-    public ResponseEntity<DoctorResponse> getDoctorById(@PathVariable String nationalId) {
-        return ResponseEntity.ok(doctorService.getDoctorById(nationalId));
+    public ResponseEntity<?> getDoctorById(@PathVariable Long userId) {
+        return ResponseEntity.ok(doctorService.getDoctor(userId));
     }
     @PostMapping("/{nationalId}/availability")
     public ResponseEntity<?> setDoctorAvailability(
-            @PathVariable String nationalId,
+            @PathVariable Long userId,
             @Valid @RequestBody DoctorAvailabilityRequest request) throws Exception {
 
-        doctorService.setDoctorAvailability(nationalId, request);
-        return ResponseEntity.ok().build();
+        doctorService.setDoctorAvailability(userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/search")
@@ -55,12 +55,13 @@ public class DoctorController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        DoctorSearchRequest request = new DoctorSearchRequest();
-        request.setName(name);
-        request.setSpecialization(specialization);
-        request.setCareerLevel(careerLevel);
-        request.setAvailabilityDay(availabilityDay);
-        request.setStartTime(startTime);
+        DoctorSearchRequest request = DoctorSearchRequest.builder()
+                .name(name)
+                .specialization(specialization)
+                .careerLevel(careerLevel)
+                .availabilityDay(availabilityDay)
+                .startTime(startTime)
+                .build();
 
         PageResponse<DoctorSearchResponse> response = doctorService.searchDoctors(request, page, size);
         return ResponseEntity.ok(response);

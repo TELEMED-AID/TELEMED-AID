@@ -10,4 +10,10 @@ import java.time.LocalTime;
 public class TimeSlotResponse {
     private LocalTime startTime;
     private Byte duration;
+    public static TimeSlotResponse toDto(TimeSlot timeSlot) {
+        TimeSlotResponse slotResponse = new TimeSlotResponse();
+        slotResponse.setStartTime(timeSlot.getStartTime());
+        slotResponse.setDuration(timeSlot.getDuration());
+        return slotResponse;
+    }
 }

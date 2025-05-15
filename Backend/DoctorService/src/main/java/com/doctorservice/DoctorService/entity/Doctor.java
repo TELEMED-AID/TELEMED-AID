@@ -1,6 +1,7 @@
 package com.doctorservice.DoctorService.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Date;
@@ -10,13 +11,20 @@ import java.util.List;
 @Entity
 @Table(name = "doctor")
 @Data
+@Builder
 public class Doctor {
     @Id
-    @Column(name = "national_id", length = 20)
-    private String nationalId;
+    @Column(name="user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;
+
+    @Column(name = "country_name", nullable = false, length = 30)
+    private String countryName;
+
+    @Column(name = "country_id", nullable = false, length = 20)
+    private String countryId;
 
     @Column(name = "phone", nullable = false, length = 20)
     private String phone;  // Changed from phoneNumber to phone
@@ -26,12 +34,6 @@ public class Doctor {
 
     @Column(name = "gender", nullable = false, length = 10)
     private String gender;
-
-    @Column(name = "country_name", nullable = false, length = 30)
-    private String countryName;
-
-    @Column(name = "country_id", nullable = false, length = 20)
-    private String countryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "career_id", nullable = false)

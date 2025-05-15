@@ -12,7 +12,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 
-public interface DoctorRepository extends JpaRepository<Doctor, String> {
+public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     @Query("SELECT DISTINCT d FROM Doctor d " +
             "LEFT JOIN FETCH d.specialization " +

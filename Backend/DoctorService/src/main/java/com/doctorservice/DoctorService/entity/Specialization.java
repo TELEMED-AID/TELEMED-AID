@@ -1,11 +1,13 @@
 package com.doctorservice.DoctorService.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Entity
 @Table(name = "specialization")
 @Data
+@AllArgsConstructor
 public class Specialization {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

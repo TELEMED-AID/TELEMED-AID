@@ -11,7 +11,7 @@
 	<groupId>com.doctorservice</groupId>
 	<artifactId>DoctorService</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>DoctorService</name>
+	<name>doctor-service</name>
 	<description>Doctor Service</description>
 	<url/>
 	<licenses>
@@ -60,6 +60,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

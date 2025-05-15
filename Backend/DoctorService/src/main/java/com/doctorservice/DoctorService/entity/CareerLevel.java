@@ -1,11 +1,13 @@
 package com.doctorservice.DoctorService.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Entity
 @Table(name = "career_level")
 @Data
+@AllArgsConstructor
 public class CareerLevel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
