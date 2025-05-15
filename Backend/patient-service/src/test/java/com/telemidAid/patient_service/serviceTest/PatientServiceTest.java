@@ -3,7 +3,7 @@ package com.telemidAid.patient_service.serviceTest;
 import com.telemidAid.patient_service.dtos.CreatePatientRequest;
 import com.telemidAid.patient_service.dtos.GetPatientRequest;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
-import com.telemidAid.patient_service.model.Patient;
+import com.telemidAid.patient_service.entity.Patient;
 import com.telemidAid.patient_service.repository.PatientRepository;
 import com.telemidAid.patient_service.service.PatientService;
 import org.junit.jupiter.api.Test;
@@ -30,8 +30,7 @@ public class PatientServiceTest {
     public void patientService_getPatient_returnPatient() {
         // Arrange
         Patient existingPatient = Patient.builder()
-                .id(1L)
-                .nationalId("30105210201271")
+                .userId(1L)
                 .name("Mohamed")
                 .countryName("Egypt")
                 .countryId("EGP")
@@ -56,8 +55,7 @@ public class PatientServiceTest {
     @Test
     public void patientService_createPatient_returnPatient() {
         CreatePatientRequest newPatient = CreatePatientRequest.builder()
-                .id(1L)
-                .nationalId("30105210201271")
+                .userId(1L)
                 .name("Mohamed")
                 .countryName("Egypt")
                 .countryId("EGP")
@@ -75,8 +73,7 @@ public class PatientServiceTest {
     @Test
     public void patientService_updatePatient_returnBoolean() {
         Patient existingPatient = Patient.builder()
-                .id(1L)
-                .nationalId("30105210201271")
+                .userId(1L)
                 .name("Mohamed")
                 .countryName("Egypt")
                 .countryId("EGP")

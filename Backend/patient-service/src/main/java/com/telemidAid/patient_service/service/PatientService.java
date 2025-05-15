@@ -3,7 +3,7 @@ package com.telemidAid.patient_service.service;
 import com.telemidAid.patient_service.dtos.CreatePatientRequest;
 import com.telemidAid.patient_service.dtos.GetPatientRequest;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
-import com.telemidAid.patient_service.model.Patient;
+import com.telemidAid.patient_service.entity.Patient;
 import com.telemidAid.patient_service.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class PatientService {
 
     public void createPatient(CreatePatientRequest request) {
         Patient patient = Patient.builder()
-                .id(request.getId())
+                .userId(request.getUserId())
                 .countryName(request.getCountryName())
                 .countryId(request.getCountryId())
                 .name(request.getName())
@@ -34,12 +34,12 @@ public class PatientService {
         patientRepository.save(patient);
     }
     @Transactional(readOnly = true)
-    public GetPatientRequest getPatient(Long patientId) {
-        return patientRepository.findById(patientId)
-                .map(GetPatientRequest::fromEntity)
+    public GetPatientRequest getPatient(Long userId) {
+        return patientRepository.findById(userId)
+                .map(GetPatientRequest::toDto)
                 .orElseThrow(() -> new ResponseStatusException(
                         NOT_FOUND,
-                        "Patient with id " + patientId + " not found"
+                        "Patient with id " + userId + " not found"
                 ));
     }
 

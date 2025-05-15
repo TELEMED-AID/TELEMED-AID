@@ -1,6 +1,6 @@
 package com.telemidAid.patient_service.dtos;
 
-import com.telemidAid.patient_service.model.Patient;
+import com.telemidAid.patient_service.entity.Patient;
 import lombok.*;
 
 import java.sql.Date;
@@ -12,8 +12,7 @@ import java.sql.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreatePatientRequest {
-    private Long id;
-    private String nationalId;  // Must match exactly
+    private Long userId;
     private String name;
     private String countryName;
     private String countryId;
@@ -22,10 +21,9 @@ public class CreatePatientRequest {
     private String gender;
 
 
-    public static CreatePatientRequest createPatientToDto(Patient patient){
+    public static CreatePatientRequest toDto(Patient patient){
         return CreatePatientRequest.builder()
-                .id(patient.getId())
-                .nationalId(patient.getNationalId())
+                .userId(patient.getUserId())
                 .name(patient.getName())
                 .countryName(patient.getCountryName())
                 .countryId(patient.getCountryId())

@@ -1,9 +1,7 @@
 package com.telemidAid.patient_service.dtos;
 
-import com.telemidAid.patient_service.model.Patient;
-import jakarta.persistence.Column;
+import com.telemidAid.patient_service.entity.Patient;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +12,7 @@ import java.sql.Date;
 @Setter
 @AllArgsConstructor
 public class GetPatientRequest {
-    private Long id;
+    private Long userId;
     private String name;
     private String countryName;
     private String countryId;
@@ -22,9 +20,9 @@ public class GetPatientRequest {
     private String phone;
     private Date birthDate;
 
-    public static GetPatientRequest fromEntity(Patient patient) {
+    public static GetPatientRequest toDto(Patient patient) {
         return new GetPatientRequest(
-                patient.getId(),
+                patient.getUserId(),
                 patient.getName(),
                 patient.getCountryName(),
                 patient.getCountryId(),

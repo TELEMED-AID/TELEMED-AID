@@ -1,6 +1,6 @@
 package com.telemidAid.patient_service.dtos;
 
-import com.telemidAid.patient_service.model.Patient;
+import com.telemidAid.patient_service.entity.Patient;
 import lombok.*;
 
 @Getter
@@ -12,7 +12,7 @@ public class UpdatePatientRequest {
     private String name;
     private String phone;
 
-    public static UpdatePatientRequest updatePatientToDto(Patient patient){
+    public static UpdatePatientRequest toDto(Patient patient){
         return UpdatePatientRequest.builder()
                 .name(patient.getName())
                 .phone(patient.getPhone())

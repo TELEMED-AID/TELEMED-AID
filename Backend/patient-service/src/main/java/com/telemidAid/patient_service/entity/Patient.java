@@ -1,4 +1,4 @@
-package com.telemidAid.patient_service.model;
+package com.telemidAid.patient_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,10 +16,7 @@ import java.sql.Date;
 public class Patient {
     @Id
     @Column(name = "id", nullable = false)
-    private Long id;
-
-    @Column(name = "national_id", length = 20)
-    private String nationalId;
+    private Long userId;
 
     @Column(nullable = false, length = 255)
     private String name;

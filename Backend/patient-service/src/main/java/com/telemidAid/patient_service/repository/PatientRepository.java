@@ -1,6 +1,6 @@
 package com.telemidAid.patient_service.repository;
 
-import com.telemidAid.patient_service.model.Patient;
+import com.telemidAid.patient_service.entity.Patient;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
