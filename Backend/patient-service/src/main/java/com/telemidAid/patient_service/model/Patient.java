@@ -33,7 +33,6 @@ public class Patient {
     @Column(nullable = false)
     private String phone;
 
-
     @Column(name = "date_of_birth", nullable = false)
     private Date birthDate;
 

@@ -43,10 +43,10 @@ public class PatientController {
 
     @PutMapping("/{patientId}")
     public ResponseEntity<?> updatePatientInfo(
-            @PathVariable String patientId,
+            @PathVariable Long patientId,
             @RequestBody UpdatePatientRequest request) {
         try {
-            boolean updated = patientService.updatePatientInfo(patientId, request);
+            boolean updated = patientService.updatePatient(patientId, request);
             if (updated) {
                 return ResponseEntity.ok("Patient information updated successfully.");
             }

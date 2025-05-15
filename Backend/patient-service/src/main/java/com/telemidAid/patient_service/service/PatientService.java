@@ -5,6 +5,7 @@ import com.telemidAid.patient_service.dtos.GetPatientRequest;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
 import com.telemidAid.patient_service.model.Patient;
 import com.telemidAid.patient_service.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,13 +15,10 @@ import java.util.Optional;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
+@RequiredArgsConstructor
 public class PatientService {
 
     private final PatientRepository patientRepository;
-
-    public PatientService(PatientRepository patientRepository) {
-        this.patientRepository = patientRepository;
-    }
 
     public void createPatient(CreatePatientRequest request) {
         Patient patient = Patient.builder()
@@ -45,7 +43,7 @@ public class PatientService {
                 ));
     }
 
-    public boolean updatePatientInfo(Long userId, UpdatePatientRequest request) {
+    public boolean updatePatient(Long userId, UpdatePatientRequest request) {
         Optional<Patient> optionalPatient = patientRepository.findById(userId);
         if (optionalPatient.isEmpty()) {
             return false;

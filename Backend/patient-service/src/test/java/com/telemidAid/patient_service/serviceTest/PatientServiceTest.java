@@ -6,17 +6,18 @@ import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
 import com.telemidAid.patient_service.model.Patient;
 import com.telemidAid.patient_service.repository.PatientRepository;
 import com.telemidAid.patient_service.service.PatientService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
+
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.sql.Date;
-import java.time.LocalDate;
 import java.util.Optional;
 
+@ExtendWith(MockitoExtension.class)
 public class PatientServiceTest {
 
     @Mock
@@ -25,32 +26,19 @@ public class PatientServiceTest {
     @InjectMocks
     private PatientService patientService;
 
-    private CreatePatientRequest createPatientRequest;
-    private UpdatePatientRequest updatePatientRequest;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-
-        createPatientRequest = new CreatePatientRequest();
-        createPatientRequest.setId(1L);
-        createPatientRequest.setNationalId("12345");
-        createPatientRequest.setCountryName("USA");
-        createPatientRequest.setCountryId("UA");
-        createPatientRequest.setName("John Doe");
-        createPatientRequest.setGender("Male");
-        createPatientRequest.setPhone("123456789");
-        createPatientRequest.setBirthDate(Date.valueOf("1990-05-15"));
-
-        updatePatientRequest = new UpdatePatientRequest();
-        updatePatientRequest.setName("John Updated");
-        updatePatientRequest.setPhone("987654321");
-    }
-
     @Test
-    public void getPatientTest() {
+    public void patientService_getPatient_returnPatient() {
         // Arrange
-        Patient existingPatient = new Patient(1L,"12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
+        Patient existingPatient = Patient.builder()
+                .id(1L)
+                .nationalId("30105210201271")
+                .name("Mohamed")
+                .countryName("Egypt")
+                .countryId("EGP")
+                .phone("01201841997")
+                .birthDate( Date.valueOf("2001-05-21"))
+                .gender("Male")
+                .build();
 
         when(patientRepository.findById(1L))
                 .thenReturn(Optional.of(existingPatient));
@@ -60,38 +48,68 @@ public class PatientServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("John Doe", result.getName());
-        assertEquals("123456789", result.getPhone());
-        assertEquals("USA", result.getCountryName());
+        assertEquals("Mohamed", result.getName());
 
         verify(patientRepository, times(1)).findById(1L);
         verifyNoMoreInteractions(patientRepository);
     }
     @Test
-    public void testCreatePatient() {
-        patientService.createPatient(createPatientRequest);
+    public void patientService_createPatient_returnPatient() {
+        CreatePatientRequest newPatient = CreatePatientRequest.builder()
+                .id(1L)
+                .nationalId("30105210201271")
+                .name("Mohamed")
+                .countryName("Egypt")
+                .countryId("EGP")
+                .phone("01201841997")
+                .birthDate( Date.valueOf("2001-05-21"))
+                .gender("Male")
+                .build();
+
+        patientService.createPatient(newPatient);
 
         // Verify interaction with the repository
         verify(patientRepository, times(1)).save(any(Patient.class));
     }
 
     @Test
-    public void testUpdatePatientInfo_PatientExists() {
-        Patient existingPatient = new Patient(1L,"12345", "John Doe", "USA", "US", "123456789",Date.valueOf("1990-05-15"), "Male");
-        when(patientRepository.findById(1L)).thenReturn(Optional.of(existingPatient));
+    public void patientService_updatePatient_returnBoolean() {
+        Patient existingPatient = Patient.builder()
+                .id(1L)
+                .nationalId("30105210201271")
+                .name("Mohamed")
+                .countryName("Egypt")
+                .countryId("EGP")
+                .phone("01201841997")
+                .birthDate( Date.valueOf("2001-05-21"))
+                .gender("Male")
+                .build();
 
-        boolean updated = patientService.updatePatientInfo(1L, updatePatientRequest);
+        UpdatePatientRequest patientInfo = UpdatePatientRequest.builder()
+                .name("Ziad")
+                .phone("01201841997")
+                .build();
+        when(patientRepository.findById(1L)).thenReturn(Optional.of(existingPatient));
+        boolean updated = patientService.updatePatient(1L, patientInfo);
 
         assertTrue(updated);
         verify(patientRepository, times(1)).save(any(Patient.class));
     }
 
     @Test
-    public void testUpdatePatientInfo_PatientNotFound() {
+    public void patientService_getPatient_patientNotFound_throwsException() {
         when(patientRepository.findById(1L)).thenReturn(Optional.empty());
 
-        boolean updated = patientService.updatePatientInfo(1L, updatePatientRequest);
+        ResponseStatusException thrown = assertThrows(ResponseStatusException.class, () ->
+                patientService.getPatient(1L));
 
-        assertFalse(updated);
+        assertEquals("404 NOT_FOUND \"Patient with id 1 not found\"", thrown.getMessage());
+    }
+    @Test
+    public void patientService_updatePatient_patientNotFound_returnsFalse() {
+        when(patientRepository.findById(1L)).thenReturn(Optional.empty());
+
+        boolean result = patientService.updatePatient(1L, new UpdatePatientRequest());
+        assertFalse(result);
     }
 }
