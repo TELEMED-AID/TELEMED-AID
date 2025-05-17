@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/appointments")
+@RequestMapping("/api/appointment")
 @RequiredArgsConstructor
 public class AppointmentController {
     private final BookAppointment bookAppointmentService;
