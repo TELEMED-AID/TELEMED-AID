@@ -38,7 +38,7 @@ import SearchableDropDown from "../../Components/DropDown/SearchableDropDown";
 import usePostItem from "../../Hooks/usePost";
 import useGet from "../../Hooks/useGet";
 import TimerIcon from "@mui/icons-material/Timer";
-
+import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 export default function Signup() {
   const { handleSubmit, setValue } = useForm();
 
@@ -51,6 +51,7 @@ export default function Signup() {
     gender: DropDownValidation("Gender", false),
     password: PasswordValidation("Password"),
     inquiryId: WithoutValidation,
+    role: WithoutValidation,
   });
 
   const initialFormState = {
@@ -64,6 +65,7 @@ export default function Signup() {
     specializationName: "",
     careerLevelName: "",
     inquiryId: "",
+    role: "",
   };
 
   const navigate = useNavigate();
@@ -80,8 +82,8 @@ export default function Signup() {
   const [requestState, setRequestState] = useState(initialFormState);
   const [errors, setErrors] = useState({});
 
-  const { loading, postItem } = usePostItem();
-  const { loading: getUserLoading, getItem } = useGet();
+  const { loading: signupLoading, postItem } = usePostItem();
+  const { loading: getInquiryIdLoading, getItem } = useGet();
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
   };
@@ -99,6 +101,13 @@ export default function Signup() {
     window.open(data.verificationLink, "_blank");
     setInquiryId(data.inquiryId);
     localStorage.setItem("inquiryId", data.inquiryId);
+    setRequestState((prev) => ({
+      ...prev,
+      inquiryId: data.inquiryId,
+    }));
+    localStorage.setItem("lastClickTime", Date.now());
+    setIsVerificationButtonEnabled(false);
+    setIsSignupButtonEnabled(true);
   };
 
   const [isVerificationButtonEnabled, setIsVerificationButtonEnabled] =
@@ -136,9 +145,6 @@ export default function Signup() {
 
   const handleValidationIdentityButton = () => {
     console.log("handleValidationIdentityButton ... ");
-    localStorage.setItem("lastClickTime", Date.now());
-    setIsVerificationButtonEnabled(false);
-    setIsSignupButtonEnabled(true);
     getItem(GET_VERIFICATION_LINK, false, getVerificationLink);
     //api call to get verification link
   };
@@ -157,11 +163,14 @@ export default function Signup() {
   };
 
   const signupRequestCallBack = (responseData, originalData) => {
+    localStorage.removeItem("inquiryId");
+    setIsVerificationButtonEnabled(true);
+    setIsSignupButtonEnabled(false);
     navigate("/");
   };
 
   const onSignupSubmit = async () => {
-    setRequestState({ ...requestState, inquiryId: inquiryId });
+    setRequestState({ ...requestState, role: isDoctor ? "DOCTOR" : "PATIENT" });
     if (!isDoctor) {
       const { specializationName, careerLevelName, ...patientRequestState } =
         requestState;
@@ -180,7 +189,6 @@ export default function Signup() {
         return;
       }
       // api to call request for user signup user request
-
       postItem(
         USER_SIGNUP_PATIENT_URL,
         patientRequest,
@@ -204,6 +212,11 @@ export default function Signup() {
         validationSchema
       );
 
+      validatePasswordMatch();
+      if (Object.keys(errors).length != 0 || doctorRequest == null) {
+        return;
+      }
+
       postItem(
         USER_SIGNUP_DOCTOR_URL,
         doctorRequest,
@@ -214,10 +227,6 @@ export default function Signup() {
         true,
         "post"
       );
-      validatePasswordMatch();
-      if (Object.keys(errors).length != 0 || doctorRequest == null) {
-        return;
-      }
       // api to call request for user signup doctor request
     }
   };
@@ -594,10 +603,18 @@ export default function Signup() {
                     mb: 2, // Optional bottom margin
                     opacity: isVerificationButtonEnabled ? 1 : 0.7, // Make the button slightly transparent when disabled
                   }}
-                  disabled={!isVerificationButtonEnabled}
+                  disabled={!isVerificationButtonEnabled || getInquiryIdLoading}
                   onClick={handleValidationIdentityButton}
                 >
-                  Validate Your Identity
+                  {!getInquiryIdLoading ? (
+                    "Validate Your Identity"
+                  ) : (
+                    <LoadingComponent
+                      size="1.2rem"
+                      thickness={5}
+                      color="white"
+                    />
+                  )}{" "}
                 </Button>
                 {!isVerificationButtonEnabled && <TimerIcon sx={{ mr: 1 }} />}
 
@@ -612,7 +629,7 @@ export default function Signup() {
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={!isSignupButtonEnabled}
+                  disabled={!isSignupButtonEnabled || signupLoading}
                   sx={{
                     width: "100%",
                     py: 1.5,
@@ -625,7 +642,15 @@ export default function Signup() {
                     mb: 2, // Optional bottom margin
                   }}
                 >
-                  Sign up
+                  {!signupLoading ? (
+                    "Sign Up"
+                  ) : (
+                    <LoadingComponent
+                      size="1.2rem"
+                      thickness={5}
+                      color="white"
+                    />
+                  )}{" "}
                 </Button>
               </Box>
             </Box>
