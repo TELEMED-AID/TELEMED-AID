@@ -9,14 +9,15 @@ import java.sql.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class UserRequest {
     private Long userId;
     private String name;
     private String countryName;
     private String countryId;
-    private String phone;
-    private Date dateOfBirth;
     private String gender;
+    private String phone;
+    private Date birthDate;
     private String careerLevelName;
     private String specializationName;
     private String role;

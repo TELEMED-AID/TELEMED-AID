@@ -8,6 +8,6 @@ import telemid_aid.project.router.dto.UserRequest;
 
 @FeignClient(name = "doctor-service", url = "http://localhost:9090")
 public interface DoctorServiceClient {
-    @PostMapping("/api/doctor")
+    @PostMapping("/api/doctor/register")
     ResponseEntity<String> createDoctor(@RequestBody UserRequest request);
 }

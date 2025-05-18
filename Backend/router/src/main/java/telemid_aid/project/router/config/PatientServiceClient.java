@@ -9,6 +9,6 @@ import telemid_aid.project.router.dto.UserRequest;
 @FeignClient(name = "patient-service", url = "http://localhost:8082")
 public interface PatientServiceClient {
 
-    @PostMapping("/patient/register")
+    @PostMapping("/api/patient/register")
     ResponseEntity<String> createPatient(@RequestBody UserRequest request);
 }
