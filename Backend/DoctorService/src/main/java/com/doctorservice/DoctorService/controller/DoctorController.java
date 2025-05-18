@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/doctor")
@@ -65,6 +66,14 @@ public class DoctorController {
 
         PageResponse<DoctorSearchResponse> response = doctorService.searchDoctors(request, page, size);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/specialization")
+    public List<SpecializationDto> getAllSpecializations() {
+        return doctorService.getAllSpecializations();
+    }
+    @GetMapping("/career-level")
+    public List<CareerLevelDto> getAllCareerLevels() {
+        return doctorService.getAllCareerLevels();
     }
 
 }

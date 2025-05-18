@@ -116,4 +116,16 @@ public class DoctorService {
 
         return new PageResponse<>(new PageImpl<>(content, pageable, doctorPage.getTotalElements()));
     }
+    public List<SpecializationDto> getAllSpecializations() {
+        List<Specialization> specializations = specializationRepository.findAll();
+        return specializations.stream()
+                .map(SpecializationDto::toDto)
+                .collect(Collectors.toList());
+    }
+    public List<CareerLevelDto> getAllCareerLevels() {
+        List<CareerLevel> careerLevels = careerLevelRepository.findAll();
+        return careerLevels.stream()
+                .map(CareerLevelDto::toDto)
+                .collect(Collectors.toList());
+    }
 }
