@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import telemedaid.authentication_service.Config.DoctorServiceClient;
 import telemedaid.authentication_service.Config.PatientServiceClient;
+import telemedaid.authentication_service.Config.RouterGateway;
 import telemedaid.authentication_service.Config.VerificationServiceClient;
 import telemedaid.authentication_service.DTOs.*;
 import telemedaid.authentication_service.Entities.Role;
@@ -25,7 +26,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class AuthenticationService implements RouterGateway {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -33,6 +34,7 @@ public class AuthenticationService {
     private final PatientServiceClient patientServiceClient; // Feign Client
     private final DoctorServiceClient doctorServiceClient;
     private final VerificationServiceClient verificationServiceClient;
+    private final RouterGateway routerGateway;
 
     /**
      * GUA_UA_U1
@@ -53,18 +55,16 @@ public class AuthenticationService {
             System.out.println("after validation");
             userRepository.save(user);
             System.out.println("after saving user");
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             CreatePatientRequest patientRequest = CreatePatientRequest.builder()
-                    .id(user.getId())
-                    .nationalId(request.getNationalId())
+                    .userId(user.getId())
                     .name(request.getName())
                     .countryName(request.getCountryName())
                     .countryId(request.getCountryId())
                     .phone(request.getPhone())
                     .gender(request.getGender())
-                    .birthDate(sdf.format(request.getDateOfBirth()))
+                    .birthDate(request.getDateOfBirth())
                     .build();
-
+            routeUserData(patientRequest);
             /*patientServiceClient.createPatient(patientRequest);*/ /* Feign client to patient-service*/
 
             return AuthResponse.builder()
@@ -96,9 +96,8 @@ public class AuthenticationService {
 
             userRepository.save(user);
             CreateDoctorRequest createDoctorRequest = CreateDoctorRequest.builder()
-                    .id(user.getId())
+                    .userId(user.getId())
                     .name(request.getName())
-                    .nationalId(request.getNationalId())
                     .birthDate(request.getDateOfBirth())
                     .careerLevelName(request.getCareerLevelName())
                     .countryId(request.getCountryId())
@@ -107,7 +106,7 @@ public class AuthenticationService {
                     .phone(request.getPhone())
                     .specializationName(request.getSpecializationName())
                     .build();
-
+            routeUserData(createDoctorRequest);
             /*doctorServiceClient.addDoctor(createDoctorRequest);*/ /* Feign client to doctor-service*/
 
             return AuthResponse.builder()
@@ -119,6 +118,10 @@ public class AuthenticationService {
         } catch (Exception e) {
             throw new ServiceCommunicationException("Doctor Service", e.getMessage());
         }
+    }
+    @Override
+    public void routeUserData(CreateUserRequest userData) {
+        routerGateway.routeUserData(userData);
     }
     /**
      * GUA_UA_U2
@@ -209,5 +212,6 @@ public class AuthenticationService {
             throw new ServiceCommunicationException("Verification Service", e.getMessage());
         }
     }
+
 
 }
