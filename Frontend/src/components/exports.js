@@ -1,8 +1,0 @@
-export {default as Register} from './Register/Register'
-export {default as Login} from './Login/Login'
-// export {default as Profile} from './Profile/Profile'
-// export {default as Appointment} from './Appointment/Appointment'
-export {default as Header} from './Header/Header'
-// export {default as Article} from './Article/Article'
-export {default as UpdateProfile} from './UpdateProfile/UpdateProfile'
-export {default as PostQuestion} from './PostQuestion/PostQuestion'
