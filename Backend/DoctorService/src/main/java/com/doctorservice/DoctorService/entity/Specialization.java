@@ -15,4 +15,8 @@ public class Specialization {
 
     @Column(name = "specialization_name", nullable = false, length = 30)
     private String specializationName;
+
+    public Specialization() {
+
+    }
 }

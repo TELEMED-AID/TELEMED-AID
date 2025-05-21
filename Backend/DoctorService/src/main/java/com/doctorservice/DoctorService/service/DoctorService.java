@@ -6,7 +6,9 @@ import com.doctorservice.DoctorService.exception.EntityNotFoundException;
 import com.doctorservice.DoctorService.repository.CareerLevelRepository;
 import com.doctorservice.DoctorService.repository.DoctorRepository;
 import com.doctorservice.DoctorService.repository.SpecializationRepository;
+import com.doctorservice.DoctorService.util.DoctorMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final CareerLevelRepository careerLevelRepository;
     private final SpecializationRepository specializationRepository;
+    @Autowired
+    DoctorEventProducer doctorEventProducer;
 
     @Transactional
     public DoctorResponse createDoctor(CreateDoctorRequest request) {
@@ -34,8 +38,14 @@ public class DoctorService {
                 .careerLevel(careerLevelRepository.findByCareerLevelName(request.getCareerLevelName()).orElse(null))
                 .specialization(specializationRepository.findBySpecializationName(request.getSpecializationName()).orElse(null))
                 .build();
+        //     doctorEventProducer.sendDoctorEvent(doctorDTO);
 
         Doctor savedDoctor = doctorRepository.save(doctor);
+        if(savedDoctor.getUserId() != null) {
+            KafkaEnricherDTO kafkaEnricherDTO = DoctorMapper.toDoctorDTO(savedDoctor);
+            doctorEventProducer.sendDoctorEvent(kafkaEnricherDTO);
+        }
+
         return DoctorResponse.doctorToDoctorResponse(savedDoctor);
     }
 
@@ -53,6 +63,12 @@ public class DoctorService {
         }
 
         Doctor updatedDoctor = doctorRepository.save(doctor);
+        if(updatedDoctor.getUserId() != null) {
+            KafkaEnricherDTO kafkaEnricherDTO = DoctorMapper.toDoctorDTO(updatedDoctor);
+            doctorEventProducer.sendDoctorEvent(kafkaEnricherDTO);
+        }
+
+
         return DoctorResponse.doctorToDoctorResponse(updatedDoctor);
     }
 
@@ -128,4 +144,5 @@ public class DoctorService {
                 .map(CareerLevelDto::toDto)
                 .collect(Collectors.toList());
     }
+
 }
