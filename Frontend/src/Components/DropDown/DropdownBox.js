@@ -1,17 +1,12 @@
 import React from "react";
-import { Autocomplete,TextField } from "@mui/material";
+import { Autocomplete, TextField } from "@mui/material";
 
-const DropdownBox = ({
-    label,
-    name,
-    register,
-    setValue,
-    error,
-    helperText,
-    options,
-}) => {
+const DropdownBox = ({ label, name, setValue, error, helperText, options }) => {
     return (
         <Autocomplete
+            sx={{
+                mb: 3,
+            }}
             options={options}
             getOptionLabel={(option) => option.name}
             onChange={(_, selectedOption) => {
