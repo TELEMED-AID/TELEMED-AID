@@ -5,13 +5,13 @@ import com.example.article_microservice.DTO.Article.ArticleSearchResponseDTO;
 import com.example.article_microservice.DTO.Article.SingleArticleResponseDTO;
 import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
 import com.example.article_microservice.Model.Article;
-import com.example.article_microservice.Model.Doctor;
+import com.example.article_microservice.Model.EnrichedDoctor;
+import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.example.article_microservice.Repository.ArticleRepository;
-import com.example.article_microservice.Repository.DoctorRepository;
 import com.example.article_microservice.Service.Interface.ArticleService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +29,17 @@ public class ArticleServiceImpl implements ArticleService {
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
-    private DoctorRepository doctorRepository;
+    private EnrichedDoctorRepository enrichedDoctorRepository;
     public ResponseEntity<?> publishArticle(ReceivedArticleDTO receivedArticleDTO){
         Article article = new Article();
         article.setTitle(receivedArticleDTO.getTitle());
         article.setContent(receivedArticleDTO.getContent());
         article.setArticleTime(receivedArticleDTO.getArticleTime());
         article.setCategory(receivedArticleDTO.getCategory());
-        Optional<Doctor> doctorOptional = doctorRepository.findById(receivedArticleDTO.getDoctorNationalId());
+        Optional<EnrichedDoctor> doctorOptional = enrichedDoctorRepository.findById(receivedArticleDTO.getDoctorNationalId());
         if (doctorOptional.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
-        article.setDoctor(doctorOptional.get());
+        article.setEnrichedDoctorId(doctorOptional.get().getId());
         try{
             articleRepository.save(article);
             return ResponseEntity.status(HttpStatus.CREATED).body("Article saved successfully");

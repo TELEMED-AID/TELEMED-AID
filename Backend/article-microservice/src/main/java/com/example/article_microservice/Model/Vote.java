@@ -11,16 +11,17 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 public class Vote {
+
     @EmbeddedId
     private VoteId voteId;
-    @ManyToOne
-    @MapsId("doctorId")
-    @JoinColumn(name = "doctor_id")
-    private Doctor doctor;
+
     @ManyToOne
     @MapsId("commentId")
     @JoinColumn(name = "comment_id")
     @JsonBackReference
     private Comment comment;
+
     private Integer rank;
+
 }
+
