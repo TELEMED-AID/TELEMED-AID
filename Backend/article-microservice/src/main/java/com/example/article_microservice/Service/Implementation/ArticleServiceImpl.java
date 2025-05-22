@@ -47,6 +47,7 @@ public class ArticleServiceImpl implements ArticleService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving article, try again");
         }
     }
+
     @Transactional
     @Override
     public ResponseEntity<?> searchArticle(String term, int page, int size) {
@@ -60,20 +61,28 @@ public class ArticleServiceImpl implements ArticleService {
                 .collect(Collectors.joining(" | "));
 
         if (tsQuery.isBlank()) {
-            Page<QuestionSearchResponseDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), 0);
+            Page<ArticleSearchResponseDTO> emptyPage = new PageImpl<>(Collections.emptyList(), PageRequest.of(page, size), 0);
             return ResponseEntity.ok(emptyPage);
         }
 
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<Article> resultPage = articleRepository.searchByRelevance(tsQuery, pageable);
-            Page<ArticleSearchResponseDTO> responsePage = resultPage.map(ArticleSearchResponseDTO::new);
+
+            Page<ArticleSearchResponseDTO> responsePage = resultPage.map(article -> {
+                ArticleSearchResponseDTO dto = new ArticleSearchResponseDTO(article);
+                dto.enrichDoctorData(enrichedDoctorRepository, article.getEnrichedDoctorId());
+                return dto;
+            });
+
             return ResponseEntity.ok(responsePage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Change the search terms to make them more distinctive and retry");
         }
     }
+
+
     public ResponseEntity<?> getCertainArticle(Long id){
         if(id < 0)
             return ResponseEntity.badRequest().body("id cannot be negative");
@@ -82,10 +91,13 @@ public class ArticleServiceImpl implements ArticleService {
             if(article.isEmpty()){
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
             }
-            return ResponseEntity.ok(new SingleArticleResponseDTO(article.get()));
+            SingleArticleResponseDTO dto = new SingleArticleResponseDTO(article.get());
+            dto.enrichDoctorData(enrichedDoctorRepository, article.get().getEnrichedDoctorId());
+            return ResponseEntity.ok(dto);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Something wrong occurred, please try again");
         }
     }
+
 }
