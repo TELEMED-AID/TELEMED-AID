@@ -11,7 +11,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../../Components/Navbar/Navbar";
-
+import Footer from "../../Components/Footer/Footer";
 const UpdatePassword = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -160,6 +160,7 @@ const UpdatePassword = () => {
                     </Box>
                 </Paper>
             </Container>
+            <Footer />
         </>
     );
 };

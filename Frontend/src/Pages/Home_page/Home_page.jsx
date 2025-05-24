@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import {
     Container,
     Typography,
@@ -19,6 +20,7 @@ import voteImg from "../../Assets/vote.png";
 import questionsImg from "../../Assets/questions.png";
 import Navbar from "../../Components/Navbar/Navbar"; // Adjust path as needed
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
+import Footer from "../../Components/Footer/Footer";
 const features = [
     {
         title: "Easy Signup & Login",
@@ -32,7 +34,7 @@ const features = [
         description:
             "Patients can view doctor availability and schedule appointments that fit both their preferences and the doctor’s open time slots. The booking system ensures there are no overlaps or conflicts.",
         image: appointmentImg,
-        route: "/appointments",
+        route: "/book-appointment",
     },
     {
         title: "Doctor Availability Management",
@@ -73,7 +75,7 @@ const features = [
 
 const FeatureCard = ({ feature, isReversed }) => {
     const [ref, inView] = useInView({
-        triggerOnce: false, // Changed to false to trigger on both scroll directions
+        triggerOnce: false,
         threshold: 0.2,
     });
 
@@ -88,15 +90,25 @@ const FeatureCard = ({ feature, isReversed }) => {
                 sx={{
                     width: "100%",
                     display: "flex",
-                    flexDirection: isReversed ? "row-reverse" : "row",
-                    mb: 10,
+                    flexDirection: {
+                        xs: "column", // Stack vertically on mobile
+                        md: isReversed ? "row-reverse" : "row", // Row layout on desktop
+                    },
+                    justifyContent: "center",
+                    alignItems: "center",
+                    mb: { xs: 5, md: 10 }, // Smaller margin on mobile
                     borderRadius: 3,
                     boxShadow: 3,
                     overflow: "hidden",
                 }}
             >
-                {/* Image */}
-                <Box sx={{ width: "50%" }}>
+                {/* Image - Full width on mobile, 50% on desktop */}
+                <Box
+                    sx={{
+                        width: { xs: "90%", md: "50%" },
+                        height: { xs: "250px", md: "auto" }, // Fixed height on mobile
+                    }}
+                >
                     <img
                         src={feature.image}
                         alt={feature.title}
@@ -108,10 +120,10 @@ const FeatureCard = ({ feature, isReversed }) => {
                     />
                 </Box>
 
-                {/* Text */}
+                {/* Text - Full width on mobile, 50% on desktop */}
                 <Box
                     sx={{
-                        width: "50%",
+                        width: { xs: "90%", md: "50%" },
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
@@ -119,15 +131,17 @@ const FeatureCard = ({ feature, isReversed }) => {
                 >
                     <CardContent
                         sx={{
-                            ml: 2,
+                            ml: { xs: 0, md: 2 }, // No margin on mobile
+                            p: { xs: 2, md: 3 }, // Adjust padding for mobile
                         }}
                     >
                         <Typography
                             variant="h4"
                             gutterBottom
                             sx={{
-                                fontFamily: "'Roboto', sans-serif", // Default MUI font
+                                fontFamily: "'Roboto', sans-serif",
                                 fontWeight: 700,
+                                fontSize: { xs: "1.8rem", md: "2.125rem" }, // Smaller on mobile
                             }}
                         >
                             {feature.title}
@@ -137,7 +151,7 @@ const FeatureCard = ({ feature, isReversed }) => {
                             color="text.secondary"
                             paragraph
                             sx={{
-                                fontSize: "20px",
+                                fontSize: { xs: "16px", md: "20px" }, // Smaller on mobile
                             }}
                         >
                             {feature.description}
@@ -146,7 +160,7 @@ const FeatureCard = ({ feature, isReversed }) => {
                             variant="contained"
                             href={feature.route}
                             sx={{
-                                fontSize: "20px",
+                                fontSize: { xs: "16px", md: "20px" },
                                 mt: 2,
                                 backgroundColor: "#33b4d4",
                                 "&:hover": {
@@ -168,7 +182,7 @@ const Home_page = () => {
         <>
             <ScrollToTop />
             <Navbar />
-            <Container sx={{ mt: 10, p: 0 }}>
+            <Container sx={{ mt: 8, p: 0 }}>
                 {features.map((feature, index) => (
                     <FeatureCard
                         key={index}
@@ -177,6 +191,7 @@ const Home_page = () => {
                     />
                 ))}
             </Container>
+            <Footer />
         </>
     );
 };

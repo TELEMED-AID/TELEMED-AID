@@ -5,7 +5,7 @@ const DropdownBox = ({ label, name, setValue, error, helperText, options }) => {
     return (
         <Autocomplete
             sx={{
-                mb: 3,
+                mb: 2,
             }}
             options={options}
             getOptionLabel={(option) => option.name}

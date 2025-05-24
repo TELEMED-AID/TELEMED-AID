@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import SearchableDropDown from "../../Components/DropDown/SearchableDropDown"; // Adjust path as needed
 import Navbar from "../../Components/Navbar/Navbar"; // Adjust path as needed
-
+import Footer from "../../Components/Footer/Footer";
 const UpdateInfo = ({ role }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -230,6 +230,7 @@ const UpdateInfo = ({ role }) => {
                     </Box>
                 </Paper>
             </Container>
+            <Footer />
         </>
     );
 };

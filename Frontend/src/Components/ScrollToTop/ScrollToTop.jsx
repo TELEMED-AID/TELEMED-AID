@@ -1,17 +1,20 @@
 import React from "react";
-import { Fab, Zoom, useScrollTrigger, Box } from "@mui/material";
+import { Fab, Zoom, useScrollTrigger, Box, useTheme, useMediaQuery } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 
 const ScrollToTop = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detects mobile screens
+    
     const trigger = useScrollTrigger({
-        disableHysteresis: true, // Shows immediately when crossing threshold
-        threshold: 100, // Appears after scrolling 100px down
+        disableHysteresis: true,
+        threshold: 100,
     });
 
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,
-            behavior: "smooth", // Smooth scrolling animation
+            behavior: "smooth",
         });
     };
 
@@ -23,14 +26,13 @@ const ScrollToTop = () => {
                 sx={{
                     position: "fixed",
                     bottom: 50,
-                    right: 60,
-
-                    zIndex: 1000, // Ensures it stays above other content
+                    right: isMobile ? 25 : 60, // 16px on mobile, 60px on larger screens
+                    zIndex: 1000,
                 }}
             >
                 <Fab
                     color="primary"
-                    size="large"
+                    size={isMobile ? "medium" : "large"} // Smaller on mobile
                     aria-label="Scroll to top"
                     sx={{
                         backgroundColor: "#33b4d4",
