@@ -62,6 +62,105 @@ export const countries = [
     { code: "SN", name: "Senegal", phoneCode: "+221" },
 ];
 
+export const sampleAppointments = [
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. Sarah Johnson",
+            phone: "+11234567890",
+            birthDate: "1980-05-15",
+            gender: "FEMALE",
+            countryName: "United States",
+            countryId: "US",
+            careerLevel: "Consultant",
+            specialization: "Orthopedics",
+        },
+        date: "2025-06-15",
+        time: "09:30:00",
+        state: "PENDING",
+    },
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. Michael Chen",
+            phone: "+19876543210",
+            birthDate: "1975-11-22",
+            gender: "MALE",
+            countryName: "Canada",
+            countryId: "CA",
+            careerLevel: "Senior Consultant",
+            specialization: "Cardiology",
+        },
+        date: "2025-06-10",
+        time: "14:15:00",
+        state: "CONFIRMED",
+    },
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. Emily Wilson",
+            phone: "+81312345678",
+            birthDate: "1985-09-12",
+            gender: "FEMALE",
+            countryName: "Japan",
+            countryId: "JP",
+            careerLevel: "Resident",
+            specialization: "Dermatology",
+        },
+        date: "2025-06-05",
+        time: "11:00:00",
+        state: "COMPLETED",
+    },
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. Ahmed Hassan",
+            phone: "+201234567890",
+            birthDate: "1982-07-30",
+            gender: "MALE",
+            countryName: "Egypt",
+            countryId: "EG",
+            careerLevel: "Intern",
+            specialization: "Neurology",
+        },
+        date: "2025-05-28",
+        time: "16:45:00",
+        state: "CANCELLED",
+    },
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. Maria Rodriguez",
+            phone: "+34911234567",
+            birthDate: "1978-03-18",
+            gender: "FEMALE",
+            countryName: "Spain",
+            countryId: "ES",
+            careerLevel: "Senior Resident",
+            specialization: "Pediatrics",
+        },
+        date: "2025-06-20",
+        time: "10:00:00",
+        state: "PENDING",
+    },
+    {
+        userId: "PATIENT123",
+        doctorDetails: {
+            name: "Dr. James Wilson",
+            phone: "+447700123456",
+            birthDate: "1970-12-05",
+            gender: "MALE",
+            countryName: "United Kingdom",
+            countryId: "GB",
+            careerLevel: "Professor",
+            specialization: "Oncology",
+        },
+        date: "2025-06-12",
+        time: "13:30:00",
+        state: "CONFIRMED",
+    },
+];
+
 export const generateMockPatient = () => {
     const genders = ["Male", "Female", "Other"];
     const countries = [

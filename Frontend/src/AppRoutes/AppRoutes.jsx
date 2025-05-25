@@ -5,6 +5,15 @@ import Login from "../Pages/Login/Login";
 import Signup from "../Pages/Signup/Signup";
 import RoomCreationPopup  from "../Pages/RoomCreationPopup/RoomCreationPopup ";
 import ProfilePage from "../Pages/ProfilePage/ProfilePage";
+import Home_page from "../Pages/Home_page/Home_page";
+import UpdateInfo from "../Pages/UpdateInfo/UpdateInfo";
+import UpdatePassword from "../Pages/UpdatePassword/UpdatePassword";
+import Availability from "../Pages/Availability/Availability";
+import MyAppointments from "../Pages/MyAppointments/MyAppointments";
+import Appointment from "../Pages/Appointment/Appointment";
+import PageNotFound from "../Pages/PageNotFound/PageNotFound";
+import { sampleAppointments } from "../Utils/HelperObjects";
+
 export default function Paths() {
 
   return (
@@ -15,7 +24,33 @@ export default function Paths() {
             <Route path={DefaultRoutes.Signup} element={<Signup />} />
             <Route path={DefaultRoutes.roomCreation} element={<RoomCreationPopup />} />
             <Route path={DefaultRoutes.profile} element={<ProfilePage userRole="DOCTOR" />} />
+              <Route path={DefaultRoutes.home} element={<Home_page />} />
+                <Route
+                    path={DefaultRoutes.updateInfo}
+                    element={<UpdateInfo role={"doctor"} />}
+                />
+                <Route
+                    path={DefaultRoutes.updatePassword}
+                    element={<UpdatePassword role={"doctor"} />}
+                />
+                <Route
+                    path={DefaultRoutes.availability}
+                    element={<Availability />}
+                />
+                <Route
+                    path={DefaultRoutes.myAppointments}
+                    element={
+                        <MyAppointments appointments={sampleAppointments} />
+                    }
+                />
+                <Route
+                    path={DefaultRoutes.bookAppointment}
+                    element={<Appointment />}
+                />
+                {/* Catch-all route for undefined paths */}
+                <Route path="*" element={<PageNotFound />} />
         </Routes>
     </Router>
   );
+
 }
