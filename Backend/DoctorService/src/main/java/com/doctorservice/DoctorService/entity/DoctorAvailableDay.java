@@ -10,6 +10,8 @@ import java.util.List;
 @Entity
 @Table(name = "doctor_available_day")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class DoctorAvailableDay {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

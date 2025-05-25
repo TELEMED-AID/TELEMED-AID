@@ -1,8 +1,7 @@
 package com.doctorservice.DoctorService.util;
 
-import com.doctorservice.DoctorService.dto.KafkaEnricherDTO;
 import com.doctorservice.DoctorService.entity.Doctor;
-
+import telemedaid.common_dto.DTOs.KafkaEnricherDTO;
 public class DoctorMapper {
     public static KafkaEnricherDTO toDoctorDTO(Doctor doctor) {
         if (doctor == null) return null;

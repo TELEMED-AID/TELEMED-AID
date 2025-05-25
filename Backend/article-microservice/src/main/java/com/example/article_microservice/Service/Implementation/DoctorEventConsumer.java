@@ -1,7 +1,7 @@
 package com.example.article_microservice.Service.Implementation;
 
 
-import com.example.article_microservice.DTO.KafkaEnricherDTO;
+import telemedaid.common_dto.DTOs.KafkaEnricherDTO;
 import com.example.article_microservice.Model.EnrichedDoctor;
 import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;

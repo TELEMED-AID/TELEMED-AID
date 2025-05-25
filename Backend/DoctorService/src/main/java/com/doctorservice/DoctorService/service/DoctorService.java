@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import telemedaid.common_dto.DTOs.KafkaEnricherDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,16 @@ public class DoctorService {
 
     @Transactional
     public DoctorResponse createDoctor(CreateDoctorRequest request) {
+        if(specializationRepository.findBySpecializationName(request.getSpecializationName()).isEmpty()) {
+            Specialization specialization = new Specialization();
+            specialization.setSpecializationName(request.getSpecializationName());
+            specializationRepository.save(specialization);
+        }
+        if(careerLevelRepository.findByCareerLevelName(request.getCareerLevelName()).isEmpty()) {
+            CareerLevel careerLevel = new CareerLevel();
+            careerLevel.setCareerLevelName(request.getCareerLevelName());
+            careerLevelRepository.save(careerLevel);
+        }
         Doctor doctor = Doctor.builder()
                 .userId(request.getUserId())
                 .name(request.getName())

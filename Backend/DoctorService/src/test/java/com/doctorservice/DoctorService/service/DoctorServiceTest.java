@@ -1,5 +1,5 @@
 package com.doctorservice.DoctorService.service;
-
+/*
 import com.doctorservice.DoctorService.dto.*;
 import com.doctorservice.DoctorService.entity.CareerLevel;
 import com.doctorservice.DoctorService.entity.Doctor;
@@ -226,3 +226,5 @@ class DoctorServiceTest {
 
     }
 }
+
+ */

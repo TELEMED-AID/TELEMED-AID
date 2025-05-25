@@ -9,7 +9,7 @@ import java.sql.Date;
 @Data
 @Builder
 public class CreateDoctorRequest {
-    @NotBlank(message = "User ID is required")
+    @NotNull(message = "User ID is required")
     private Long userId;
 
     @NotBlank(message = "Name is required")

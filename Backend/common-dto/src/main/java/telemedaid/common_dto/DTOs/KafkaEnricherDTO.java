@@ -1,4 +1,4 @@
-package com.doctorservice.DoctorService.dto;
+package telemedaid.common_dto.DTOs;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
