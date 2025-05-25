@@ -1,3 +1,5 @@
 export const home = "/home"
 export const Login = "/login"
 export const Signup = "/signup"
+export const roomCreation = "/room-creation"
+export const profile = "/profile"
