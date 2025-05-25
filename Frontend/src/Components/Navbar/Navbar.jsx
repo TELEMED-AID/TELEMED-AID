@@ -40,7 +40,7 @@ const Navbar = () => {
     };
 
     const navItems = [
-        { name: "Profile", path: "/update-info" },
+        { name: "Profile", path: "/profile" },
         { name: "My Appointments", path: "/my-appointments" },
         { name: "Book an Appointment", path: "/book-appointment" },
         { name: "Articles", path: "/doctors" },

@@ -67,9 +67,9 @@ const features = [
     {
         title: "Live Chat During Appointments",
         description:
-            "At the time of the appointment, patients and doctors can engage in real-time chat. This feature allows efficient remote consultations without the need for physical visits.",
+            "At the time of the appointment, patients and doctors can engage in real-time chat. This feature allows efficient remote consultations without the need for physical visits. Note: You can create a chatting room from the profile",
         image: chatImg,
-        route: "/chat",
+        route: "/profile",
     },
 ];
 

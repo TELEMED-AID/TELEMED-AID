@@ -3,7 +3,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import * as DefaultRoutes from "../AppRoutes/DefaultRoutes";
 import Login from "../Pages/Login/Login";
 import Signup from "../Pages/Signup/Signup";
-import RoomCreationPopup  from "../Pages/RoomCreationPopup/RoomCreationPopup ";
+import RoomCreationPopup from "../Pages/RoomCreationPopup/RoomCreationPopup ";
 import ProfilePage from "../Pages/ProfilePage/ProfilePage";
 import Home_page from "../Pages/Home_page/Home_page";
 import UpdateInfo from "../Pages/UpdateInfo/UpdateInfo";
@@ -15,16 +15,21 @@ import PageNotFound from "../Pages/PageNotFound/PageNotFound";
 import { sampleAppointments } from "../Utils/HelperObjects";
 
 export default function Paths() {
-
-  return (
-    <Router>
-        <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path={DefaultRoutes.Login} element={<Login />} />
-            <Route path={DefaultRoutes.Signup} element={<Signup />} />
-            <Route path={DefaultRoutes.roomCreation} element={<RoomCreationPopup />} />
-            <Route path={DefaultRoutes.profile} element={<ProfilePage userRole="DOCTOR" />} />
-              <Route path={DefaultRoutes.home} element={<Home_page />} />
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path={DefaultRoutes.Login} element={<Login />} />
+                <Route path={DefaultRoutes.Signup} element={<Signup />} />
+                <Route
+                    path={DefaultRoutes.roomCreation}
+                    element={<RoomCreationPopup />}
+                />
+                <Route
+                    path={DefaultRoutes.profile}
+                    element={<ProfilePage userRole="DOCTOR" />}
+                />
+                <Route path={DefaultRoutes.home} element={<Home_page />} />
                 <Route
                     path={DefaultRoutes.updateInfo}
                     element={<UpdateInfo role={"doctor"} />}
@@ -49,8 +54,7 @@ export default function Paths() {
                 />
                 {/* Catch-all route for undefined paths */}
                 <Route path="*" element={<PageNotFound />} />
-        </Routes>
-    </Router>
-  );
-
+            </Routes>
+        </Router>
+    );
 }
