@@ -160,3 +160,34 @@ export const sampleAppointments = [
         state: "CONFIRMED",
     },
 ];
+
+export const generateMockPatient = () => {
+    const genders = ["Male", "Female", "Other"];
+    const countries = [
+        { name: "United States", id: "US" },
+        { name: "Canada", id: "CA" },
+        { name: "United Kingdom", id: "UK" },
+        { name: "Australia", id: "AU" },
+    ];
+
+    const randomDate = (start, end) => {
+        return new Date(
+            start.getTime() + Math.random() * (end.getTime() - start.getTime())
+        );
+    };
+
+    const country = countries[Math.floor(Math.random() * countries.length)];
+
+    return {
+        userId: Math.floor(Math.random() * 10000),
+        name: `Patient ${Math.floor(Math.random() * 1000)}`,
+        countryName: country.name,
+        countryId: country.id,
+        gender: genders[Math.floor(Math.random() * genders.length)],
+        phone: `+1${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+        birthDate: randomDate(
+            new Date(1950, 0, 1),
+            new Date(2005, 0, 1)
+        ).toISOString(),
+    };
+};
