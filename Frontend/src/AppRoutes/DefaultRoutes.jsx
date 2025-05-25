@@ -1,3 +1,8 @@
 export const home = "/home"
 export const Login = "/login"
 export const Signup = "/signup"
+export const updateInfo = "/update-info"
+export const updatePassword = "/update-password"
+export const availability = "/availability"
+export const myAppointments = "/my-appointments"
+export const bookAppointment = "/book-appointment"

@@ -121,9 +121,10 @@ const Login = () => {
             display: "flex",
             justifyContent: "center",
             bgcolor: "#fff",
+            
           }}
         >
-          <Box sx={{ width: 400 }}>
+          <Box sx={{ width: { xs: "350px", sm: "400px" } }}>
             <Grid sx={{ mb: 3 }}>
               <Typography variant="h3" className="loginTitle">
                 Login Page
