@@ -36,7 +36,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setContent(receivedArticleDTO.getContent());
         article.setArticleTime(receivedArticleDTO.getArticleTime());
         article.setCategory(receivedArticleDTO.getCategory());
-        Optional<EnrichedDoctor> doctorOptional = enrichedDoctorRepository.findById(receivedArticleDTO.getDoctorNationalId());
+        Optional<EnrichedDoctor> doctorOptional = enrichedDoctorRepository.findById(receivedArticleDTO.getDoctorId());
         if (doctorOptional.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
         article.setEnrichedDoctorId(doctorOptional.get().getId());
@@ -48,13 +48,12 @@ public class ArticleServiceImpl implements ArticleService {
         }
     }
 
-    @Transactional
     @Override
     public ResponseEntity<?> searchArticle(String term, int page, int size) {
         if (term == null || term.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("Search term cannot be empty");
         }
-
+        System.out.println(term);
         String cleanedTerm = term.trim();
         String tsQuery = Arrays.stream(cleanedTerm.split("\\s+"))
                 .filter(word -> word.length() > 1)
@@ -76,7 +75,8 @@ public class ArticleServiceImpl implements ArticleService {
             });
 
             return ResponseEntity.ok(responsePage);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Change the search terms to make them more distinctive and retry");
         }
