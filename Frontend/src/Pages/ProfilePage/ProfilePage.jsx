@@ -31,6 +31,8 @@ import { useNavigate } from "react-router-dom";
 import RoomCreationPopup from "../../Pages/RoomCreationPopup/RoomCreationPopup ";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
+import backgroundImage from "../../Assets/profile-background.png";
+
 const ProfilePage = ({ userRole = "PATIENT" }) => {
     const [roomPopupOpen, setRoomPopupOpen] = useState(false);
     const navigate = useNavigate();
@@ -91,6 +93,9 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
             case "set-availability":
                 navigate("/availability");
                 break;
+            case "chat":
+                navigate("/chat");
+                break;
             default:
                 console.log(`Action: ${action}`);
         }
@@ -98,8 +103,15 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
 
     return (
         <>
-        <Navbar />
-            <Box sx={{ maxWidth: { xs: 350, md: 1200 }, margin: "0 auto", mt:3 }}>
+            <Navbar />
+            <Box
+                sx={{
+                    
+                    maxWidth: { xs: 350, md: 1200 },
+                    margin: "0 auto",
+                    mt: 3,
+                }}
+            >
                 <Grid container spacing={1}>
                     {/* Left Column - Actions */}
                     <Grid item xs={12} md={4}>
@@ -131,194 +143,211 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
                     </Grid>
 
                     {/* Right Column - Profile Info */}
-                        <Paper elevation={3} sx={{ pt: 3,}}>
-                            <Box sx={{ pl: 2, }}>
-                                <Typography variant="h6" gutterBottom>
-                                    {isDoctor ? "Doctor ID" : "Patient ID"}
-                                </Typography>
-                                <Typography
-                                    variant="body1"
-                                    sx={{ mb: 2, color: "text.secondary" }}
-                                >
-                                    {userData.userId}
-                                </Typography>
-                            </Box>
-                            <List >
-                                <ListItem >
-                                    <ListItemIcon>
-                                        <Person />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary="Legal Name"
-                                        secondary={userData.name}
-                                    />
-                                </ListItem>
-
-                                <ListItem>
-                                    <ListItemIcon>
-                                        <Cake />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary="Date of Birth"
-                                        secondary={formattedBirthDate}
-                                    />
-                                </ListItem>
-
-                                <ListItem>
-                                    <ListItemIcon>
-                                        <Phone />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary="Phone Number"
-                                        secondary={userData.phone}
-                                    />
-                                </ListItem>
-
-                                <ListItem>
-                                    <ListItemIcon>
-                                        <Transgender />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary="Gender"
-                                        secondary={userData.gender}
-                                    />
-                                </ListItem>
-
-                                <ListItem>
-                                    <ListItemIcon>
-                                        <Public />
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary="Country"
-                                        secondary={`${userData.countryName} (${userData.countryId})`}
-                                    />
-                                </ListItem>
-
-                                {isDoctor && (
-                                    <>
-                                        <ListItem>
-                                            <ListItemIcon>
-                                                <Work />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary="Career Level"
-                                                secondary={userData.careerLevel}
-                                            />
-                                        </ListItem>
-
-                                        <ListItem>
-                                            <ListItemIcon>
-                                                <MedicalServices />
-                                            </ListItemIcon>
-                                            <ListItemText
-                                                primary="Specialization"
-                                                secondary={
-                                                    userData.specialization
-                                                }
-                                            />
-                                        </ListItem>
-                                    </>
-                                )}
-                            </List>
-
-                            <Box
+                    <Paper
+                        elevation={3}
+                        sx={{
+                            pt: 3,
+                        }}
+                    >
+                        <Box sx={{ pl: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                {isDoctor ? "Doctor ID" : "Patient ID"}
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                sx={{ mb: 2, color: "text.secondary" }}
+                            >
+                                {userData.userId}
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                startIcon={<PostAdd />}
+                                onClick={() => setRoomPopupOpen(true)}
                                 sx={{
-                                    mt: 1,
-                                    display: "flex",
-                                    flexWrap: "wrap",
-                                    gap: 2,
+                                    bgcolor: "#c2185b",
+                                    "&:hover": {
+                                        borderColor: "#2a96b3",
+                                    },
+                                    mx: "auto",
+                                    mb: 2,
                                 }}
                             >
-                                <Button
-                                    variant="contained"
-                                    startIcon={<PostAdd />}
-                                    onClick={() => setRoomPopupOpen(true)}
-                                    sx={{
-                                        bgcolor: "#c2185b",
-                                        "&:hover": { borderColor: "#2a96b3" },
-                                        mx: "auto",
-                                        mb: 2,
-                                    }}
-                                >
-                                    Create Room
-                                </Button>
+                                Create Room
+                            </Button>
+                            <Button
+                                variant="contained"
+                                startIcon={<Schedule />}
+                                onClick={() => handleButtonClick("chat")}
+                                sx={{
+                                    bgcolor: "#33b4d4",
+                                    "&:hover": {
+                                        bgcolor: "#2a9cb3",
+                                    },
+                                    mx: "5px",
+                                    mb: 2,
+                                }}
+                            >
+                                Chat Room
+                            </Button>
+                        </Box>
+                        <List>
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Person />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Legal Name"
+                                    secondary={userData.name}
+                                />
+                            </ListItem>
 
-                                <Button
-                                    variant="contained"
-                                    startIcon={<Edit />}
-                                    onClick={() =>
-                                        handleButtonClick("update-profile")
-                                    }
-                                    sx={{
-                                        bgcolor: "#33b4d4",
-                                        "&:hover": { bgcolor: "#2a9cb3" },
-                                        mx: "auto",
-                                        mb: 2,
-                                    }}
-                                >
-                                    Update Profile
-                                </Button>
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Cake />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Date of Birth"
+                                    secondary={formattedBirthDate}
+                                />
+                            </ListItem>
 
-                                <Button
-                                    variant="contained"
-                                    startIcon={<CalendarToday />}
-                                    onClick={() =>
-                                        handleButtonClick("appointments")
-                                    }
-                                    sx={{
-                                        bgcolor: "#33b4d4",
-                                        "&:hover": { bgcolor: "#2a9cb3" },
-                                        mx: "auto",
-                                        mb: 2,
-                                    }}
-                                >
-                                    My Appointments
-                                </Button>
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Phone />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Phone Number"
+                                    secondary={userData.phone}
+                                />
+                            </ListItem>
 
-                                {isDoctor && (
-                                    <>
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<Article />}
-                                            onClick={() =>
-                                                handleButtonClick(
-                                                    "create-article"
-                                                )
-                                            }
-                                            sx={{
-                                                bgcolor: "#33b4d4",
-                                                "&:hover": {
-                                                    bgcolor: "#2a9cb3",
-                                                },
-                                                mx: "auto",
-                                                mb: 2,
-                                            }}
-                                        >
-                                            Create Article
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<Schedule />}
-                                            onClick={() =>
-                                                handleButtonClick(
-                                                    "set-availability"
-                                                )
-                                            }
-                                            sx={{
-                                                bgcolor: "#33b4d4",
-                                                "&:hover": {
-                                                    bgcolor: "#2a9cb3",
-                                                },
-                                                mx: "auto",
-                                                mb: 2,
-                                            }}
-                                        >
-                                            Set Availability
-                                        </Button>
-                                    </>
-                                )}
-                            </Box>
-                        </Paper>
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Transgender />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Gender"
+                                    secondary={userData.gender}
+                                />
+                            </ListItem>
+
+                            <ListItem>
+                                <ListItemIcon>
+                                    <Public />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Country"
+                                    secondary={`${userData.countryName} (${userData.countryId})`}
+                                />
+                            </ListItem>
+
+                            {isDoctor && (
+                                <>
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            <Work />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary="Career Level"
+                                            secondary={userData.careerLevel}
+                                        />
+                                    </ListItem>
+
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            <MedicalServices />
+                                        </ListItemIcon>
+                                        <ListItemText
+                                            primary="Specialization"
+                                            secondary={userData.specialization}
+                                        />
+                                    </ListItem>
+                                </>
+                            )}
+                        </List>
+
+                        <Box
+                            sx={{
+                                mt: 1,
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 2,
+                            }}
+                        >
+                            <Button
+                                variant="contained"
+                                startIcon={<Edit />}
+                                onClick={() =>
+                                    handleButtonClick("update-profile")
+                                }
+                                sx={{
+                                    bgcolor: "#33b4d4",
+                                    "&:hover": { bgcolor: "#2a9cb3" },
+                                    mx: "auto",
+                                    mb: 2,
+                                }}
+                            >
+                                Update Profile
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                startIcon={<CalendarToday />}
+                                onClick={() =>
+                                    handleButtonClick("appointments")
+                                }
+                                sx={{
+                                    bgcolor: "#33b4d4",
+                                    "&:hover": { bgcolor: "#2a9cb3" },
+                                    mx: "auto",
+                                    mb: 2,
+                                }}
+                            >
+                                My Appointments
+                            </Button>
+
+                            {isDoctor && (
+                                <>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<Article />}
+                                        onClick={() =>
+                                            handleButtonClick("create-article")
+                                        }
+                                        sx={{
+                                            bgcolor: "#33b4d4",
+                                            "&:hover": {
+                                                bgcolor: "#2a9cb3",
+                                            },
+                                            mx: "auto",
+                                            mb: 2,
+                                        }}
+                                    >
+                                        Create Article
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        startIcon={<Schedule />}
+                                        onClick={() =>
+                                            handleButtonClick(
+                                                "set-availability"
+                                            )
+                                        }
+                                        sx={{
+                                            bgcolor: "#33b4d4",
+                                            "&:hover": {
+                                                bgcolor: "#2a9cb3",
+                                            },
+                                            mx: "auto",
+                                            mb: 2,
+                                        }}
+                                    >
+                                        Set Availability
+                                    </Button>
+                                </>
+                            )}
+                        </Box>
+                    </Paper>
                 </Grid>
 
                 <RoomCreationPopup

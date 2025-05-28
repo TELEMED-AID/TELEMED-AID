@@ -12,6 +12,7 @@ import Availability from "../Pages/Availability/Availability";
 import MyAppointments from "../Pages/MyAppointments/MyAppointments";
 import Appointment from "../Pages/Appointment/Appointment";
 import PageNotFound from "../Pages/PageNotFound/PageNotFound";
+import ChatPage from "../Pages/ChatPage/ChatPage";
 import { sampleAppointments } from "../Utils/HelperObjects";
 
 export default function Paths() {
@@ -51,6 +52,10 @@ export default function Paths() {
                 <Route
                     path={DefaultRoutes.bookAppointment}
                     element={<Appointment />}
+                />
+                <Route
+                    path={DefaultRoutes.chat}
+                    element={<ChatPage />}
                 />
                 {/* Catch-all route for undefined paths */}
                 <Route path="*" element={<PageNotFound />} />
