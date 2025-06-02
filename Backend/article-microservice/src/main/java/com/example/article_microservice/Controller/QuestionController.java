@@ -17,24 +17,28 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
     @PostMapping("/publishQuestion")
+    /**Tested*/
     public ResponseEntity<?> publishQuestion(@Valid @RequestBody ReceivedQuestionDTO questionDTO) {
         return questionService.postQuestion(questionDTO);
     }
+    /**Tested*/
     @GetMapping("/searchQuestion")
     public ResponseEntity<?> searchQuestion(@RequestParam String term,
                                             @RequestParam(defaultValue = "0") int page,
                                             @RequestParam(defaultValue = "5") int size) {
         return questionService.searchQuestion(term, page, size);
     }
+    /**Tested*/
     @PostMapping("/commentQuestion")
     public ResponseEntity<?> commentOnQuestion(@Valid @RequestBody CommentDTO commentDTO) {
         return questionService.commentOnQuestion(commentDTO);
     }
-
-    @GetMapping("/getCommentsOnPost")
+    /**Tested*/
+    @GetMapping("/getOne")
     public ResponseEntity<?> getCommentsOnQuestion(@RequestParam Long questionId) {
         return questionService.getCommentsOnQuestion(questionId);
     }
+    /**Tested*/
     @PostMapping("/addVote")
     public ResponseEntity<?> addVote(@Valid @RequestBody VoteDTO voteDTO) {
         return questionService.addVoteToQuestion(voteDTO);

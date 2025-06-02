@@ -35,7 +35,6 @@ public class QuestionServiceImpl implements QuestionService {
     private CommentRepository commentRepository;
     @Autowired
     private VoteRepository voteRepository;
-
     @Override
     public ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO) {
         /*
@@ -169,7 +168,9 @@ public class QuestionServiceImpl implements QuestionService {
             Optional<Vote> voteExist = voteRepository.findById(voteId);
 
             int r;
-            if (voteExist.isPresent() && (voteDTO.getRank() + voteExist.get().getRank() == 0)) {
+            // If doctor revotes with the same option = he is cancelling his choice actually
+            // Which means it's zero now
+            if (voteExist.isPresent() && Objects.equals(voteDTO.getRank(), voteExist.get().getRank())) {
                 r = 0;
             } else {
                 r = voteDTO.getRank();

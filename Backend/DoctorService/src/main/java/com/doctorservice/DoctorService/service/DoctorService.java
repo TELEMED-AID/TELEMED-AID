@@ -23,8 +23,7 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final CareerLevelRepository careerLevelRepository;
     private final SpecializationRepository specializationRepository;
-    @Autowired
-    DoctorEventProducer doctorEventProducer;
+    private final DoctorEventProducer doctorEventProducer;
 
     @Transactional
     public DoctorResponse createDoctor(CreateDoctorRequest request) {
