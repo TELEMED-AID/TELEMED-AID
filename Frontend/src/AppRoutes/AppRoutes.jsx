@@ -3,6 +3,10 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import * as DefaultRoutes from "../AppRoutes/DefaultRoutes";
 import Login from "../Pages/Login/Login";
 import Signup from "../Pages/Signup/Signup";
+import AddArticle from "../Pages/Article/AddArticle";
+import ShowArticles from "../Pages/Article/ShowArticles";
+import AddQuestion from "../Pages/Question/AddQuestion";
+import ShowQuestions from "../Pages/Question/ShowQuestions";
 import RoomCreationPopup from "../Pages/RoomCreationPopup/RoomCreationPopup ";
 import ProfilePage from "../Pages/ProfilePage/ProfilePage";
 import Home_page from "../Pages/Home_page/Home_page";
@@ -57,6 +61,10 @@ export default function Paths() {
                     path={DefaultRoutes.chat}
                     element={<ChatPage />}
                 />
+                <Route path={DefaultRoutes.AddArticle} element={<AddArticle />} />
+                <Route path={DefaultRoutes.ShowArticles} element={<ShowArticles />} />
+                <Route path={DefaultRoutes.AddQuestion} element={<AddQuestion/>} />
+                <Route path={DefaultRoutes.ShowQuestions} element={<ShowQuestions/>} />
                 {/* Catch-all route for undefined paths */}
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
