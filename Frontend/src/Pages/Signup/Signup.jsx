@@ -246,9 +246,10 @@ export default function Signup() {
             display: "flex",
             justifyContent: "center",
             // alignItems: "center",
+            mb:10,
           }}
         >
-          <Box sx={{ width: { xs: "400px", sm: "800px" } }}>
+          <Box sx={{ width: { xs: "350px", sm: "800px" } }}>
             <Grid>
               <Typography variant="h3" className="loginTitle">
                 Signup Page

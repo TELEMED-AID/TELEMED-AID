@@ -10,7 +10,7 @@ const LogoTitle = ({ isDisabled }) => {
       alt="Project Logo"
       sx={{
         mt: 4,
-        height: { xs: 150, sm: 150, md: 150 }, // responsive sizing
+        height: { xs: 100, sm: 150, md: 150 }, // responsive sizing
         width: "auto",
         maxWidth: "100%",
         display: "block",
