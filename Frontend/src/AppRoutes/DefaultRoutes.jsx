@@ -1,3 +1,7 @@
 export const home = "/home"
 export const Login = "/login"
 export const Signup = "/signup"
+export const AddArticle = "/AddArticle"
+export const ShowArticles = "/ShowArticles"
+export const AddQuestion = "/AddQuestion"
+export const ShowQuestions = "/ShowQuestions"
