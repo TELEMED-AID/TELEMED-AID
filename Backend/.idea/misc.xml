@@ -5,6 +5,15 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/Gateway-service/pom.xml" />
+        <option value="$PROJECT_DIR$/Appointment Service/pom.xml" />
+        <option value="$PROJECT_DIR$/VerificationService/pom.xml" />
+        <option value="$PROJECT_DIR$/Service-Discovery/pom.xml" />
+        <option value="$PROJECT_DIR$/router/pom.xml" />
+        <option value="$PROJECT_DIR$/patient-service/pom.xml" />
+        <option value="$PROJECT_DIR$/DoctorService/pom.xml" />
+        <option value="$PROJECT_DIR$/authentication-service/pom.xml" />
+        <option value="$PROJECT_DIR$/article-microservice/pom.xml" />
       </list>
     </option>
   </component>

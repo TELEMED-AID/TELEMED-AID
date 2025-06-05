@@ -14,18 +14,18 @@ import java.nio.file.Paths;
 public class AuthenticationServiceApplication {
 
 	public static void main(String[] args) {
-		String rootDir = Paths.get("").toAbsolutePath().toString();
-		String moduleDir = rootDir + "/Backend/authentication-service";
-
-		Dotenv dotenv = Dotenv.configure()
-				.directory(moduleDir)
-				.filename(".env")
-				.load();
-
-		// Set system properties from .env
-		dotenv.entries().forEach(entry ->
-				System.setProperty(entry.getKey(), entry.getValue())
-		);
+//		String rootDir = Paths.get("").toAbsolutePath().toString();
+//		String moduleDir = rootDir + "/Backend/authentication-service";
+//
+//		Dotenv dotenv = Dotenv.configure()
+//				.directory(moduleDir)
+//				.filename(".env")
+//				.load();
+//
+//		// Set system properties from .env
+//		dotenv.entries().forEach(entry ->
+//				System.setProperty(entry.getKey(), entry.getValue())
+//		);
 		SpringApplication.run(AuthenticationServiceApplication.class, args);
 	}
 
