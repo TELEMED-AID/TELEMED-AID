@@ -75,8 +75,8 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
     const mockUsers = [
         { id: 1, name: "Dr. Smith", role: "Doctor" },
         { id: 2, name: "Dr. Johnson", role: "Doctor" },
-        { id: 3, name: "Patient Alice", role: "Patient" },
-        { id: 4, name: "Patient Bob", role: "Patient" },
+        { id: 3, name: "Alice", role: "Doctor" },
+        { id: 4, name: "Bob", role: "Doctor" },
     ];
 
     const handleButtonClick = (action) => {
@@ -106,7 +106,6 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
             <Navbar />
             <Box
                 sx={{
-                    
                     maxWidth: { xs: 350, md: 1200 },
                     margin: "0 auto",
                     mt: 3,
@@ -114,16 +113,11 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
             >
                 <Grid container spacing={1}>
                     {/* Left Column - Actions */}
-                    <Grid item xs={12} md={4}>
+                    <Grid>
                         <Card elevation={2}>
                             <CardContent>
                                 <List>
-                                    <ListItem
-                                        button
-                                        onClick={() =>
-                                            handleButtonClick("account")
-                                        }
-                                    >
+                                    <ListItem>
                                         <ListItemText
                                             primary="My Account"
                                             secondary="Manage your account information"
@@ -354,6 +348,32 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
                     open={roomPopupOpen}
                     onClose={() => setRoomPopupOpen(false)}
                     users={mockUsers}
+                    onCreateRoom={(roomName, selectedUserIds) => {
+                        const selectedDoctors = mockUsers
+                            .filter(
+                                (user) =>
+                                    selectedUserIds.includes(user.id) &&
+                                    user.role === "Doctor"
+                            )
+                            .map((user) => ({
+                                id: user.id,
+                                name: user.name,
+                            }));
+
+                        const requestData = {
+                            roomName,
+                            participants: selectedDoctors,
+                        };
+
+                        // Print the request data to console
+                        console.log("Request data to backend:", requestData);
+
+                        // Optional: Close popup
+                        setRoomPopupOpen(false);
+
+                        // Optional: handleRoomSelect / UI logic can stay or be removed for now
+                        // handleRoomSelect(newRoom.id);
+                    }}
                 />
             </Box>
             <Footer />

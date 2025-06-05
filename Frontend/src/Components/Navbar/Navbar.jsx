@@ -70,7 +70,6 @@ const Navbar = () => {
             <List>
                 {navItems.map((item) => (
                     <ListItem
-                        button
                         key={item.name}
                         component={Link}
                         to={item.path}
@@ -87,7 +86,6 @@ const Navbar = () => {
                 ))}
                 <Divider sx={{ my: 1 }} />
                 <ListItem
-                    button
                     component={Link}
                     to="/questions"
                     onClick={handleDrawerToggle}

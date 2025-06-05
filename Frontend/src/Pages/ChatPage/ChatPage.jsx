@@ -15,13 +15,25 @@ import {
     Drawer,
     useMediaQuery,
     useTheme,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Chip,
+    InputAdornment,
 } from "@mui/material";
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Add this import at the top
+import RoomCreationPopup from "../../Pages/RoomCreationPopup/RoomCreationPopup ";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
 import MenuIcon from "@mui/icons-material/Menu";
+import AddIcon from "@mui/icons-material/Add";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import { useParams, useNavigate } from "react-router-dom";
 import chatWallpaper from "../../Assets/chatwallpaper.jpg";
 
+//request to get all the rooms created
 const mockRooms = [
     {
         id: "1",
@@ -40,12 +52,14 @@ const mockRooms = [
     {
         id: "3",
         name: "Room_dfh703fphrwnf8",
-        lastMessage: "The meeting is at 3pm",
+        lastMessage:
+            "The meeting is at 3 PM today. I want every one to be here",
         unreadCount: 5,
         participants: ["Dr. Williams", "Patient Bob", "You"],
     },
 ];
 
+// request to get all messages in a given room id
 const mockMessages = {
     1: [
         {
@@ -83,7 +97,7 @@ const mockMessages = {
         {
             id: "2",
             sender: "You",
-            text: "Yes, doctor. I’ve been anxious to know.",
+            text: "Yes, doctor. I've been anxious to know.",
             time: "Yesterday",
         },
         {
@@ -109,7 +123,7 @@ const mockMessages = {
         {
             id: "1",
             sender: "Dr. Williams",
-            text: "The meeting is at 3 PM today.",
+            text: "The meeting is at 3 PM today. I want every one to be here",
             time: "Monday",
         },
         { id: "2", sender: "You", text: "Got it, thanks!", time: "Monday" },
@@ -134,6 +148,21 @@ const mockMessages = {
     ],
 };
 
+// request to get all doctors (name, id)
+const availableUsers = [
+    "Dr. Brown",
+    "Nurse Jane",
+    "Patient Carol",
+    "Dr. Miller",
+    "Patient Dave",
+];
+// request to get all doctors (name, id)
+const mockUsers = [
+    { id: 1, name: "Dr. Smith", role: "Doctor" },
+    { id: 2, name: "Dr. Johnson", role: "Doctor" },
+    { id: 3, name: "Dr. Alice", role: "Doctor" },
+    { id: 4, name: "Dr. Bob", role: "Doctor" },
+];
 const ChatPage = () => {
     const navigate = useNavigate();
     const { roomId } = useParams();
@@ -143,9 +172,14 @@ const ChatPage = () => {
     const [message, setMessage] = useState("");
     const [messages, setMessages] = useState([]);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [showCreateRoomDialog, setShowCreateRoomDialog] = useState(false);
+    const [showAddParticipantsDialog, setShowAddParticipantsDialog] =
+        useState(false);
+    const [newRoomName, setNewRoomName] = useState("");
+    const [selectedUsers, setSelectedUsers] = useState([]);
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
-
+    const [roomPopupOpen, setRoomPopupOpen] = useState(false);
     useEffect(() => {
         setMessages(mockMessages[currentRoom] || []);
     }, [currentRoom]);
@@ -184,6 +218,65 @@ const ChatPage = () => {
 
     const toggleDrawer = () => {
         setDrawerOpen(!drawerOpen);
+    };
+
+    const handleCreateRoom = () => {
+        if (newRoomName.trim()) {
+            // In a real app, you would send this to your backend
+            const newRoom = {
+                id: Date.now().toString(),
+                name: newRoomName,
+                lastMessage: "Room created",
+                unreadCount: 0,
+                participants: ["You"],
+            };
+            mockRooms.push(newRoom);
+            setNewRoomName("");
+            setShowCreateRoomDialog(false);
+            handleRoomSelect(newRoom.id);
+        }
+    };
+
+    const handleAddParticipant = (user) => {
+        if (!selectedUsers.includes(user)) {
+            setSelectedUsers([...selectedUsers, user]);
+        }
+    };
+
+    const handleRemoveParticipant = (userToRemove) => {
+        setSelectedUsers(selectedUsers.filter((user) => user !== userToRemove));
+    };
+
+    // Adjust this kareem to send the request with room id and new participants of the specified room ***********************
+    const handleInviteParticipants = () => {
+        // Get the current room
+        const room = mockRooms.find((r) => r.id === currentRoom);
+
+        if (room) {
+            // Prepare the request data
+            const requestData = {
+                roomId: currentRoom,
+                participants: selectedUsers,
+            };
+
+            // Print the request data to console
+            console.log("Request to add participants:", requestData);
+
+            // In a real app, you would send this to your backend:
+            // axios.post(`/api/rooms/${currentRoom}/participants`, requestData)
+            //   .then(response => {
+            //     // Update local state if needed
+            //     setSelectedUsers([]);
+            //     setShowAddParticipantsDialog(false);
+            //   });
+
+            // For now, just update mock data and close dialog
+            room.participants = [
+                ...new Set([...room.participants, ...selectedUsers]),
+            ];
+            setSelectedUsers([]);
+            setShowAddParticipantsDialog(false);
+        }
     };
 
     return (
@@ -230,10 +323,10 @@ const ChatPage = () => {
                 open={isMobile ? drawerOpen : true}
                 onClose={toggleDrawer}
                 sx={{
-                    width: isMobile ? "280px" : "300px",
+                    width: isMobile ? "280px" : "400px",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
-                        width: isMobile ? "280px" : "300px",
+                        width: isMobile ? "280px" : "400px",
                         boxSizing: "border-box",
                         position: "relative",
                         height: isMobile ? "100%" : "100vh",
@@ -254,11 +347,25 @@ const ChatPage = () => {
                         <ArrowBackIcon />
                     </IconButton>
                 </Box>
+                <Box sx={{ p: 2 }}>
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        startIcon={<GroupAddIcon />}
+                        onClick={() => setRoomPopupOpen(true)}
+                        sx={{
+                            mb: 2,
+                            bgcolor: "#ad1457",
+                            "&:hover": { bgcolor: "#880e4f" },
+                        }}
+                    >
+                        Create Room
+                    </Button>
+                </Box>
                 <List sx={{ overflow: "auto" }}>
                     {mockRooms.map((room) => (
                         <React.Fragment key={room.id}>
                             <ListItem
-                                button
                                 selected={currentRoom === room.id}
                                 onClick={() => handleRoomSelect(room.id)}
                                 sx={{
@@ -309,7 +416,7 @@ const ChatPage = () => {
                                     }
                                     secondary={
                                         <Typography
-                                            noWrap
+                                            // noWrap
                                             sx={{
                                                 color:
                                                     currentRoom === room.id
@@ -347,23 +454,43 @@ const ChatPage = () => {
                     <>
                         {/* Chat Header - Visible on desktop only */}
                         {!isMobile && (
-                            <Paper elevation={2} sx={{ p: 2, flexShrink: 0 }}>
-                                <Typography variant="h6">
-                                    {
-                                        mockRooms.find(
-                                            (r) => r.id === currentRoom
-                                        )?.name
+                            <Paper
+                                elevation={2}
+                                sx={{
+                                    p: 2,
+                                    flexShrink: 0,
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Box>
+                                    <Typography variant="h6">
+                                        {
+                                            mockRooms.find(
+                                                (r) => r.id === currentRoom
+                                            )?.name
+                                        }
+                                    </Typography>
+                                    <Typography
+                                        variant="body2"
+                                        color="text.secondary"
+                                    >
+                                        Participants:{" "}
+                                        {mockRooms
+                                            .find((r) => r.id === currentRoom)
+                                            ?.participants.join(", ")}
+                                    </Typography>
+                                </Box>
+                                <IconButton
+                                    sx={{ color: "#ad1457", mr: "20px" }}
+                                    onClick={() =>
+                                        setShowAddParticipantsDialog(true)
                                     }
-                                </Typography>
-                                <Typography
-                                    variant="body2"
-                                    color="text.secondary"
+                                    title="Add participants"
                                 >
-                                    Participants:{" "}
-                                    {mockRooms
-                                        .find((r) => r.id === currentRoom)
-                                        ?.participants.join(", ")}
-                                </Typography>
+                                    <PersonAddIcon />
+                                </IconButton>
                             </Paper>
                         )}
 
@@ -373,11 +500,12 @@ const ChatPage = () => {
                             sx={{
                                 flex: 1,
                                 overflow: "auto",
-                                p: 2,
+                                py: 2,
+                                px: 5,
                                 backgroundImage: `
-                  linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
-                  url(${chatWallpaper})
-                `,
+                                    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+                                    url(${chatWallpaper})
+                                    `,
                                 backgroundSize: "cover",
                                 backgroundPosition: "center",
                                 backgroundRepeat: "no-repeat",
@@ -457,6 +585,23 @@ const ChatPage = () => {
                                         e.key === "Enter" && handleSendMessage()
                                     }
                                     sx={{ mr: 1 }}
+                                    InputProps={{
+                                        startAdornment: isMobile && (
+                                            <InputAdornment position="start">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() =>
+                                                        setShowAddParticipantsDialog(
+                                                            true
+                                                        )
+                                                    }
+                                                    title="Add participants"
+                                                >
+                                                    <PersonAddIcon />
+                                                </IconButton>
+                                            </InputAdornment>
+                                        ),
+                                    }}
                                 />
                                 <IconButton
                                     color="primary"
@@ -484,6 +629,146 @@ const ChatPage = () => {
                     </Box>
                 )}
             </Box>
+
+            {/* Create Room Dialog */}
+            <Dialog
+                open={showCreateRoomDialog}
+                onClose={() => setShowCreateRoomDialog(false)}
+            >
+                <DialogTitle>Create New Room</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Room Name"
+                        type="text"
+                        fullWidth
+                        variant="outlined"
+                        value={newRoomName}
+                        onChange={(e) => setNewRoomName(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowCreateRoomDialog(false)}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleCreateRoom} color="primary">
+                        Create
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add Participants Dialog */}
+            <Dialog
+                disableRestoreFocus // Add this line
+                open={showAddParticipantsDialog}
+                onClose={() => setShowAddParticipantsDialog(false)}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>Add Participants</DialogTitle>
+                <DialogContent>
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Selected Participants
+                        </Typography>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                            {selectedUsers.length > 0 ? (
+                                selectedUsers.map((user) => (
+                                    <Chip
+                                        key={user}
+                                        label={user}
+                                        onDelete={() =>
+                                            handleRemoveParticipant(user)
+                                        }
+                                    />
+                                ))
+                            ) : (
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    No participants selected yet
+                                </Typography>
+                            )}
+                        </Box>
+                    </Box>
+                    <Box>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Available Users
+                        </Typography>
+                        <List>
+                            {availableUsers
+                                .filter(
+                                    (user) =>
+                                        !mockRooms
+                                            .find((r) => r.id === currentRoom)
+                                            ?.participants.includes(user)
+                                )
+                                .map((user) => (
+                                    <ListItem
+                                        key={user}
+                                        onClick={() =>
+                                            handleAddParticipant(user)
+                                        }
+                                        disabled={selectedUsers.includes(user)}
+                                    >
+                                        <ListItemAvatar>
+                                            <Avatar>{user.charAt(0)}</Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={user} />
+                                        {selectedUsers.includes(user) && (
+                                            <AddIcon color="primary" />
+                                        )}
+                                    </ListItem>
+                                ))}
+                        </List>
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowAddParticipantsDialog(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleInviteParticipants}
+                        color="primary"
+                        disabled={selectedUsers.length === 0}
+                    >
+                        Invite
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <RoomCreationPopup
+                open={roomPopupOpen}
+                onClose={() => setRoomPopupOpen(false)}
+                users={mockUsers}
+                onCreateRoom={(roomName, selectedUserIds) => {
+                    const selectedDoctors = mockUsers
+                        .filter(
+                            (user) =>
+                                selectedUserIds.includes(user.id) &&
+                                user.role === "Doctor"
+                        )
+                        .map((user) => ({
+                            id: user.id,
+                            name: user.name,
+                        }));
+
+                    const requestData = {
+                        roomName,
+                        participants: selectedDoctors,
+                    };
+
+                    // Print the request data to console
+                    console.log("Request data to backend:", requestData);
+
+                    // Optional: Close popup
+                    setRoomPopupOpen(false);
+
+                    // Optional: handleRoomSelect / UI logic can stay or be removed for now
+                    // handleRoomSelect(newRoom.id);
+                }}
+            />
         </Box>
     );
 };

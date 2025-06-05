@@ -23,7 +23,7 @@ const generateRandomRoomName = () => {
     const randomString = Math.random().toString(36).substring(2, 10);
     return `Room_${randomString}`;
 };
-const RoomCreationPopup = ({ open, onClose, users }) => {
+const RoomCreationPopup = ({ open, onClose, users, onCreateRoom }) => {
     const [roomName, setRoomName] = useState("");
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -32,6 +32,7 @@ const RoomCreationPopup = ({ open, onClose, users }) => {
     useEffect(() => {
         if (open) {
             setRoomName(generateRandomRoomName());
+            setSelectedUsers([]); // Reset selections when reopening
         }
     }, [open]);
 
@@ -48,13 +49,11 @@ const RoomCreationPopup = ({ open, onClose, users }) => {
         { id: 5, name: "Dr. Williams", role: "Doctor" },
     ];
 
-
     const handleCreateRoom = () => {
-        console.log("Creating room:", {
-            name: roomName,
-            participants: selectedUsers,
-        });
-        onClose(); // Use the passed onClose instead of handleClose
+        if (typeof onCreateRoom === "function") {
+            onCreateRoom(roomName, selectedUsers);
+        }
+        onClose();
     };
 
     const toggleUserSelection = (userId) => {
@@ -71,7 +70,13 @@ const RoomCreationPopup = ({ open, onClose, users }) => {
 
     return (
         <div>
-            <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+            <Dialog
+                open={open}
+                onClose={onClose}
+                fullWidth
+                maxWidth="sm"
+                disableRestoreFocus // Add this to prevent focus issues
+            >
                 <DialogTitle>Create New Chat Room</DialogTitle>
 
                 <DialogContent dividers>
@@ -142,7 +147,7 @@ const RoomCreationPopup = ({ open, onClose, users }) => {
                     <List sx={{ maxHeight: 300, overflow: "auto" }}>
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map((user) => (
-                                <ListItem key={user.id} button>
+                                <ListItem key={user.id}>
                                     <ListItemText
                                         primary={user.name}
                                         secondary={user.role}
