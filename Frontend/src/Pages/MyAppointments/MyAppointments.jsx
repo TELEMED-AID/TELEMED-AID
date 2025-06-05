@@ -23,6 +23,7 @@ import {
 import Title from "../../Components/Title/Title";
 import Footer from "../../Components/Footer/Footer";
 import Navbar from "../../Components/Navbar/Navbar";
+import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 const MyAppointments = ({ appointments }) => {
     // Function to format the date
     const formatDate = (dateString) => {
@@ -53,6 +54,7 @@ const MyAppointments = ({ appointments }) => {
     };
     return (
         <>
+            <ScrollToTop />
             <Navbar />
             <Box sx={{ p: 3, maxWidth: 1700, margin: "0 auto" }}>
                 <Title title="My Appointments" />
@@ -78,18 +80,17 @@ const MyAppointments = ({ appointments }) => {
                                 <Card
                                     elevation={2}
                                     sx={{
-                                        width: {xs:"360px", md:"500px"},
+                                        width: { xs: "360px", md: "500px" },
                                         height: "100%",
                                         boxShadow:
                                             "0px 10px 25px rgba(0, 0, 0, 0.1)",
-                                        borderLeft: `10px solid ${
-                                            appointment.state === "COMPLETED"
+                                        borderLeft: `10px solid ${appointment.state === "COMPLETED"
                                                 ? "#4caf50"
                                                 : appointment.state ===
-                                                "PENDING"
-                                                ? "#ff9800"
-                                                : "#f44336"
-                                        }`,
+                                                    "PENDING"
+                                                    ? "#ff9800"
+                                                    : "#f44336"
+                                            }`,
                                         transition: "transform 0.2s",
                                         "&:hover": {
                                             transform: "translateY(-5px)",
@@ -263,7 +264,7 @@ const MyAppointments = ({ appointments }) => {
                                             }}
                                         >
                                             {appointment.state === "PENDING" ||
-                                            appointment.state ===
+                                                appointment.state ===
                                                 "CONFIRMED" ? (
                                                 <Button
                                                     variant="contained"
@@ -287,7 +288,7 @@ const MyAppointments = ({ appointments }) => {
                                                 label={appointment.state}
                                                 color={
                                                     statusColors[
-                                                        appointment.state
+                                                    appointment.state
                                                     ] || "default"
                                                 }
                                                 variant="outlined"

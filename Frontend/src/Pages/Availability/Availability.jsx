@@ -14,6 +14,7 @@ import { Delete } from "@mui/icons-material";
 import Title from "../../Components/Title/Title";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
+import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 const daysOfWeek = [
     "MONDAY",
     "TUESDAY",
@@ -90,6 +91,7 @@ const Availability = () => {
 
     return (
         <>
+            <ScrollToTop />
             <Navbar />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto" }}>

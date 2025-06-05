@@ -10,12 +10,16 @@ import {
   Button,
   Chip
 } from '@mui/material';
-import { Article, Category, MedicalServices } from '@mui/icons-material';
+import { Article, Category, MedicalServices, Add } from '@mui/icons-material';
 import { blue } from '@mui/material/colors';
+import Navbar from "../../Components/Navbar/Navbar";
+import Footer from "../../Components/Footer/Footer";
+import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
+import { useNavigate } from 'react-router-dom';
 
 const ShowArticles = () => {
-  // State to track which articles are expanded
   const [expandedArticles, setExpandedArticles] = useState({});
+  const navigate = useNavigate();
 
   // Mock data - will be replaced with DB fetch
   const articles = [
@@ -67,99 +71,134 @@ const ShowArticles = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom sx={{
-        fontWeight: 'bold',
-        mb: 4,
-        display: 'flex',
-        alignItems: 'center',
-        '&:before, &:after': {
-          content: '""',
-          flex: 1,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          mr: 1,
-          ml: 1
-        }
-      }}>
-        Medical Articles
-      </Typography>
-
-      {articles.length === 0 ? (
-        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-          <Article sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
-          <Typography variant="h6" color="textSecondary">
-            No articles available yet
+    <>
+      <ScrollToTop />
+      <Navbar />
+      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 4,
+          '&:before, &:after': {
+            content: '""',
+            flex: 1,
+            // borderBottom: '1px solid',
+            borderColor: 'divider',
+            mr: 1,
+            ml: 1
+          }
+        }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+            Medical Articles
           </Typography>
-        </Paper>
-      ) : (
-        <Paper elevation={3} sx={{ p: 0 }}>
-          {articles.map((article, index) => (
-            <React.Fragment key={article.id}>
-              <Box sx={{ p: 3 }}>
-                <CardHeader
-                  avatar={
-                    <Avatar sx={{ bgcolor: blue[500], width: 50, height: 50 }}>
-                      {getInitials(article.doctorName)}
-                    </Avatar>
-                  }
-                  title={article.doctorName}
-                  subheader={`${article.doctorSpecialization} • ${article.date}`}
-                  action={
-                    <Chip 
-                      icon={<Category />} 
-                      label={article.category} 
-                      color="primary" 
-                      sx={{ mr: 2 }}
-                    />
-                  }
-                />
-                <CardContent sx={{ pt: 0 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {article.title}
-                  </Typography>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      whiteSpace: 'pre-line', 
-                      mb: 3,
-                      ...(!expandedArticles[article.id] && {
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                      })
-                    }}
-                  >
-                    {article.content}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    startIcon={<MedicalServices />}
-                    onClick={() => toggleExpand(article.id)}
-                    sx={{ 
-                      color: blue[500],
-                      borderColor: blue[500],
-                      '&:hover': {
-                        borderColor: blue[700],
-                        backgroundColor: blue[50]
-                      }
-                    }}
-                  >
-                    {expandedArticles[article.id] ? 'Show Less' : 'Read Full Article'}
-                  </Button>
-                </CardContent>
-              </Box>
-              
-              {/* Add divider after each article except the last one */}
-              {index < articles.length - 1 && (
-                <Divider sx={{ mx: 3, border: '1px solid' }} />
-              )}
-            </React.Fragment>
-          ))}
-        </Paper>
-      )}
-    </Box>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate('/AddArticle')} // Adjust the route as needed
+            sx={{
+              bgcolor: "#33b4d4",
+              "&:hover": {
+                bgcolor: "#2a9cb3",
+              },
+              ml: 2,
+            }}
+          >
+            New Article
+          </Button>
+        </Box>
+
+        {articles.length === 0 ? (
+          <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+            <Article sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+            <Typography variant="h6" color="textSecondary">
+              No articles available yet
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => navigate('/articles/create')}
+              sx={{
+                mt: 2,
+                backgroundColor: blue[500],
+                '&:hover': {
+                  backgroundColor: blue[700]
+                }
+              }}
+            >
+              Create First Article
+            </Button>
+          </Paper>
+        ) : (
+          <Paper elevation={3} sx={{ p: 0 }}>
+            {articles.map((article, index) => (
+              <React.Fragment key={article.id}>
+                <Box sx={{ p: 3 }}>
+                  <CardHeader
+                    avatar={
+                      <Avatar sx={{ bgcolor: blue[500], width: 50, height: 50 }}>
+                        {getInitials(article.doctorName)}
+                      </Avatar>
+                    }
+                    title={article.doctorName}
+                    subheader={`${article.doctorSpecialization} • ${article.date}`}
+                    action={
+                      <Chip
+                        icon={<Category />}
+                        label={article.category}
+                        color="primary"
+                        sx={{ mr: 2 }}
+                      />
+                    }
+                  />
+                  <CardContent sx={{ pt: 0 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      {article.title}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        whiteSpace: 'pre-line',
+                        mb: 3,
+                        ...(!expandedArticles[article.id] && {
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        })
+                      }}
+                    >
+                      {article.content}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      startIcon={<MedicalServices />}
+                      onClick={() => toggleExpand(article.id)}
+                      sx={{
+                        color: blue[500],
+                        borderColor: blue[500],
+                        '&:hover': {
+                          borderColor: blue[700],
+                          backgroundColor: blue[50]
+                        }
+                      }}
+                    >
+                      {expandedArticles[article.id] ? 'Show Less' : 'Read Full Article'}
+                    </Button>
+                  </CardContent>
+                </Box>
+
+                {/* Add divider after each article except the last one */}
+                {index < articles.length - 1 && (
+                  <Divider sx={{ mx: 3, border: '1px solid' }} />
+                )}
+              </React.Fragment>
+            ))}
+          </Paper>
+        )}
+      </Box>
+      <Footer />
+    </>
   );
 };
 

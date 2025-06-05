@@ -88,7 +88,7 @@ const ProfilePage = ({ userRole = "PATIENT" }) => {
                 navigate("/my-appointments");
                 break;
             case "create-article":
-                navigate("/create-article");
+                navigate("/AddArticle");
                 break;
             case "set-availability":
                 navigate("/availability");

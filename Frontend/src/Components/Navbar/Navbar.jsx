@@ -43,8 +43,8 @@ const Navbar = () => {
         { name: "Profile", path: "/profile" },
         { name: "My Appointments", path: "/my-appointments" },
         { name: "Book an Appointment", path: "/book-appointment" },
-        { name: "Articles", path: "/doctors" },
-        { name: "Questions", path: "/questions" },
+        { name: "Articles", path: "/ShowArticles" },
+        { name: "Questions", path: "/ShowQuestions" },
     ];
 
     const drawer = (
