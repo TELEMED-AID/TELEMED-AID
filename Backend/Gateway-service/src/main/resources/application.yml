@@ -5,6 +5,11 @@ spring:
     config:
       enabled: false
     gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+        websocket:
+          max-frame-payload-length: 65536
       globalcors:
         cors-configurations:
           '[/**]':
@@ -43,14 +48,18 @@ spring:
             - name: CircuitBreaker
               args:
                 name: ai-chatbot-service
-        - id: "chatting-service"
+        - id: "chatting-service-http"
           uri: lb://Chatting-Service
           predicates:
-            - Path=/Chatting/**
+            - Path=/chat/**
           filters:
             - name: CircuitBreaker
               args:
                 name: chatting-service
+        - id: chatting-service-ws
+          uri: lb://Chatting-Service
+          predicates:
+            - Path=/ws/**
         - id: "article-and-forum-service"
           uri: lb://Article-Service
           predicates:

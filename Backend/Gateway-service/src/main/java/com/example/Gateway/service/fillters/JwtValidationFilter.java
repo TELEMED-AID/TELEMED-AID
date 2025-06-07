@@ -29,7 +29,10 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
 
         MultiValueMap<String, HttpCookie> cookies = exchange.getRequest().getCookies();
         String path = exchange.getRequest().getPath().toString();
-        if (path.startsWith("/auth/")) {
+        System.out.println(path);
+
+        if (path.startsWith("/auth/") || path.startsWith("/chat/") || path.startsWith("/ws")) {
+            System.out.println("kimo");
             return chain.filter(exchange);
         }
 

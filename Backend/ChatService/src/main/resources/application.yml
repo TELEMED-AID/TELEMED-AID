@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: "Chatting-Service"
+  cloud:
+    config:
+      enabled: false
+      discovery:
+        locator: true
+  datasource:
+    url: "jdbc:postgresql://pg-3263529-karemtarek0222-5b8a.i.aivencloud.com:28761/defaultdb?ssl-mode=REQUIRED"
+    username: "avnadmin"
+    password: "AVNS_ZHq-pn-V-9rTdydKnND"
+    driver-class-name: "org.postgresql.Driver"
+  jpa:
+    database-platform: "org.hibernate.dialect.PostgreSQLDialect"
+    hibernate:
+      ddl-auto: "update"
+      show-sql: "true"
+
+
+
+server:
+  port: 8090
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    gateway:
+      enabled: true
+      lowerCaseServiceId: true
+
+info:
+  app:
+    name: "Chat-service"
+    description: "Chat-service"
