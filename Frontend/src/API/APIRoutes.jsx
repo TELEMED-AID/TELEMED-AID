@@ -10,3 +10,4 @@ export const USER_LOGOUT = `${USER_AUTHENTICATION_URL}/logout`;
 /******** Article **********/
 export const ARTICLE_BASE_URL = "/article/article";
 export const ARTICLE_SEARCH_URL = `${ARTICLE_BASE_URL}/searchArticle`;
+export const ARTICLE_PUBLISH_URL = `${ARTICLE_BASE_URL}/publishArticle`;
