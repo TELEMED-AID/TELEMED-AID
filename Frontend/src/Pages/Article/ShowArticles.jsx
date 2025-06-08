@@ -110,7 +110,7 @@ const ShowArticles = () => {
 
         {articles.length === 0 ? (
           <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-            <Article sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+            <Article sx={{ fontSize: 60, color: "#33b4d4", mb: 2 }} />
             <Typography variant="h6" color="textSecondary">
               No articles available yet
             </Typography>
@@ -120,10 +120,9 @@ const ShowArticles = () => {
               onClick={() => navigate('/articles/create')}
               sx={{
                 mt: 2,
-                backgroundColor: blue[500],
-                '&:hover': {
-                  backgroundColor: blue[700]
-                }
+                bgcolor: "#33b4d4",
+              "&:hover": {
+                bgcolor: "#2a9cb3"}
               }}
             >
               Create First Article
@@ -136,7 +135,7 @@ const ShowArticles = () => {
                 <Box sx={{ p: 3 }}>
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: blue[500], width: 50, height: 50 }}>
+                      <Avatar sx={{ bgcolor: "#33b4d4", width: 50, height: 50 }}>
                         {getInitials(article.doctorName)}
                       </Avatar>
                     }
@@ -175,10 +174,10 @@ const ShowArticles = () => {
                       startIcon={<MedicalServices />}
                       onClick={() => toggleExpand(article.id)}
                       sx={{
-                        color: blue[500],
-                        borderColor: blue[500],
+                        color: "#33b4d4",
+                        borderColor: "#33b4d4",
                         '&:hover': {
-                          borderColor: blue[700],
+                          borderColor: "#2a9cb3",
                           backgroundColor: blue[50]
                         }
                       }}
