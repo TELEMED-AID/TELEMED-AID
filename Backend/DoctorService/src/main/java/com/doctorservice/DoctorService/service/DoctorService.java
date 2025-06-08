@@ -55,7 +55,27 @@ public class DoctorService {
         Doctor updatedDoctor = doctorRepository.save(doctor);
         return DoctorResponse.doctorToDoctorResponse(updatedDoctor);
     }
-
+    @Transactional(readOnly = true)
+    public List<DoctorResponse> getAllDoctors() {
+        List<Doctor> doctors = doctorRepository.findAll();
+        return doctors.stream()
+                .map(DoctorResponse::doctorToDoctorResponse)
+                .collect(Collectors.toList());
+    }
+    @Transactional(readOnly = true)
+    public List<SimplifiedDoctorDto> getAllSimplifiedDoctors() {
+        List<Doctor> doctors = doctorRepository.findAll();
+        return doctors.stream()
+                .map(doctor -> SimplifiedDoctorDto.builder()
+                        .userId(doctor.getUserId())
+                        .name(doctor.getName())
+                        .specializationName(doctor.getSpecialization() != null ?
+                                doctor.getSpecialization().getSpecializationName() : null)
+                        .careerLevelName(doctor.getCareerLevel() != null ?
+                                doctor.getCareerLevel().getCareerLevelName() : null)
+                        .build())
+                .collect(Collectors.toList());
+    }
     @Transactional(readOnly = true)
     public DoctorResponse getDoctor(Long userId) {
         Doctor doctor = doctorRepository.findById(userId)
