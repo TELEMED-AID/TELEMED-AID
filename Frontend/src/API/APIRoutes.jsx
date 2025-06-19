@@ -11,3 +11,7 @@ export const USER_LOGOUT = `${USER_AUTHENTICATION_URL}/logout`;
 export const ARTICLE_BASE_URL = "/article/article";
 export const ARTICLE_SEARCH_URL = `${ARTICLE_BASE_URL}/searchArticle`;
 export const ARTICLE_PUBLISH_URL = `${ARTICLE_BASE_URL}/publishArticle`;
+
+/******* Question *********/
+export const QUESTION_BASE_URL = "/article/question";
+export const QUESTION_PUBLISH_URL = `${QUESTION_BASE_URL}/publishQuestion`;
