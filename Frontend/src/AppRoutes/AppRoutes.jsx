@@ -37,7 +37,7 @@ export default function Paths() {
                 <Route path={DefaultRoutes.home} element={<Home_page />} />
                 <Route
                     path={DefaultRoutes.updateInfo}
-                    element={<UpdateInfo role={"doctor"} />}
+                    element={<UpdateInfo role={"patient"} />}
                 />
                 <Route
                     path={DefaultRoutes.updatePassword}

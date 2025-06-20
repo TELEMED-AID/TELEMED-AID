@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class PatientController {
     private final PatientService patientService;
 
-    @GetMapping("/{patientId}")
+    @GetMapping("/get-patient/{userId}")
     public ResponseEntity<?> getPatient(@PathVariable Long userId) {
         try {
             GetPatientRequest patient = patientService.getPatient(userId);
@@ -27,7 +27,7 @@ public class PatientController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/create-patient")
     public ResponseEntity<?> createPatient(@RequestBody CreatePatientRequest request) {
         try {
             patientService.createPatient(request);
@@ -39,7 +39,7 @@ public class PatientController {
         }
     }
 
-    @PutMapping("/{patientId}")
+    @PutMapping("/update-patient/{patientId}")
     public ResponseEntity<?> updatePatientInfo(
             @PathVariable Long patientId,
             @RequestBody UpdatePatientRequest request) {

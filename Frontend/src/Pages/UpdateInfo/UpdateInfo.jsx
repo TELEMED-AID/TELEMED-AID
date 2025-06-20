@@ -1,3 +1,4 @@
+import SearchableDropDown from "../../Components/DropDown/SearchableDropDown"; // Adjust path as needed
 import React, { useState, useEffect } from "react";
 import {
     Container,
@@ -9,43 +10,77 @@ import {
     Alert,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import SearchableDropDown from "../../Components/DropDown/SearchableDropDown"; // Adjust path as needed
-import Navbar from "../../Components/Navbar/Navbar"; // Adjust path as needed
+import useGet from "../../Hooks/useGet";
+import usePost from "../../Hooks/usePost";
+import usePut from "../../Hooks/usePut"; // Import usePut
+import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
+
 const UpdateInfo = ({ role }) => {
     const navigate = useNavigate();
+    const { loading: getLoading, getItem } = useGet();
+    const { loading: putLoading, putItem } = usePut(); // Destructure putItem and its loading state
+
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        specialization: "",
-        careerLevel: "",
+        ...(role === "doctor" && {
+            specialization: "",
+            careerLevel: "",
+        }),
     });
-    const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get("/api/doctor/getDoctor");
-                const userData = response.data;
-
-                setFormData({
-                    name: userData.name || "",
-                    phone: userData.phone || "",
-                    specialization: userData.specialization || "",
-                    careerLevel: userData.careerLevel || "",
-                });
-                setLoading(false);
+                let response;
+                if (role === "doctor") {
+                    response = await getItem(
+                        "/api/doctor/get-doctor",
+                        false, // disable snackbar
+                        (data) => {
+                            setFormData({
+                                name: data.name || "",
+                                phone: data.phone || "",
+                                specialization: data.specialization || "",
+                                careerLevel: data.careerLevel || "",
+                            });
+                        },
+                        (err) => {
+                            setError(
+                                err.response?.data?.message ||
+                                    "Failed to load doctor data"
+                            );
+                        }
+                    );
+                } else {
+                    response = await getItem(
+                        "/api/patient/get-patient/1", // Assuming '1' is a placeholder for the patient ID
+                        false, // disable snackbar
+                        (data) => {
+                            setFormData({
+                                name: data.name || "",
+                                phone: data.phone || "",
+                            });
+                        },
+                        (err) => {
+                            setError(
+                                err.response?.data?.message ||
+                                    "Failed to load patient data"
+                            );
+                        }
+                    );
+                }
             } catch (err) {
                 setError("Failed to load user data");
-                setLoading(false);
             }
         };
 
         fetchUserData();
-    }, []);
+    }, [role]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -55,7 +90,6 @@ const UpdateInfo = ({ role }) => {
         }));
     };
 
-    // Custom handler for dropdown changes
     const handleDropdownChange = (fieldName, value) => {
         setFormData((prev) => ({
             ...prev,
@@ -69,24 +103,49 @@ const UpdateInfo = ({ role }) => {
         setSuccess(false);
 
         try {
-            const updateData = {
-                name: formData.name,
-                phone: formData.phone,
-                ...(role === "doctor" && {
+            let updateData;
+            let updateEndpoint;
+
+            if (role === "doctor") {
+                updateData = {
+                    name: formData.name,
+                    phone: formData.phone,
                     specialization: formData.specialization,
                     careerLevel: formData.careerLevel,
-                }),
-            };
+                };
+                updateEndpoint = "/api/doctor/update-doctor";
+            } else {
+                updateData = {
+                    name: formData.name,
+                    phone: formData.phone,
+                };
+                updateEndpoint = "/api/patient/update-patient/1"; // Assuming '1' is a placeholder for the patient ID
+            }
 
-            await axios.put("/api/user/update", updateData);
-            setSuccess(true);
-            setTimeout(() => navigate("/profile"), 2000);
+            // Use putItem instead of postItem
+            const result = await putItem(
+                updateEndpoint,
+                updateData,
+                () => {
+                    setSuccess(true);
+                },
+                "Information updated successfully!",
+                "Update failed", // Error message for the snackbar
+                (err) => {
+                    // Error callback
+                    setError(err.response?.data?.message || "Update failed");
+                },
+                false // show snackbar
+            );
         } catch (err) {
-            setError(err.response?.data?.message || "Update failed");
+            setError(
+                err.response?.data?.message ||
+                    "An unexpected error occurred during update."
+            );
         }
     };
 
-    if (loading) return <Typography>Loading...</Typography>;
+    if (getLoading) return <Typography>Loading...</Typography>;
 
     return (
         <>
@@ -108,125 +167,137 @@ const UpdateInfo = ({ role }) => {
                             Information updated successfully!
                         </Alert>
                     )}
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: {
-                                xs: "column",
-                                sm: "row",
-                            }, // Stack on mobile, row on desktop
-                            // gap: 2, // Consistent spacing between items
-                            justifyContent: "space-between",
-                            mb: 2,
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                width: { xs: "100%", sm: "48%" }, // Full width on mobile, 45% on desktop
-                            }}
-                        >
-                            <TextField
-                                fullWidth
-                                margin="normal"
-                                label="Full Name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                            />
-                        </Box>
-                        <Box
-                            sx={{
-                                width: { xs: "100%", sm: "48%" }, // Full width on mobile, 45% on desktop
-                            }}
-                        >
-                            <TextField
-                                fullWidth
-                                margin="normal"
-                                label="Phone Number"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                            />
-                        </Box>
-                    </Box>
 
-                    {/* Doctor-Specific Fields */}
-                    {role === "doctor" && (
-                        <>
-                            <Box
+                    <Box component="form" onSubmit={handleSubmit}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: { xs: "column", sm: "row" },
+                                justifyContent: "space-between",
+                                mb: 2,
+                            }}
+                        >
+                            <Box sx={{ width: { xs: "100%", sm: "48%" } }}>
+                                <TextField
+                                    fullWidth
+                                    margin="normal"
+                                    label="Full Name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </Box>
+                            <Box sx={{ width: { xs: "100%", sm: "48%" } }}>
+                                <TextField
+                                    fullWidth
+                                    margin="normal"
+                                    label="Phone Number"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </Box>
+                        </Box>
+
+                        {role === "doctor" && (
+                            <>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: {
+                                            xs: "column",
+                                            sm: "row",
+                                        },
+                                        justifyContent: "space-between",
+                                        mb: 2,
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            width: { xs: "100%", sm: "48%" },
+                                        }}
+                                    >
+                                        <SearchableDropDown
+                                            placeholder="Select your specialization"
+                                            name="specialization"
+                                            value={formData.specialization}
+                                            onChange={(value) =>
+                                                handleDropdownChange(
+                                                    "specialization",
+                                                    value
+                                                )
+                                            }
+                                            items={[
+                                                { name: "Cardiology" },
+                                                { name: "Neurology" },
+                                                { name: "Pediatrics" },
+                                            ]}
+                                            required
+                                        />
+                                    </Box>
+                                    <Box
+                                        sx={{
+                                            width: { xs: "100%", sm: "48%" },
+                                        }}
+                                    >
+                                        <SearchableDropDown
+                                            placeholder="Select your career level"
+                                            name="careerLevel"
+                                            value={formData.careerLevel}
+                                            onChange={(value) =>
+                                                handleDropdownChange(
+                                                    "careerLevel",
+                                                    value
+                                                )
+                                            }
+                                            items={[
+                                                { name: "Junior" },
+                                                { name: "Mid-level" },
+                                                { name: "Senior" },
+                                            ]}
+                                            required
+                                        />
+                                    </Box>
+                                </Box>
+                            </>
+                        )}
+
+                        <Box
+                            sx={{
+                                mt: 3,
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                gap: 2,
+                            }}
+                        >
+                            <Button
+                                variant="contained"
+                                onClick={() => navigate("/update-password")}
                                 sx={{
-                                    display: "flex",
-                                    flexDirection: {
-                                        xs: "column",
-                                        sm: "row",
-                                    }, // Stack on mobile, row on desktop
-                                    gap: 3, // Consistent spacing between items
-                                    justifyContent: "space-between",
+                                    color: "white",
+                                    bgcolor: "#c2185b",
+                                    "&:hover": { bgcolor: "#ad1457" },
                                 }}
                             >
-                                <Box
-                                    sx={{
-                                        width: { xs: "100%", sm: "48%" }, // Full width on mobile, 45% on desktop
-                                    }}
-                                >
-                                    <SearchableDropDown
-                                        placeholder="Select your specialization"
-                                        name="specialization"
-                                        items={[
-                                            { name: "test1" },
-                                            { name: "test3" },
-                                        ]}
-                                    />
-                                </Box>
-                                <Box
-                                    sx={{
-                                        width: { xs: "100%", sm: "48%" }, // Full width on mobile, 45% on desktop
-                                    }}
-                                >
-                                    <SearchableDropDown
-                                        placeholder="Select your career level"
-                                        name="careerlevel"
-                                        items={[
-                                            { name: "test1" },
-                                            { name: "test3" },
-                                        ]}
-                                    />
-                                </Box>
-                            </Box>
-                        </>
-                    )}
-
-                    <Box
-                        sx={{
-                            mt: 3,
-                            display: "flex",
-                            justifyContent: "flex-end",
-                            gap: 2,
-                        }}
-                    >
-                        <Button
-                            variant="contained"
-                            onClick={() => navigate("/update-password")}
-                            sx={{
-                                color: "white",
-                                bgcolor: "#c2185b",
-                                "&:hover": {
-                                    borderColor: "#2a96b3",
-                                },
-                            }}
-                        >
-                            Update Password
-                        </Button>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            sx={{
-                                backgroundColor: "#33b4d4",
-                                "&:hover": { backgroundColor: "#2a96b3" },
-                            }}
-                        >
-                            Update Information
-                        </Button>
+                                Update Password
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                disabled={putLoading}
+                                sx={{
+                                    backgroundColor: "#33b4d4",
+                                    "&:hover": { backgroundColor: "#2a96b3" },
+                                }}
+                            >
+                                {putLoading
+                                    ? "Updating..."
+                                    : "Update Information"}{" "}
+                                {/* Use putLoading here */}
+                            </Button>
+                        </Box>
                     </Box>
                 </Paper>
             </Container>
