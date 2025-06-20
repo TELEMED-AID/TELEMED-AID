@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
     AppBar,
     Toolbar,
-    Typography,
     Button,
     Box,
     Container,
@@ -16,11 +15,14 @@ import {
     Divider,
     Badge,
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Logout as LogoutIcon } from "@mui/icons-material"; // Import the icon
+import { useDispatch } from "react-redux";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../../Assets/logo.png";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
+import { removeUser } from "../../Redux/userSlice"; // Import your Redux action
 
 function HideOnScroll(props) {
     const { children } = props;
@@ -31,10 +33,16 @@ function HideOnScroll(props) {
         </Slide>
     );
 }
-
+const activeGradient = {
+    background: "linear-gradient(135deg, #b3e5fc 0%, #e1f5fe 60%)",
+    color: "text.primary",
+    borderRadius: "4px",
+};
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
-
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const location = useLocation();
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
@@ -45,6 +53,7 @@ const Navbar = () => {
         { name: "Book an Appointment", path: "/book-appointment" },
         { name: "Articles", path: "/ShowArticles" },
         { name: "Questions", path: "/ShowQuestions" },
+        { name: "Chat Room", path: "/chat" },
     ];
 
     const drawer = (
@@ -70,16 +79,24 @@ const Navbar = () => {
             <List>
                 {navItems.map((item) => (
                     <ListItem
-                        button
                         key={item.name}
                         component={Link}
                         to={item.path}
                         onClick={handleDrawerToggle}
                         sx={{
-                            
-                            "&:hover": {
-                                color: "#33b4d4",
-                            },
+                            my: 0.5,
+                            mx: 1,
+                            borderRadius: "4px",
+                            ...(location.pathname === item.path
+                                ? activeGradient
+                                : {
+                                      color: "inherit",
+                                      "&:hover": {
+                                          color: "#33b4d4",
+                                          backgroundColor:
+                                              "rgba(51, 180, 212, 0.04)",
+                                      },
+                                  }),
                         }}
                     >
                         <ListItemText primary={item.name} />
@@ -87,12 +104,12 @@ const Navbar = () => {
                 ))}
                 <Divider sx={{ my: 1 }} />
                 <ListItem
-                    button
                     component={Link}
                     to="/questions"
                     onClick={handleDrawerToggle}
+                    color= "text.primary"
                     sx={{
-                        
+                        color: "text.primary",
                         "&:hover": {
                             color: "#33b4d4",
                         },
@@ -101,42 +118,28 @@ const Navbar = () => {
                     <Badge badgeContent={4} color="info" sx={{ mr: 2 }}>
                         <MailIcon />
                     </Badge>
-                    <ListItemText primary="Messages" />
+                    <ListItemText primary="Messages"  />
                 </ListItem>
                 <Divider sx={{ my: 1 }} />
                 <ListItem>
                     <Button
                         fullWidth
-                        variant="outlined"
-                        component={Link}
-                        to="/login"
-                        sx={{
-                            mx: 1,
-                            color: "#33b4d4",
-                            borderColor: "#33b4d4",
-                            "&:hover": {
-                                borderColor: "#2a96b3",
-                            },
-                        }}
-                    >
-                        Login
-                    </Button>
-                </ListItem>
-                <ListItem>
-                    <Button
-                        fullWidth
                         variant="contained"
-                        component={Link}
-                        to="/signup"
+                        onClick={() => {
+                            dispatch(removeUser()); // Dispatch the removeUser action
+                            navigate("/"); // Navigate to home
+                        }}
                         sx={{
                             mx: 1,
+                            fontSize: "18px",
                             backgroundColor: "#33b4d4",
+                            color: "white",
                             "&:hover": {
-                                backgroundColor: "#2a96b3",
+                                backgroundColor: "#424242",
                             },
                         }}
                     >
-                        Sign Up
+                        Logout
                     </Button>
                 </ListItem>
             </List>
@@ -146,15 +149,15 @@ const Navbar = () => {
     return (
         <>
             <HideOnScroll>
-            <AppBar
-                position="sticky"
-                color="black"
-                elevation={1}
-                sx={{
-                    py: 1,
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
-                }}
-            >
+                <AppBar
+                    position="sticky"
+                    color="black"
+                    elevation={1}
+                    sx={{
+                        py: 1,
+                        borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+                    }}
+                >
                     <Container maxWidth="xl">
                         <Toolbar disableGutters>
                             {/* Logo */}
@@ -166,7 +169,6 @@ const Navbar = () => {
                                     alignItems: "center",
                                     textDecoration: "none",
                                     flexGrow: { xs: 1, md: 0 },
-                                    mr: { xs: 0, md: 4 },
                                 }}
                             >
                                 <img
@@ -193,12 +195,17 @@ const Navbar = () => {
                                         sx={{
                                             mx: 1,
                                             mt: 1,
-                                            color: "text.primary",
                                             fontSize: "18px",
-                                            "&:hover": {
-                                                color: "#33b4d4",
-                                                backgroundColor: "transparent",
-                                            },
+                                            ...(location.pathname === item.path
+                                                ? activeGradient
+                                                : {
+                                                      color: "text.primary",
+                                                      "&:hover": {
+                                                          color: "#33b4d4",
+                                                          backgroundColor:
+                                                              "transparent",
+                                                      },
+                                                  }),
                                         }}
                                     >
                                         {item.name}
@@ -215,17 +222,16 @@ const Navbar = () => {
                                 sx={{
                                     display: { md: "none" },
                                     mr: 1,
-                                    
                                 }}
                             >
                                 <MenuIcon />
                             </IconButton>
 
-                            {/* Desktop Auth Buttons */}
                             <Box
                                 sx={{
                                     display: { xs: "none", md: "flex" },
                                     alignItems: "center",
+                                    gap: 1, // Adds spacing between items
                                 }}
                             >
                                 <IconButton
@@ -233,10 +239,10 @@ const Navbar = () => {
                                     to="/questions"
                                     sx={{
                                         mx: 1,
-                                        
                                         "&:hover": {
                                             color: "#33b4d4",
-                                            backgroundColor: "rgba(51, 180, 212, 0.04)",
+                                            backgroundColor:
+                                                "rgba(51, 180, 212, 0.04)",
                                         },
                                     }}
                                 >
@@ -244,36 +250,25 @@ const Navbar = () => {
                                         <MailIcon />
                                     </Badge>
                                 </IconButton>
+
+                                {/* Logout Button */}
                                 <Button
-                                    component={Link}
-                                    to="/login"
-                                    variant="outlined"
-                                    sx={{
-                                        mx: 1,
-                                        fontSize: "18px",
-                                        color: "black",
-                                        borderColor: "#33b4d4",
-                                        "&:hover": {
-                                            borderColor: "#2a96b3",
-                                        },
-                                    }}
-                                >
-                                    Login
-                                </Button>
-                                <Button
-                                    component={Link}
-                                    to="/signup"
                                     variant="contained"
+                                    onClick={() => {
+                                        dispatch(removeUser()); // Dispatch the removeUser action
+                                        navigate("/"); // Navigate to home
+                                    }}
                                     sx={{
                                         mx: 1,
                                         fontSize: "18px",
                                         backgroundColor: "#33b4d4",
+                                        color: "white",
                                         "&:hover": {
-                                            backgroundColor: "#2a96b3",
+                                            backgroundColor: "#424242",
                                         },
                                     }}
                                 >
-                                    Sign Up
+                                    Logout
                                 </Button>
                             </Box>
                         </Toolbar>

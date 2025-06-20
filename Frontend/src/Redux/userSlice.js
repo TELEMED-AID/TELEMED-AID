@@ -1,9 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  userId: "",
-  role: "",
-  isLogged: false,
+  userId: "1",
+  role: "PATIENT",
+  isLogged: true,
 };
 
 export const userSlice = createSlice({
