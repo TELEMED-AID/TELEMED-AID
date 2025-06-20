@@ -15,7 +15,7 @@ import java.sql.Date;
 @Builder
 public class Patient {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 
     @Column(nullable = false, length = 255)

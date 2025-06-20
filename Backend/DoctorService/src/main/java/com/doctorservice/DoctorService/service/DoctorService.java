@@ -51,7 +51,24 @@ public class DoctorService {
         if(!(request.getPhone().isEmpty())){
             doctor.setPhone(request.getPhone());
         }
+        // Update specialization if provided
+        if (!request.getSpecialization().isEmpty()) {
+            Specialization specialization = specializationRepository
+                    .findBySpecializationName(request.getSpecialization())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Specialization not found with name: " + request.getSpecialization()));
+            System.out.println("spec:"+specialization);
+            doctor.setSpecialization(specialization);
+        }
 
+        // Update career level if provided
+        if (!request.getCareerLevel().isEmpty()) {
+            CareerLevel careerLevel = careerLevelRepository
+                    .findByCareerLevelName(request.getCareerLevel())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Career level not found with name: " + request.getCareerLevel()));
+            doctor.setCareerLevel(careerLevel);
+        }
         Doctor updatedDoctor = doctorRepository.save(doctor);
         return DoctorResponse.doctorToDoctorResponse(updatedDoctor);
     }
