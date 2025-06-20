@@ -12,9 +12,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DoctorUpdateRequest {
     @NotBlank(message = "Name is required")
-    private String name;  // Changed from fullName to name
+    private String name;
 
     @NotBlank(message = "Phone is required")
     @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
-    private String phone;  // Changed from phoneNumber to phone
+    private String phone;
+
+    private String specialization;  // Optional: name of the new specialization
+    private String careerLevel;     // Optional: name of the new career level
 }

@@ -77,7 +77,7 @@ const ProfilePage = () => {
                     endpoint = `/api/patient/get-patient/${userId}`;
                 } else if (role === "DOCTOR") {
                     // Endpoint for fetching doctor data (assuming a similar structure)
-                    endpoint = `/api/doctor/get/doctor/${userId}`;
+                    endpoint = `/doctor/${userId}`;
                 }
 
                 // If an endpoint is determined, call getItem from useGet
@@ -88,10 +88,12 @@ const ProfilePage = () => {
                         (response) => {
                             // On successful fetch, update the fetchedUserData state
                             setFetchedUserData(response);
+                            console.log("Fetched User Data:", response);
                         },
                         () => {
                             // On error, clear the fetchedUserData
                             setFetchedUserData(null);
+                                console.log("Fetched User Data: error");
                         }
                     );
                 }

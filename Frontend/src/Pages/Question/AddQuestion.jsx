@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -10,42 +11,65 @@ import {
   Avatar,
   Chip,
   Paper,
-  Stack
+  Stack,
+  LinearProgress,
+  Alert,
+  Divider
 } from '@mui/material';
 import {
   Cake,
   Wc,
   Public,
-  Flag
+  Flag,
+  MedicalServices,
+  Work,
+  Badge
 } from '@mui/icons-material';
-import { blue } from '@mui/material/colors';
+import { blue, green } from '@mui/material/colors';
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
+import useGet from "../../Hooks/useGet";
 
 const AddQuestion = () => {
   const navigate = useNavigate();
+  const { userId, role, isLogged } = useSelector((state) => state.user);
+  const [userInfo, setUserInfo] = useState(null);
+  const { loading, getItem } = useGet();
   
-  // Current patient's hardcoded info (will come from auth context later)
-  const patientInfo = {
-    id: 'patient-123',
-    name: "John Smith",
-    age: 32,
-    gender: "Male",
-    nationality: "Canadian",
-    country: "Canada"
-  };
+  const [content, setContent] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isLogged && userId && (role === "PATIENT" || role === "DOCTOR")) {
+        const endpoint = role === "PATIENT" 
+          ? `/api/patient/get-patient/${userId}`
+          : `/doctor/${userId}`;
+        
+        await getItem(
+          endpoint,
+          false,
+          (response) => {
+            setUserInfo(response);
+          },
+          () => {
+            setUserInfo(null);
+          }
+        );
+      }
+    };
+
+    fetchUserData();
+  }, [isLogged, userId, role]);
 
   const getInitials = (name) =>
     name
-      .split(' ')
+      ?.split(' ')
       .filter(part => part.length > 0)
       .map(part => part[0])
       .join('')
-      .toUpperCase();
-
-  const [content, setContent] = useState('');
+      .toUpperCase() || '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,8 +77,8 @@ const AddQuestion = () => {
 
     const newQuestion = {
       content,
-      patientId: patientInfo.id,
-      // In real app, this will be sent to your backend API
+      userId,
+      userRole: role,
     };
 
     try {
@@ -62,22 +86,52 @@ const AddQuestion = () => {
       // await api.post('/questions', newQuestion);
       alert('Question submitted successfully!');
       setContent('');
-      // Navigate back to ShowQuestions page after successful submission
-      navigate('/ShowQuestions'); // Adjust the route as needed
+      navigate('/ShowQuestions');
     } catch (error) {
       console.error('Error submitting question:', error);
       alert('Error submitting question');
     }
   };
-const handleCancel = () => {
-  navigate('/ShowQuestions'); // or '/articles'
-};
+
+  const handleCancel = () => {
+    navigate('/ShowQuestions');
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+          <LinearProgress sx={{ mt: 2 }} />
+          <Typography variant="h6" sx={{ textAlign: 'center', mt: 2 }}>
+            Loading user information...
+          </Typography>
+        </Box>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!userInfo) {
+    return (
+      <>
+        <Navbar />
+        <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+          <Alert severity="error">
+            Failed to load user information or you're not authorized to ask questions.
+          </Alert>
+        </Box>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />
       <Navbar />
       <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
-        {/* Patient Profile */}
+        {/* User Profile */}
         <Card sx={{ mb: 4 }}>
           <CardContent>
             <Grid container spacing={4}>
@@ -87,34 +141,39 @@ const handleCancel = () => {
                     width: 100,
                     height: 100,
                     mb: 2,
-                    backgroundColor: blue[500],
+                    backgroundColor: role === "DOCTOR" ? blue[500] : green[500],
                     fontSize: '2rem',
                     fontWeight: 'bold'
                   }}
                 >
-                  {getInitials(patientInfo.name)}
+                  {getInitials(userInfo.name)}
                 </Avatar>
                 <Chip
-                  label="Patient"
-                  color="primary"
+                  label={role === "DOCTOR" ? "Doctor" : "Patient"}
+                  color={role === "DOCTOR" ? "primary" : "success"}
                 />
               </Grid>
 
               <Grid item xs={12} md={9}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {patientInfo.name}
+                  {userInfo.name}
                 </Typography>
                 <Grid container spacing={10}>
                   <Grid item xs={12} sm={6}>
                     <Stack spacing={2}>
-                      <Typography><Cake sx={{ mr: 1 }} /> {patientInfo.age} years</Typography>
-                      <Typography><Wc sx={{ mr: 1 }} /> {patientInfo.gender}</Typography>
+                      <Typography><Wc sx={{ mr: 1 }} /> {userInfo.gender || 'N/A'}</Typography>
+                      <Typography><Cake sx={{ mr: 1 }} /> {userInfo.birthDate || 'N/A'}</Typography>
+                      <Typography><Public sx={{ mr: 1 }} /> {userInfo.countryName || 'N/A'}</Typography>                      
                     </Stack>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Stack spacing={2}>
-                      <Typography><Public sx={{ mr: 1 }} /> {patientInfo.country}</Typography>
-                      <Typography><Flag sx={{ mr: 1 }} /> {patientInfo.nationality}</Typography>
+                      {role === "DOCTOR" && (
+                        <>
+                          <Typography><Work sx={{ mr: 1 }} /> {userInfo.careerLevel || 'N/A'}</Typography>
+                          <Typography><MedicalServices sx={{ mr: 1 }} /> {userInfo.specialization || 'N/A'}</Typography>
+                        </>
+                      )}
                     </Stack>
                   </Grid>
                 </Grid>
@@ -137,14 +196,14 @@ const handleCancel = () => {
             ml: 1
           }
         }}>
-          Ask a Question
+          {role === "DOCTOR" ? "Ask a Medical Question" : "Ask a Health Question"}
         </Typography>
 
         <Paper elevation={3} sx={{ p: 3 }}>
           <form onSubmit={handleSubmit}>
             <TextField
               fullWidth
-              label="Your Question"
+              label={role === "DOCTOR" ? "Your Medical Question" : "Your Health Question"}
               variant="outlined"
               multiline
               rows={10}
@@ -152,25 +211,27 @@ const handleCancel = () => {
               onChange={(e) => setContent(e.target.value)}
               sx={{ mb: 3 }}
               required
-              helperText="Please describe your health concern in detail"
+              helperText={role === "DOCTOR" 
+                ? "Please describe your medical question in detail" 
+                : "Please describe your health concern in detail"}
             />
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
-                  variant="outlined"
-                  size="large"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </Button>
+                variant="outlined"
+                size="large"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
                 variant="contained"
                 size="large"
                 sx={{
-                  backgroundColor: blue[500],
+                  backgroundColor: role === "DOCTOR" ? blue[500] : green[500],
                   '&:hover': {
-                    backgroundColor: blue[700],
+                    backgroundColor: role === "DOCTOR" ? blue[700] : green[700],
                   },
                 }}
                 disabled={!content.trim() || content.length < 30}

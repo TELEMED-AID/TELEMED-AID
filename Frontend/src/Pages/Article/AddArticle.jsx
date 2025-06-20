@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -14,7 +15,9 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  LinearProgress,
+  Alert
 } from '@mui/material';
 import {
   MedicalServices,
@@ -31,31 +34,14 @@ import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
+import useGet from "../../Hooks/useGet";
 
 const AddArticle = () => {
   const navigate = useNavigate();
+  const { userId, role, isLogged } = useSelector((state) => state.user);
+  const [doctorInfo, setDoctorInfo] = useState(null);
+  const { loading, getItem } = useGet();
   
-  // Current doctor's hardcoded info (will come from auth context later)
-  const doctorInfo = {
-    id: 'doc-123',
-    name: "Dr. Sarah Johnson",
-    specialization: "Cardiologist",
-    careerLevel: "Consultant",
-    age: 45,
-    gender: "Female",
-    nationality: "American",
-    country: "USA",
-    phone: "+1-555-1234"
-  };
-
-  const getInitials = (name) =>
-    name
-      .split(' ')
-      .filter(part => part.length > 0)
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
-
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
@@ -64,12 +50,39 @@ const AddArticle = () => {
     'Cardiology',
     'Neurology',
     'Pediatrics',
-    'Oncology',
-    'Dermatology',
-    'General Medicine',
-    'Surgery',
-    'Psychiatry'
+    // 'Oncology',
+    // 'Dermatology',
+    // 'General Medicine',
+    // 'Surgery',
+    // 'Psychiatry'
   ];
+
+  useEffect(() => {
+    const fetchDoctorData = async () => {
+      if (isLogged && userId && role === "DOCTOR") {
+        await getItem(
+          `/doctor/${userId}`,
+          false,
+          (response) => {
+            setDoctorInfo(response);
+          },
+          () => {
+            setDoctorInfo(null);
+          }
+        );
+      }
+    };
+
+    fetchDoctorData();
+  }, [isLogged, userId, role]);
+
+  const getInitials = (name) =>
+    name
+      ?.split(' ')
+      .filter(part => part.length > 0)
+      .map(part => part[0])
+      .join('')
+      .toUpperCase() || '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,8 +92,7 @@ const AddArticle = () => {
       title,
       content,
       category,
-      doctorId: doctorInfo.id,
-      // In real app, this will be sent to your backend API
+      doctorId: userId,
     };
 
     try {
@@ -90,16 +102,46 @@ const AddArticle = () => {
       setTitle('');
       setContent('');
       setCategory('');
-      // Navigate back to articles page after successful submission
-      navigate('/ShowArticles'); // Adjust the route as needed
+      navigate('/ShowArticles');
     } catch (error) {
       console.error('Error submitting article:', error);
       alert('Error submitting article');
     }
   };
-const handleCancel = () => {
-  navigate('/ShowArticles'); // or '/articles'
-};
+
+  const handleCancel = () => {
+    navigate('/ShowArticles');
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+          <LinearProgress sx={{ mt: 2 }} />
+          <Typography variant="h6" sx={{ textAlign: 'center', mt: 2 }}>
+            Loading doctor information...
+          </Typography>
+        </Box>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!doctorInfo) {
+    return (
+      <>
+        <Navbar />
+        <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
+          <Alert severity="error">
+            Failed to load doctor information or you're not authorized to create articles.
+          </Alert>
+        </Box>
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />
@@ -137,14 +179,13 @@ const handleCancel = () => {
                   <Grid item xs={12} sm={6}>
                     <Stack spacing={2}>
                       <Typography><Badge sx={{ mr: 1 }} /> {doctorInfo.careerLevel}</Typography>
-                      <Typography><Cake sx={{ mr: 1 }} /> {doctorInfo.age} years</Typography>
+                      <Typography><Cake sx={{ mr: 1 }} /> {doctorInfo.birthDate || 'N/A'} </Typography>
                       <Typography><Wc sx={{ mr: 1 }} /> {doctorInfo.gender}</Typography>
                     </Stack>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Stack spacing={2}>
-                      <Typography><Public sx={{ mr: 1 }} /> {doctorInfo.country}</Typography>
-                      <Typography><Flag sx={{ mr: 1 }} /> {doctorInfo.nationality}</Typography>
+                      <Typography><Public sx={{ mr: 1 }} /> {doctorInfo.countryName}</Typography>
                       <Typography><Phone sx={{ mr: 1 }} /> {doctorInfo.phone}</Typography>
                     </Stack>
                   </Grid>
@@ -218,12 +259,12 @@ const handleCancel = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
-                  variant="outlined"
-                  size="large"
-                  onClick={handleCancel}
-                >
-                  Cancel
-                </Button>
+                variant="outlined"
+                size="large"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
               <Button
                 type="submit"
                 variant="contained"

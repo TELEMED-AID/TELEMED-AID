@@ -24,7 +24,7 @@ const UpdateInfo = ({ role }) => {
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        ...(role === "doctor" && {
+        ...(role === "DOCTOR" && {
             specialization: "",
             careerLevel: "",
         }),
@@ -37,9 +37,9 @@ const UpdateInfo = ({ role }) => {
         const fetchUserData = async () => {
             try {
                 let response;
-                if (role === "doctor") {
+                if (role === "DOCTOR") {
                     response = await getItem(
-                        "/api/doctor/get-doctor",
+                        "/doctor/22",
                         false, // disable snackbar
                         (data) => {
                             setFormData({
@@ -106,14 +106,14 @@ const UpdateInfo = ({ role }) => {
             let updateData;
             let updateEndpoint;
 
-            if (role === "doctor") {
+            if (role === "DOCTOR") {
                 updateData = {
                     name: formData.name,
                     phone: formData.phone,
                     specialization: formData.specialization,
                     careerLevel: formData.careerLevel,
                 };
-                updateEndpoint = "/api/doctor/update-doctor";
+                updateEndpoint = "/doctor/22";
             } else {
                 updateData = {
                     name: formData.name,
@@ -153,7 +153,7 @@ const UpdateInfo = ({ role }) => {
             <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
                 <Paper elevation={2} sx={{ p: 4 }}>
                     <Typography variant="h4" gutterBottom>
-                        Update {role === "doctor" ? "Doctor" : "Patient"}{" "}
+                        Update {role === "DOCTOR" ? "Doctor" : "Patient"}{" "}
                         Information
                     </Typography>
 
@@ -201,7 +201,7 @@ const UpdateInfo = ({ role }) => {
                             </Box>
                         </Box>
 
-                        {role === "doctor" && (
+                        {role === "DOCTOR" && (
                             <>
                                 <Box
                                     sx={{
@@ -220,15 +220,10 @@ const UpdateInfo = ({ role }) => {
                                         }}
                                     >
                                         <SearchableDropDown
-                                            placeholder="Select your specialization"
+                                            placeholder={formData.specialization ? formData.specialization : "Select your specialization"}
                                             name="specialization"
                                             value={formData.specialization}
-                                            onChange={(value) =>
-                                                handleDropdownChange(
-                                                    "specialization",
-                                                    value
-                                                )
-                                            }
+                                            setState={(value) => handleDropdownChange("specialization", value)}
                                             items={[
                                                 { name: "Cardiology" },
                                                 { name: "Neurology" },
@@ -243,10 +238,10 @@ const UpdateInfo = ({ role }) => {
                                         }}
                                     >
                                         <SearchableDropDown
-                                            placeholder="Select your career level"
+                                            placeholder= {formData.careerLevel ? formData.careerLevel : "Select your career level"}
                                             name="careerLevel"
                                             value={formData.careerLevel}
-                                            onChange={(value) =>
+                                            setState={(value) =>
                                                 handleDropdownChange(
                                                     "careerLevel",
                                                     value
