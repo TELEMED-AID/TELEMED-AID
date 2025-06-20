@@ -110,7 +110,6 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    // Comments needs to be modified: get votes along with the request (Create comment response DTO)
     @Transactional
     @Override
     public ResponseEntity<?> getCommentsOnQuestion(Long questionId) {

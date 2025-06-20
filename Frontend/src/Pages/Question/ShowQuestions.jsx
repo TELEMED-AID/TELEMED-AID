@@ -22,11 +22,15 @@ import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
+import {boolean} from "joi";
 
 const ShowQuestions = () => {
   const [expandedQuestions, setExpandedQuestions] = useState({});
   const [showComments, setShowComments] = useState({});
   const [commentTexts, setCommentTexts] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const isDoctor = false;
+  const currentDoctorId = 1;
   const [comments, setComments] = useState({
     'q-001': [
       {
@@ -34,14 +38,18 @@ const ShowQuestions = () => {
         content: "Chest pain during exercise should always be evaluated, especially at your age. I recommend scheduling an appointment with a cardiologist for a stress test.",
         author: "Dr. Sarah Johnson",
         date: "2023-06-16",
-        isDoctor: true
+        voteCount: 0,
+        careerLevel: "Consultant",
+        specializationName: "Cardiology"
       },
       {
         id: 'c-002',
         content: "I had similar symptoms last year. Turned out to be acid reflux. Maybe try antacids before exercise?",
-        author: "Mike Thompson",
+        author: "Dr. Mike Thompson",
         date: "2023-06-17",
-        isDoctor: false
+        voteCount: -3,
+        careerLevel: "Resident",
+        specializationName: "Gastroenterology"
       }
     ],
     'q-002': [
@@ -50,11 +58,14 @@ const ShowQuestions = () => {
         content: "This could be school-related anxiety. I'd suggest talking to her teacher to see if there are any issues at school.",
         author: "Dr. Emily Chen",
         date: "2023-05-23",
-        isDoctor: true
+        voteCount: 3,
+        careerLevel: "Specialist",
+        specializationName: "Pediatrics"
       }
     ],
     'q-003': []
   });
+
   const navigate = useNavigate();
 
   // Mock data - will be replaced with DB fetch
@@ -120,6 +131,25 @@ const ShowQuestions = () => {
     }));
   };
 
+  const handleVote = (commentId, rank) => {
+    const voteData = {
+      commentId: commentId,
+      doctorId: currentDoctorId, // لازم يكون متوفر
+      rank: rank
+    };
+
+   /* postItem(
+        VOTE_URL, // هتكون مثلاً "/article/question/addVote"
+        voteData,
+        (response) => {
+          // لو رجع إجابة جديدة بالتصويت، حدث الـ comments state هنا
+          // ممكن تعمل refetch للـ question details أو تحدث الـ voteCount محليًا
+        },
+        "Vote submitted",
+        "Failed to submit vote"
+    );*/
+  };
+
   const addComment = (questionId) => {
     if (!commentTexts[questionId]?.trim()) return;
 
@@ -142,6 +172,7 @@ const ShowQuestions = () => {
     }));
   };
 
+
   return (
     <>
       <ScrollToTop />
@@ -163,6 +194,7 @@ const ShowQuestions = () => {
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             Patient Questions
           </Typography>
+
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -178,7 +210,20 @@ const ShowQuestions = () => {
             Ask Question
           </Button>
         </Box>
-
+        <Box sx={{ mb: 3 }}>
+          <TextField
+              fullWidth
+              variant="outlined"
+              label="Search questions..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  // handleSearch(); // هنعملها بعدين
+                }
+              }}
+          />
+        </Box>
         {questions.length === 0 ? (
           <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
             <QuestionAnswer sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
@@ -212,30 +257,7 @@ const ShowQuestions = () => {
                       </Avatar>
                     }
                     title={question.patientName}
-                    subheader={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Cake sx={{ fontSize: 16, mr: 0.5 }} />
-                          <span>{question.patientAge} years</span>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Wc sx={{ fontSize: 16, mr: 0.5 }} />
-                          <span>{question.patientGender}</span>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Public sx={{ fontSize: 16, mr: 0.5 }} />
-                          <span>{question.patientCountry}</span>
-                        </Box>
-                      </Box>
-                    }
-                    action={
-                      <Chip
-                        icon={<Person />}
-                        label="Patient"
-                        color="primary"
-                        sx={{ mr: 2 }}
-                      />
-                    }
+
                   />
                   <CardContent sx={{ pt: 0 }}>
                     <Typography
@@ -304,7 +326,7 @@ const ShowQuestions = () => {
                               <ListItem key={comment.id} alignItems="flex-start">
                                 <ListItemAvatar>
                                   <Avatar sx={{ 
-                                    bgcolor: comment.isDoctor ? blue[500] : 'grey.500',
+                                    bgcolor: blue[500],
                                     width: 40, 
                                     height: 40 
                                   }}>
@@ -312,7 +334,16 @@ const ShowQuestions = () => {
                                   </Avatar>
                                 </ListItemAvatar>
                                 <ListItemText
-                                  primary={comment.author}
+                                  primary={
+                                    <>
+                                      <Typography variant="subtitle1" fontWeight="bold">
+                                        {comment.author}
+                                      </Typography>
+                                      <Typography variant="body2" color="text.secondary">
+                                        {comment.careerLevel} — {comment.specializationName}
+                                      </Typography>
+                                    </>
+                                  }
                                   secondary={
                                     <>
                                       <Typography
@@ -322,41 +353,82 @@ const ShowQuestions = () => {
                                       >
                                         {comment.content}
                                       </Typography>
-                                      <Typography variant="caption" display="block">
-                                        {comment.date} • {comment.isDoctor ? 'Doctor' : 'User'}
+                                      <Typography
+                                          variant="caption"
+                                          display="block"
+                                          sx={{
+                                            mt: 0.5,
+                                            color:
+                                                comment.voteCount > 0
+                                                    ? 'green'
+                                                    : comment.voteCount < 0
+                                                        ? 'red'
+                                                        : 'gray'
+                                          }}
+                                      >
+                                        {comment.voteCount > 0 && `👍 ${comment.voteCount}`}
+                                        {comment.voteCount < 0 && `👎 ${Math.abs(comment.voteCount)}`}
+                                        {comment.voteCount === 0 && `No votes yet`}
                                       </Typography>
                                     </>
                                   }
                                 />
+                                {isDoctor && (
+                                    <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                                      <IconButton
+                                          color="success"
+                                          onClick={() => handleVote(comment.id, 1)} // upvote
+                                      >
+                                        👍
+                                      </IconButton>
+                                      <IconButton
+                                          color="error"
+                                          onClick={() => handleVote(comment.id, -1)} // downvote
+                                      >
+                                        👎
+                                      </IconButton>
+                                    </Box>
+                                )}
+
                               </ListItem>
+
                             ))}
                           </List>
                         ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                            No comments yet. Be the first to respond!
-                          </Typography>
+                            isDoctor ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                  No comments yet. Be the first to respond!
+                                </Typography>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                  No comments yet.
+                                </Typography>
+                            )
                         )}
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                          <TextField
-                            fullWidth
-                            variant="outlined"
-                            placeholder="Add a comment..."
-                            value={commentTexts[question.id] || ''}
-                            onChange={(e) => handleCommentChange(question.id, e.target.value)}
-                            multiline
-                            rows={2}
-                            sx={{ mr: 1 }}
-                          />
-                          <IconButton
-                            color="primary"
-                            onClick={() => addComment(question.id)}
-                            disabled={!commentTexts[question.id]?.trim()}
-                            sx={{ height: '56px' }}
-                          >
-                            <Send />
-                          </IconButton>
-                        </Box>
+                        {isDoctor && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                              <TextField
+                                  fullWidth
+                                  variant="outlined"
+                                  placeholder="Add a comment..."
+                                  value={commentTexts[question.id] || ''}
+                                  onChange={(e) => handleCommentChange(question.id, e.target.value)}
+                                  multiline
+                                  rows={2}
+                                  sx={{ mr: 1 }}
+                              />
+                              <IconButton
+                                  color="primary"
+                                  onClick={() => addComment(question.id)}
+                                  disabled={!commentTexts[question.id]?.trim()}
+                                  sx={{ height: '56px' }}
+                              >
+                                <Send />
+                              </IconButton>
+                            </Box>
+                        )}
+
                       </Box>
                     )}
                   </CardContent>
