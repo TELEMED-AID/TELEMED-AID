@@ -14,7 +14,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/doctor")
+@RequestMapping("/doctor")
 @RequiredArgsConstructor
 public class DoctorController {
     private final DoctorService doctorService;
@@ -25,6 +25,16 @@ public class DoctorController {
     ) {
         DoctorResponse response = doctorService.createDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    @GetMapping
+    public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
+        List<DoctorResponse> doctors = doctorService.getAllDoctors();
+        return ResponseEntity.ok(doctors);
+    }
+    @GetMapping("/simplified")
+    public ResponseEntity<List<SimplifiedDoctorDto>> getAllSimplifiedDoctors() {
+        List<SimplifiedDoctorDto> doctors = doctorService.getAllSimplifiedDoctors();
+        return ResponseEntity.ok(doctors);
     }
     @PutMapping("/{nationalId}")
     public ResponseEntity<?> updateDoctor(

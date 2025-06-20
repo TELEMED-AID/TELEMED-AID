@@ -181,7 +181,7 @@ const ShowQuestions = () => {
 
         {questions.length === 0 ? (
           <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-            <QuestionAnswer sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+            <QuestionAnswer sx={{ fontSize: 60, color: "#33b4d4", mb: 2 }} />
             <Typography variant="h6" color="textSecondary">
               No questions available yet
             </Typography>
@@ -191,9 +191,9 @@ const ShowQuestions = () => {
               onClick={() => navigate('/questions/ask')}
               sx={{
                 mt: 2,
-                backgroundColor: blue[500],
-                '&:hover': {
-                  backgroundColor: blue[700]
+                bgcolor: "#33b4d4",
+              "&:hover": {
+                bgcolor: "#2a9cb3"
                 }
               }}
             >
@@ -207,7 +207,7 @@ const ShowQuestions = () => {
                 <Box sx={{ p: 3 }}>
                   <CardHeader
                     avatar={
-                      <Avatar sx={{ bgcolor: blue[500], width: 50, height: 50 }}>
+                      <Avatar sx={{ bgcolor: "#33b4d4", width: 50, height: 50 }}>
                         {getInitials(question.patientName)}
                       </Avatar>
                     }
@@ -264,10 +264,10 @@ const ShowQuestions = () => {
                           startIcon={<Comment />}
                           sx={{
                             mr: 2,
-                            color: blue[500],
-                            borderColor: blue[500],
+                            color: "#33b4d4",
+                            borderColor: "#33b4d4",
                             '&:hover': {
-                              borderColor: blue[700],
+                              borderColor: "#2a9cb3",
                               backgroundColor: blue[50]
                             }
                           }}
@@ -278,10 +278,10 @@ const ShowQuestions = () => {
                           variant="outlined"
                           onClick={() => toggleExpand(question.id)}
                           sx={{
-                            color: blue[500],
-                            borderColor: blue[500],
+                            color: "#33b4d4",
+                            borderColor: "#33b4d4",
                             '&:hover': {
-                              borderColor: blue[700],
+                              borderColor: "#2a9cb3",
                               backgroundColor: blue[50]
                             }
                           }}
@@ -304,7 +304,7 @@ const ShowQuestions = () => {
                               <ListItem key={comment.id} alignItems="flex-start">
                                 <ListItemAvatar>
                                   <Avatar sx={{ 
-                                    bgcolor: comment.isDoctor ? blue[500] : 'grey.500',
+                                    bgcolor: comment.isDoctor ? "#33b4d4" : 'grey.500',
                                     width: 40, 
                                     height: 40 
                                   }}>
