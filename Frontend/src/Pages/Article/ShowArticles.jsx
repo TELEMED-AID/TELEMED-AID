@@ -25,7 +25,8 @@ import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
-import useFetchArticles from '../../Hooks/useFetchArticles';
+import useFetch from '../../Hooks/useFetch';
+import { ARTICLE_SEARCH_URL } from "../../API/APIRoutes";
 
 const ShowArticles = () => {
   const [expandedArticles, setExpandedArticles] = useState({});
@@ -34,7 +35,7 @@ const ShowArticles = () => {
   const articlesPerPage = 5;
   const navigate = useNavigate();
 
-  const { data: articles, totalPages, isLoading, error } = useFetchArticles(searchTerm, currentPage, articlesPerPage);
+  const { data: articles, totalPages, isLoading, error } = useFetch(searchTerm, currentPage, articlesPerPage, ARTICLE_SEARCH_URL);
 
   const getInitials = (name) =>
       name

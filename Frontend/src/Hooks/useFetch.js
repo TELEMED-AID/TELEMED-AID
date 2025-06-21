@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
 import { axiosInstance } from "../API/axios";
-import { ARTICLE_SEARCH_URL } from "../API/APIRoutes"; // adjust the path if needed
 
-const useFetchArticles = (term, page = 1, size = 5) => {
+const useFetch = (term, page = 1, size = 5, URL) => {
     const [data, setData] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchArticles = async () => {
+        const fetch = async () => {
             setIsLoading(true);
             setError(null);
 
             try {
-                const response = await axiosInstance.get(ARTICLE_SEARCH_URL, {
+                const response = await axiosInstance.get(URL, {
                     params: {
                         term,
                         page: page - 1,
@@ -33,10 +32,10 @@ const useFetchArticles = (term, page = 1, size = 5) => {
             }
         };
 
-        fetchArticles();
+        fetch();
     }, [term, page, size]);
 
     return { data, totalPages, isLoading, error };
 };
 
-export default useFetchArticles;
+export default useFetch;

@@ -101,7 +101,8 @@ public class QuestionServiceImpl implements QuestionService {
 
             Comment response = commentRepository.save(comment);
             CommentResponseDTO commentResponseDTO = new CommentResponseDTO(response.getId(), response.getContent(),
-                    response.getTime(), enrichedDoctorOptional.get().getName(),
+                    response.getTime(), enrichedDoctorOptional.get().getName(), enrichedDoctorOptional.get().getSpecializationName(),
+                    enrichedDoctorOptional.get().getCareerLevel(),
                     0);
             return ResponseEntity.status(HttpStatus.CREATED).body(commentResponseDTO);
         }
@@ -132,21 +133,14 @@ public class QuestionServiceImpl implements QuestionService {
                         comment.getContent(),
                         comment.getTime(),
                         enrichedDoctor.getName(),
+                        enrichedDoctor.getSpecializationName(),
+                        enrichedDoctor.getCareerLevel(),
                         voteCount
                 );
                 commentResponses.add(commentResponse);
             }
 
-            QuestionDetailsResponseDTO questionDetails = new QuestionDetailsResponseDTO(
-                    question.getId(),
-                    question.getTitle(),
-                    question.getContent(),
-                    question.getPatientWrittenName(),
-                    question.getQuestionTime(),
-                    commentResponses
-            );
-
-            return ResponseEntity.ok().body(questionDetails);
+            return ResponseEntity.ok().body(commentResponses);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments, please retry");
         }
