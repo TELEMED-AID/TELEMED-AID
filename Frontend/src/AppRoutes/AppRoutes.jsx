@@ -32,12 +32,12 @@ export default function Paths() {
                 />
                 <Route
                     path={DefaultRoutes.profile}
-                    element={<ProfilePage userRole="DOCTOR" />}
+                    element={<ProfilePage  />}
                 />
                 <Route path={DefaultRoutes.home} element={<Home_page />} />
                 <Route
                     path={DefaultRoutes.updateInfo}
-                    element={<UpdateInfo role={"DOCTOR"} />}
+                    element={<UpdateInfo  />}
                 />
                 <Route
                     path={DefaultRoutes.updatePassword}

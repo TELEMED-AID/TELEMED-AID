@@ -15,8 +15,10 @@ import usePost from "../../Hooks/usePost";
 import usePut from "../../Hooks/usePut"; // Import usePut
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
+import { useSelector } from 'react-redux';
 
-const UpdateInfo = ({ role }) => {
+const UpdateInfo = () => {
+    const { userId, role, isLogged } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const { loading: getLoading, getItem } = useGet();
     const { loading: putLoading, putItem } = usePut(); // Destructure putItem and its loading state
@@ -39,7 +41,7 @@ const UpdateInfo = ({ role }) => {
                 let response;
                 if (role === "DOCTOR") {
                     response = await getItem(
-                        "/doctor/22",
+                        `/doctor/${userId}`,
                         false, // disable snackbar
                         (data) => {
                             setFormData({
@@ -58,7 +60,7 @@ const UpdateInfo = ({ role }) => {
                     );
                 } else {
                     response = await getItem(
-                        "/api/patient/get-patient/1", // Assuming '1' is a placeholder for the patient ID
+                        `/api/patient/get-patient/${userId}`, // Assuming '1' is a placeholder for the patient ID
                         false, // disable snackbar
                         (data) => {
                             setFormData({
