@@ -1,5 +1,6 @@
 package com.appointments.appointmentservice;
 
+import com.appointments.appointmentservice.Config.AppointmentEnrichmentFlowConfig;
 import com.appointments.appointmentservice.Config.DoctorServiceClient;
 import com.appointments.appointmentservice.DTOs.AppointmentResponseDTO;
 import com.appointments.appointmentservice.DTOs.DoctorDataDTO;
@@ -133,15 +134,22 @@ class AppointmentServiceApplicationTests {
     void shouldRetrieveAppointmentsForPatient() {
         AppointmentID id = new AppointmentID(userId, doctorId, LocalDate.now(), appointmentTime);
         Appointment appt = Appointment.builder().id(id).appointmentState(AppointmentState.PENDING).build();
-        DoctorDataDTO doctor = DoctorDataDTO.builder().name("Dr. John Doe").specialization("Cardiology").build();
+        AppointmentResponseDTO enrichedDto = AppointmentResponseDTO.builder()
+                .userId(userId)
+                .doctorDetails(DoctorDataDTO.builder().name("Dr. John Doe").specialization("Cardiology").build())
+                .date(id.getAppointmentDate())
+                .time(id.getAppointmentTime())
+                .state(AppointmentState.PENDING)
+                .build();
 
         MakeAppointment repo = mock(MakeAppointment.class);
-        DoctorServiceClient doctorClient = mock(DoctorServiceClient.class);
-        when(repo.findByIdUserID(userId)).thenReturn(List.of(appt));
-        when(doctorClient.getDoctorById(doctorId)).thenReturn(doctor);
+        AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway enricher = mock(AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway.class);
 
-        AppointmentQueryService queryService = new AppointmentQueryService(repo, doctorClient);
-        List<AppointmentResponseDTO> result = queryService.getAppointmentsForPatient(userId, null);
+        when(repo.findByIdUserID(userId)).thenReturn(List.of(appt));
+        when(enricher.enrich(appt)).thenReturn(enrichedDto);
+
+        AppointmentQueryService queryService = new AppointmentQueryService(repo, enricher);
+        List<AppointmentResponseDTO> result = queryService.getAppointmentsForUser(userId, null);
 
         assertEquals(1, result.size());
         assertEquals(userId, result.get(0).getUserId());
@@ -156,17 +164,24 @@ class AppointmentServiceApplicationTests {
         DoctorDataDTO doctorDataDTO = DoctorDataDTO.builder().name("Dr. John Doe").specialization("Cardiology").build();
         Long doctorIdFilter = 456L;
 
-        DoctorServiceClient doctorServiceClient = mock(DoctorServiceClient.class); // Mock doctorServiceClient
-        AppointmentQueryService appointmentQueryService = new AppointmentQueryService(appointmentRepository, doctorServiceClient); // Initialize appointmentQueryService
+        AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway enricher = mock(AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway.class);
+        AppointmentResponseDTO enrichedDto = AppointmentResponseDTO.builder()
+                .userId(userId)
+                .doctorDetails(doctorDataDTO)
+                .date(futureDate)
+                .time(appointmentTime)
+                .state(AppointmentState.PENDING)
+                .build();
 
         when(appointmentRepository.findByIdUserIDAndIdDoctorID(userId, doctorIdFilter))
                 .thenReturn(List.of(appointment));
-        when(doctorServiceClient.getDoctorById(doctorIdFilter))
-                .thenReturn(doctorDataDTO);
-        when(appointment.getId()).thenReturn(appointmentID); // Mock getId() to return a valid AppointmentID
+        when(appointment.getId()).thenReturn(appointmentID);
         when(appointment.getAppointmentState()).thenReturn(AppointmentState.PENDING);
+        when(enricher.enrich(appointment)).thenReturn(enrichedDto);
 
-        List<AppointmentResponseDTO> result = appointmentQueryService.getAppointmentsForPatient(userId, doctorIdFilter);
+        AppointmentQueryService appointmentQueryService = new AppointmentQueryService(appointmentRepository, enricher);
+
+        List<AppointmentResponseDTO> result = appointmentQueryService.getAppointmentsForUser(userId, doctorIdFilter);
 
         verify(appointmentRepository, times(1))
                 .findByIdUserIDAndIdDoctorID(userId, doctorIdFilter);
