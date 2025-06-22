@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
     Box,
     Button,
@@ -6,6 +7,8 @@ import {
     Autocomplete,
     Paper,
     IconButton,
+    LinearProgress,
+    Alert
 } from "@mui/material";
 import { LocalizationProvider, TimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -15,6 +18,8 @@ import Title from "../../Components/Title/Title";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
+import usePost from "../../Hooks/usePost";
+
 const daysOfWeek = [
     "MONDAY",
     "TUESDAY",
@@ -26,9 +31,14 @@ const daysOfWeek = [
 ];
 
 const Availability = () => {
+    const { userId } = useSelector((state) => state.user);
     const [availability, setAvailability] = useState({
         days: [],
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
+    const { postItem } = usePost();
 
     const addNewDay = () => {
         setAvailability({
@@ -84,10 +94,46 @@ const Availability = () => {
         setAvailability({ ...availability, days: updatedDays });
     };
 
-    const handleSubmit = () => {
-        console.log("Final Availability Data:", availability);
-        // Here you would typically send the data to your backend
-    };
+const handleSubmit = async () => {
+    if (availability.days.length === 0) return;
+
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+        // Prepare the data in the correct DTO format
+        const requestData = {
+            days: availability.days.map(day => ({
+                dayOfWeek: day.dayOfWeek,
+                timeSlots: day.timeSlots.map(slot => ({
+                    startTime: slot.startTime,
+                    duration: slot.duration
+                }))
+            }))
+        };
+
+        // Send to backend
+        const response = await postItem(
+            `/doctor/${userId}/availability`,
+            requestData
+        );
+        
+        if (response === "") {
+            setSuccess(true);
+            // Clear the form data
+            setAvailability({ days: [] });
+            // Optionally: Scroll to top to show success message
+            window.scrollTo(0, 0);
+        } else {
+            setError(response?.message || "Failed to save availability");
+        }
+    } catch (err) {
+        setError(err.message || "An error occurred while saving availability");
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <>
@@ -97,9 +143,23 @@ const Availability = () => {
                 <Box sx={{ p: 3, maxWidth: 800, margin: "0 auto" }}>
                     <Paper elevation={3} sx={{ p: 3 }}>
                         <Title title="Set Your Availability" />
+
+                        {error && (
+                            <Alert severity="error" sx={{ mb: 2 }}>
+                                {error}
+                            </Alert>
+                        )}
+
+                        {success && (
+                            <Alert severity="success" sx={{ mb: 2 }}>
+                                Availability saved successfully!
+                            </Alert>
+                        )}
+
                         <Button
                             variant="contained"
                             onClick={addNewDay}
+                            disabled={loading}
                             sx={{
                                 mb: 2,
                                 width: "100%",
@@ -112,6 +172,8 @@ const Availability = () => {
                         >
                             Add New Day
                         </Button>
+
+                        {loading && <LinearProgress sx={{ mb: 2 }} />}
 
                         {availability.days.map((day, dayIndex) => (
                             <Paper
@@ -129,7 +191,6 @@ const Availability = () => {
                                         display: "flex",
                                         justifyContent: "center",
                                         mb: 4,
-                                        // alignItems: "center",
                                     }}
                                 >
                                     <Box
@@ -146,8 +207,8 @@ const Availability = () => {
                                                 flexDirection: {
                                                     xs: "column",
                                                     sm: "row",
-                                                }, // Stack on mobile, row on desktop
-                                                gap: 2, // Consistent spacing between items
+                                                },
+                                                gap: 2,
                                                 justifyContent: "space-evenly",
                                                 mb: 2,
                                             }}
@@ -157,7 +218,7 @@ const Availability = () => {
                                                     width: {
                                                         xs: "100%",
                                                         sm: "30%",
-                                                    }, // Full width on mobile, 45% on desktop
+                                                    },
                                                 }}
                                             >
                                                 <Autocomplete
@@ -173,6 +234,7 @@ const Availability = () => {
                                                         <TextField
                                                             {...params}
                                                             label="Day of Week"
+                                                            disabled={loading}
                                                         />
                                                     )}
                                                     disableClearable
@@ -183,7 +245,7 @@ const Availability = () => {
                                                     width: {
                                                         xs: "100%",
                                                         sm: "30%",
-                                                    }, // Full width on mobile, 45% on desktop
+                                                    },
                                                 }}
                                             >
                                                 <Button
@@ -191,6 +253,7 @@ const Availability = () => {
                                                     onClick={() =>
                                                         addTimeSlot(dayIndex)
                                                     }
+                                                    disabled={loading}
                                                     sx={{
                                                         width: "100%",
                                                         py: 1.5,
@@ -206,15 +269,10 @@ const Availability = () => {
                                                 </Button>
                                             </Box>
                                             <IconButton
-                                                sx={
-                                                    {
-                                                        // px:17,
-                                                        // "&:hover": { bgcolor: "transparent" }
-                                                    }
-                                                }
                                                 onClick={() =>
                                                     removeDay(dayIndex)
                                                 }
+                                                disabled={loading}
                                             >
                                                 <Delete color="error" />
                                             </IconButton>
@@ -228,8 +286,8 @@ const Availability = () => {
                                                             flexDirection: {
                                                                 xs: "column",
                                                                 sm: "row",
-                                                            }, // Stack on mobile, row on desktop
-                                                            gap: 2, // Consistent spacing between items
+                                                            },
+                                                            gap: 2,
                                                             justifyContent:
                                                                 "space-evenly",
                                                             mb: 2,
@@ -240,7 +298,7 @@ const Availability = () => {
                                                                 width: {
                                                                     xs: "100%",
                                                                     sm: "30%",
-                                                                }, // Full width on mobile, 45% on desktop
+                                                                },
                                                             }}
                                                         >
                                                             <TimePicker
@@ -258,6 +316,7 @@ const Availability = () => {
                                                                         newValue
                                                                     )
                                                                 }
+                                                                disabled={loading}
                                                                 renderInput={(
                                                                     params
                                                                 ) => (
@@ -273,7 +332,7 @@ const Availability = () => {
                                                                 width: {
                                                                     xs: "100%",
                                                                     sm: "30%",
-                                                                }, // Full width on mobile, 45% on desktop
+                                                                },
                                                             }}
                                                         >
                                                             <TextField
@@ -290,6 +349,7 @@ const Availability = () => {
                                                                             .value
                                                                     )
                                                                 }
+                                                                disabled={loading}
                                                                 sx={{
                                                                     width: "100%",
                                                                 }}
@@ -302,6 +362,7 @@ const Availability = () => {
                                                                     slotIndex
                                                                 )
                                                             }
+                                                            disabled={loading}
                                                         >
                                                             <Delete color="error" />
                                                         </IconButton>
@@ -319,7 +380,7 @@ const Availability = () => {
                                 flexDirection: {
                                     xs: "column",
                                     sm: "row",
-                                }, // Stack on mobile, row on desktop
+                                },
                                 justifyContent: "space-between",
                                 mb: 2,
                             }}
@@ -329,27 +390,27 @@ const Availability = () => {
                                     width: {
                                         xs: "0%",
                                         sm: "50%",
-                                    }, // Full width on mobile, 45% on desktop
+                                    },
                                 }}
                             ></Box>
                             <Button
                                 variant="contained"
                                 color="primary"
                                 onClick={handleSubmit}
+                                disabled={availability.days.length === 0 || loading}
                                 sx={{
                                     width: {
                                         xs: "100%",
                                         sm: "33%",
-                                    }, // Full width on mobile, 45% on desktop
+                                    },
                                     py: 1.5,
                                     fontSize: "1.1rem",
                                     textTransform: "none",
                                     bgcolor: "#c2185b",
                                     "&:hover": { bgcolor: "#880e4f" },
                                 }}
-                                disabled={availability.days.length === 0}
                             >
-                                Save Availability
+                                {loading ? "Saving..." : "Save Availability"}
                             </Button>
                         </Box>
                     </Paper>
