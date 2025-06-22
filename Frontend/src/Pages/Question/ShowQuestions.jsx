@@ -1,7 +1,5 @@
 // التعديلات: إدماج useFetch، حذف البيانات المجمعة يدويًا، تفعيل البحث الحقيقي، دعم pagination، دعم isLoading
 import useGet from '../../Hooks/useGet';
-import { axiosInstance } from '../../API/axios';
-import { QUESTION_GET_COMMENT_URL } from "../../API/APIRoutes";
 import React, { useState } from 'react';
 import {
   Box,
@@ -28,7 +26,8 @@ import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
 import useFetch from '../../Hooks/useFetch';
-import { QUESTION_SEARCH_URL } from "../../API/APIRoutes";
+import usePost from '../../Hooks/usePost';
+import { QUESTION_SEARCH_URL, QUESTION_ADD_COMMENT_URL, QUESTION_GET_COMMENT_URL, QUESTION_COMMENT_ADD_VOTE_URL} from "../../API/APIRoutes";
 
 const ShowQuestions = () => {
   const [expandedQuestions, setExpandedQuestions] = useState({});
@@ -39,8 +38,11 @@ const ShowQuestions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const questionsPerPage = 5;
   const navigate = useNavigate();
+  const { loading: commentLoading, postItem } = usePost();
+  const { getItem } = useGet();
   const isDoctor = true;
   const currentDoctorId = 1;
+  const [commentTexts, setCommentTexts] = useState({});
 
   const { data: questions, totalPages, isLoading } = useFetch(
       searchTerm,
@@ -61,34 +63,62 @@ const ShowQuestions = () => {
     setExpandedQuestions(prev => ({ ...prev, [questionId]: !prev[questionId] }));
   };
 
-  const toggleComments = async (questionId) => {
+  const toggleComments = (questionId) => {
     setShowComments(prev => ({
       ...prev,
       [questionId]: !prev[questionId]
     }));
 
-    if (comments[questionId]) return; // تعليقات محملة بالفعل
+    if (comments[questionId]) return;
 
     setLoadingCommentsFor(questionId);
 
-    try {
-      const res = await axiosInstance.get(QUESTION_GET_COMMENT_URL, {
-        params: { questionId }
-      });
-      setComments(prev => ({
-        ...prev,
-        [questionId]: res.data
-      }));
-    } catch (error) {
-      console.error("Failed to fetch comments", error);
-    }
-
-    setLoadingCommentsFor(null);
+    getItem(
+        `${QUESTION_GET_COMMENT_URL}?questionId=${questionId}`,
+        true,
+        (data) => {
+          setComments(prev => ({
+            ...prev,
+            [questionId]: data
+          }));
+        },
+        (err) => {
+          console.error("Failed to fetch comments", err);
+        }
+    ).finally(() => {
+      setLoadingCommentsFor(null);
+    });
   };
 
   const handleVote = (commentId, rank) => {
-    // Submit vote API call logic here
+    const voteDTO = {
+      commentId,
+      doctorId: currentDoctorId,
+      rank,
+    };
+
+    postItem(
+        QUESTION_COMMENT_ADD_VOTE_URL,
+        voteDTO,
+        (responseVoteDTO) => {
+          // تحديث عدد التصويتات داخل التعليق مباشرة
+          setComments(prevComments => {
+            const newComments = { ...prevComments };
+            for (const qId in newComments) {
+              newComments[qId] = newComments[qId].map(comment =>
+                  comment.id === commentId
+                      ? { ...comment, voteCount: responseVoteDTO.rank }
+                      : comment
+              );
+            }
+            return newComments;
+          });
+        },
+        "Vote registered successfully",
+        "Error while voting"
+    );
   };
+
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -98,6 +128,50 @@ const ShowQuestions = () => {
   const handlePageChange = (_, value) => {
     setCurrentPage(value);
   };
+
+  const handleCommentChange = (questionId, text) => {
+    setCommentTexts(prev => ({ ...prev, [questionId]: text }));
+  };
+
+
+  const addComment = (questionId) => {
+    const content = commentTexts[questionId]?.trim();
+    if (!content) return;
+
+    const commentDTO = {
+      doctorId: currentDoctorId,
+      content,
+      questionId,
+      commentTime: new Date().toISOString(),
+    };
+
+    postItem(
+        QUESTION_ADD_COMMENT_URL,
+        commentDTO,
+        () => {
+          getItem(
+              `${QUESTION_GET_COMMENT_URL}?questionId=${questionId}`,
+              false,
+              (data) => {
+                setComments(prev => ({
+                  ...prev,
+                  [questionId]: data
+                }));
+                setShowComments(prev => ({
+                  ...prev,
+                  [questionId]: true
+                }));
+                setCommentTexts(prev => ({ ...prev, [questionId]: "" }));
+              },
+              (err) => {
+                console.error("Error while refreshing comments after posting", err);
+              }
+          );
+        },
+        "Comment added successfully"
+    );
+  };
+
 
   return (
       <>
@@ -154,6 +228,9 @@ const ShowQuestions = () => {
                               title={question.patientWrittenName}
                           />
                           <CardContent sx={{ pt: 0 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Posted on: {new Date(question.questionTime).toLocaleString()}
+                            </Typography>
                             <Typography
                                 variant="body1"
                                 sx={{
@@ -170,9 +247,6 @@ const ShowQuestions = () => {
                               {question.content}
                             </Typography>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Typography variant="caption" color="text.secondary">
-                                Posted on: {new Date(question.questionTime).toLocaleDateString()}
-                              </Typography>
                               <Box sx={{ display: 'flex', gap: 1 }}>
                                 <Button
                                     variant="outlined"
@@ -202,7 +276,7 @@ const ShowQuestions = () => {
                             </Box>
                           </CardContent>
 
-                          {/* عرض التعليقات خارج CardContent */}
+                          {}
                           {showComments[question.id] && (
                               <Box sx={{ mt: 2, ml: 8 }}>
                                 {loadingCommentsFor === question.id ? (
@@ -225,9 +299,31 @@ const ShowQuestions = () => {
                                                     <Typography variant="body2" color="text.secondary">
                                                       {comment.doctorSpecialization} • {comment.doctorCareerLevel}
                                                     </Typography>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                      {new Date(comment.time).toLocaleString()}
+                                                    </Typography>
                                                     <Typography variant="body1" sx={{ mt: 1 }}>
                                                       {comment.content}
                                                     </Typography>
+                                                    {/* voting if doctor */}
+                                                    {isDoctor && (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                                                          <Button
+                                                              size="small"
+                                                              variant="outlined"
+                                                              onClick={() => handleVote(comment.id, 1)}
+                                                          >
+                                                            👍 Upvote
+                                                          </Button>
+                                                          <Button
+                                                              size="small"
+                                                              variant="outlined"
+                                                              onClick={() => handleVote(comment.id, -1)}
+                                                          >
+                                                            👎 Downvote
+                                                          </Button>
+                                                        </Box>
+                                                    )}
                                                   </>
                                                 }
                                                 secondary={
@@ -243,6 +339,26 @@ const ShowQuestions = () => {
                                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                                       No comments yet.
                                     </Typography>
+                                )}
+
+                                {isDoctor && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                                      <TextField
+                                          fullWidth
+                                          variant="outlined"
+                                          size="small"
+                                          label="Write a comment..."
+                                          value={commentTexts[question.id] || ""}
+                                          onChange={(e) => handleCommentChange(question.id, e.target.value)}
+                                      />
+                                      <IconButton
+                                          onClick={() => addComment(question.id)}
+                                          disabled={commentLoading}
+                                          sx={{ ml: 1, bgcolor: blue[500], '&:hover': { bgcolor: blue[700] } }}
+                                      >
+                                        <Send sx={{ color: 'white' }} />
+                                      </IconButton>
+                                    </Box>
                                 )}
                               </Box>
                           )}
