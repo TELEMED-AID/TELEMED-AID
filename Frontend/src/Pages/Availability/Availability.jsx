@@ -116,10 +116,13 @@ const handleSubmit = async () => {
         // Send to backend
         const response = await postItem(
             `/doctor/${userId}/availability`,
-            requestData
+            requestData,
+            (data, sent) => {
+                console.log("Callback success:", data, sent);
+            }
         );
         
-        if (response === "") {
+        if (response !== false) {
             setSuccess(true);
             // Clear the form data
             setAvailability({ days: [] });
