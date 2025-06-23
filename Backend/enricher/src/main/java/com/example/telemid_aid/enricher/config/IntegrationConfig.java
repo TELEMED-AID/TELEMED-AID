@@ -1,6 +1,7 @@
 package com.example.telemid_aid.enricher.config;
 
 import com.example.telemid_aid.enricher.dto.DoctorDto;
+import com.example.telemid_aid.enricher.service.AppointmentService;
 import com.example.telemid_aid.enricher.service.ArticleService;
 import com.example.telemid_aid.enricher.service.DoctorService;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +36,18 @@ public class IntegrationConfig {
                 )
                 .handle(articleService::processEnrichedDoctor);
     }
-
+    @Bean
+    public IntegrationFlow appointmentEnrichmentFlow(AppointmentService appointmentService) {
+        return flow -> flow
+                .channel(doctorIdChannel())
+                .enrich(enricher -> enricher
+                        .requestChannel(enrichDoctorChannel())
+                        .requestPayload(Message::getPayload)
+                        .<DoctorDto>headerFunction("doctor",
+                                message -> message.getPayload()) // Use reply directly
+                )
+                .handle(appointmentService::processEnrichedDoctor);
+    }
     @Bean
     public IntegrationFlow doctorEnrichmentFlow(DoctorService doctorService) {
         return flow -> flow
