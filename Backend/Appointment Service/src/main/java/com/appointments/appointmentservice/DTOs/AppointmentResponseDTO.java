@@ -12,7 +12,6 @@ import java.time.LocalTime;
 @Setter
 @Builder
 public class AppointmentResponseDTO {
-    private String userId;
     private DoctorDataDTO doctorDetails;
     private LocalDate date;
     private LocalTime time;
