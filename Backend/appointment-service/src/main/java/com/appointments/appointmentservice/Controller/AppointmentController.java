@@ -39,16 +39,16 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to cancel appointment");
         }
     }
-    @GetMapping("/patient/{userId}")
-    public ResponseEntity<List<AppointmentResponseDTO>> getPatientAppointments(
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointments(
             @PathVariable String userId) {
-        return ResponseEntity.ok(appointmentQueryService.getAppointmentsForPatient(userId, null));
+        return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, null));
     }
 
-    @GetMapping("/patient/{userId}/doctor/{doctorId}")
-    public ResponseEntity<List<AppointmentResponseDTO>> getPatientAppointmentsWithDoctor(
+    @GetMapping("/user/{userId}/doctor/{doctorId}")
+    public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointmentsWithDoctor(
             @PathVariable String userId,
             @PathVariable Long doctorId) {
-        return ResponseEntity.ok(appointmentQueryService.getAppointmentsForPatient(userId, doctorId));
+        return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, doctorId));
     }
 }
