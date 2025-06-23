@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     Box,
     Button,
@@ -11,6 +11,7 @@ import {
     Grid,
     Paper,
     Stack,
+    CircularProgress,
 } from "@mui/material";
 import {
     AccessTime,
@@ -20,11 +21,53 @@ import {
     Public,
     Work,
 } from "@mui/icons-material";
+import { useSelector } from "react-redux";
 import Title from "../../Components/Title/Title";
 import Footer from "../../Components/Footer/Footer";
 import Navbar from "../../Components/Navbar/Navbar";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
-const MyAppointments = ({ appointments }) => {
+import useGet from "../../Hooks/useGet";
+
+const MyAppointments = () => {
+    const [appointments, setAppointments] = useState([]);
+    const [error, setError] = useState(null);
+    const { userId } = useSelector((state) => state.user);
+    const { loading, getItem } = useGet();
+
+    // Function to fetch appointments from backend
+    const fetchAppointments = async () => {
+        const response = await getItem(
+            `api/appointment/user/${userId}`,
+            false, // disable automatic snackbar
+            (data) => {
+                console.log("Successfully fetched appointments:", data); // Add this line
+                setAppointments(data);
+                setError(null);
+            },
+            (err) => {
+                setError("Failed to fetch appointments");
+                console.error("Error fetching appointments:", err);
+            }
+        );
+    };
+
+    useEffect(() => {
+        if (userId) {
+            fetchAppointments();
+        }
+    }, [userId]);
+
+    // Function to handle appointment cancellation
+    const handleCancelAppointment = async (appointment) => {
+        // try {
+        //     // You might want to create a similar useDelete hook for this
+        //     await axiosInstance.delete(`/appointment/${appointment.id}`);
+        //     fetchAppointments(); // Refresh the list
+        // } catch (err) {
+        //     console.error("Error cancelling appointment:", err);
+        // }
+    };
+
     // Function to format the date
     const formatDate = (dateString) => {
         const options = {
@@ -48,10 +91,37 @@ const MyAppointments = ({ appointments }) => {
         CANCELLED: "error",
         CONFIRMED: "info",
     };
-    const handleCancelAppointment = (appointment) => {
-        // Here you would typically make an API call to cancel the appointment
-        console.log("Cancelling appointment:", appointment);
-    };
+
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ p: 3, textAlign: "center" }}>
+                <Typography color="error">{error}</Typography>
+                <Button
+                    variant="contained"
+                    onClick={fetchAppointments}
+                    sx={{ mt: 2 }}
+                >
+                    Retry
+                </Button>
+            </Box>
+        );
+    }
+
     return (
         <>
             <ScrollToTop />
@@ -76,7 +146,7 @@ const MyAppointments = ({ appointments }) => {
                         }}
                     >
                         {appointments.map((appointment, index) => (
-                            <Grid item xs={12} md={12} key={index}>
+                            <Grid key={index}>
                                 <Card
                                     elevation={2}
                                     sx={{
@@ -84,13 +154,14 @@ const MyAppointments = ({ appointments }) => {
                                         height: "100%",
                                         boxShadow:
                                             "0px 10px 25px rgba(0, 0, 0, 0.1)",
-                                        borderLeft: `10px solid ${appointment.state === "COMPLETED"
+                                        borderLeft: `10px solid ${
+                                            appointment.state === "COMPLETED"
                                                 ? "#4caf50"
                                                 : appointment.state ===
-                                                    "PENDING"
-                                                    ? "#ff9800"
-                                                    : "#f44336"
-                                            }`,
+                                                  "PENDING"
+                                                ? "#ff9800"
+                                                : "#f44336"
+                                        }`,
                                         transition: "transform 0.2s",
                                         "&:hover": {
                                             transform: "translateY(-5px)",
@@ -143,7 +214,7 @@ const MyAppointments = ({ appointments }) => {
                                         <Divider sx={{ my: 2 }} />
 
                                         <Grid container spacing={2}>
-                                            <Grid item xs={6}>
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -160,7 +231,7 @@ const MyAppointments = ({ appointments }) => {
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -177,7 +248,7 @@ const MyAppointments = ({ appointments }) => {
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -211,11 +282,18 @@ const MyAppointments = ({ appointments }) => {
                                                             appointment
                                                                 .doctorDetails
                                                                 .countryName
+                                                        }{" "}
+                                                        (
+                                                        {
+                                                            appointment
+                                                                .doctorDetails
+                                                                .countryId
                                                         }
+                                                        )
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -234,7 +312,7 @@ const MyAppointments = ({ appointments }) => {
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -264,7 +342,7 @@ const MyAppointments = ({ appointments }) => {
                                             }}
                                         >
                                             {appointment.state === "PENDING" ||
-                                                appointment.state ===
+                                            appointment.state ===
                                                 "CONFIRMED" ? (
                                                 <Button
                                                     variant="contained"
@@ -288,7 +366,7 @@ const MyAppointments = ({ appointments }) => {
                                                 label={appointment.state}
                                                 color={
                                                     statusColors[
-                                                    appointment.state
+                                                        appointment.state
                                                     ] || "default"
                                                 }
                                                 variant="outlined"

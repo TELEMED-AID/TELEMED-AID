@@ -217,7 +217,7 @@ const Appointment = () => {
 
         try {
             const response = await getItem(
-                `doctor/search?${new URLSearchParams(params).toString()}`,
+                `/api/doctor/search?${new URLSearchParams(params).toString()}`,
                 false
             );
 
@@ -292,10 +292,10 @@ const Appointment = () => {
     };
     const fetchDropdownOptions = async () => {
         try {
-            const specs = await getItem("/doctor/specialization");
+            const specs = await getItem("/api/doctor/specialization");
             if (specs) setSpecializations(specs);
 
-            const careers = await getItem("/doctor/career-level");
+            const careers = await getItem("/api/doctor/career-level");
             if (careers) setCareerLevels(careers);
         } catch (error) {
             console.error("Error fetching dropdown options:", error);

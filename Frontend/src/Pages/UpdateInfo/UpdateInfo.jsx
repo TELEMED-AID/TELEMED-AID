@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useGet from "../../Hooks/useGet";
-import usePost from "../../Hooks/usePost";
 import usePut from "../../Hooks/usePut"; // Import usePut
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
@@ -80,7 +79,7 @@ const UpdateInfo = ({ role }) => {
         };
 
         fetchUserData();
-    }, [role]);
+    }, [role, getItem]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
