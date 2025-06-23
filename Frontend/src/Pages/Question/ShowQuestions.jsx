@@ -1,4 +1,3 @@
-// التعديلات: إدماج useFetch، حذف البيانات المجمعة يدويًا، تفعيل البحث الحقيقي، دعم pagination، دعم isLoading
 import useGet from '../../Hooks/useGet';
 import React, { useState } from 'react';
 import {
