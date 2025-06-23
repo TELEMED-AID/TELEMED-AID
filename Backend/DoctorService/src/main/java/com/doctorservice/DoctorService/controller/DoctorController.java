@@ -36,18 +36,18 @@ public class DoctorController {
         List<SimplifiedDoctorDto> doctors = doctorService.getAllSimplifiedDoctors();
         return ResponseEntity.ok(doctors);
     }
-    @PutMapping("/{nationalId}")
+    @PutMapping("/{userId}")
     public ResponseEntity<?> updateDoctor(
             @PathVariable Long userId,
             @Valid @RequestBody DoctorUpdateRequest request) {
         return ResponseEntity.ok(doctorService.updateDoctor(userId, request));
     }
 
-    @GetMapping("/{nationalId}")
+    @GetMapping("/{userId}")
     public ResponseEntity<?> getDoctorById(@PathVariable Long userId) {
         return ResponseEntity.ok(doctorService.getDoctor(userId));
     }
-    @PostMapping("/{nationalId}/availability")
+    @PostMapping("/{userId}/availability")
     public ResponseEntity<?> setDoctorAvailability(
             @PathVariable Long userId,
             @Valid @RequestBody DoctorAvailabilityRequest request) throws Exception {
@@ -64,7 +64,7 @@ public class DoctorController {
             @RequestParam(required = false) DayOfWeek availabilityDay,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "7") int size) {
 
         DoctorSearchRequest request = DoctorSearchRequest.builder()
                 .name(name)

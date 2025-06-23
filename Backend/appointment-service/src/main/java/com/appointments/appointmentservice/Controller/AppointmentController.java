@@ -22,6 +22,7 @@ public class AppointmentController {
 
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody MakeAppointmentDTO request) {
+        System.out.println("request: " + request);
         boolean success = bookAppointmentService.bookAppointment(request.getUserId(), request.getDoctorId(), request.getDate(), request.getTime());
         if (success) {
             return ResponseEntity.ok("Appointment booked successfully");
