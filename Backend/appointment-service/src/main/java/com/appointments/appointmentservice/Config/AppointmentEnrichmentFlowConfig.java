@@ -58,7 +58,6 @@ public class AppointmentEnrichmentFlowConfig {
                 /* 2. convert Appointment → DTO without doctorDetails */
                 .<Appointment, AppointmentResponseDTO>transform(appt ->
                         AppointmentResponseDTO.builder()
-                                .userId(appt.getId().getUserID())
                                 .date(appt.getId().getAppointmentDate())
                                 .time(appt.getId().getAppointmentTime())
                                 .state(appt.getAppointmentState())

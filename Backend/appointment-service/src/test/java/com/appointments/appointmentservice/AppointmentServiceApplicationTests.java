@@ -1,7 +1,6 @@
 package com.appointments.appointmentservice;
 
 import com.appointments.appointmentservice.Config.AppointmentEnrichmentFlowConfig;
-import com.appointments.appointmentservice.Config.DoctorServiceClient;
 import com.appointments.appointmentservice.DTOs.AppointmentResponseDTO;
 import com.appointments.appointmentservice.DTOs.DoctorDataDTO;
 import com.appointments.appointmentservice.Entities.Appointment;
@@ -135,7 +134,6 @@ class AppointmentServiceApplicationTests {
         AppointmentID id = new AppointmentID(userId, doctorId, LocalDate.now(), appointmentTime);
         Appointment appt = Appointment.builder().id(id).appointmentState(AppointmentState.PENDING).build();
         AppointmentResponseDTO enrichedDto = AppointmentResponseDTO.builder()
-                .userId(userId)
                 .doctorDetails(DoctorDataDTO.builder().name("Dr. John Doe").specialization("Cardiology").build())
                 .date(id.getAppointmentDate())
                 .time(id.getAppointmentTime())
@@ -152,7 +150,6 @@ class AppointmentServiceApplicationTests {
         List<AppointmentResponseDTO> result = queryService.getAppointmentsForUser(userId, null);
 
         assertEquals(1, result.size());
-        assertEquals(userId, result.get(0).getUserId());
         assertEquals("Dr. John Doe", result.get(0).getDoctorDetails().getName());
     }
 
@@ -166,7 +163,6 @@ class AppointmentServiceApplicationTests {
 
         AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway enricher = mock(AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway.class);
         AppointmentResponseDTO enrichedDto = AppointmentResponseDTO.builder()
-                .userId(userId)
                 .doctorDetails(doctorDataDTO)
                 .date(futureDate)
                 .time(appointmentTime)
@@ -188,7 +184,6 @@ class AppointmentServiceApplicationTests {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals(userId, result.get(0).getUserId());
         assertEquals("Dr. John Doe", result.get(0).getDoctorDetails().getName());
         assertEquals("Cardiology", result.get(0).getDoctorDetails().getSpecialization());
         assertEquals(futureDate, result.get(0).getDate());

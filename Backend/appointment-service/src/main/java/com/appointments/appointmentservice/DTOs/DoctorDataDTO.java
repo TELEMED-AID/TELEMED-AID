@@ -8,6 +8,7 @@ import java.sql.Date;
 @Data
 @Builder
 public class DoctorDataDTO {
+    private Long id;
     private String name;
     private String phone;
     private Date birthDate;
