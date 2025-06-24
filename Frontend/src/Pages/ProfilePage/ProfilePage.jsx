@@ -38,6 +38,7 @@ import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import useGet from "../../Hooks/useGet"; // Import your custom useGet hook
 
+
 const ProfilePage = () => {
     // State for the room creation popup
     const [roomPopupOpen, setRoomPopupOpen] = useState(false);
@@ -47,7 +48,6 @@ const ProfilePage = () => {
     // Get user role and ID from Redux store using useSelector
     // This assumes your Redux store has a 'user' slice with 'userId', 'role', and 'isLogged'
     const { userId, role, isLogged } = useSelector((state) => state.user);
-    console.log("Initial User State:", { userId, role, isLogged });
     // State to store the fetched user data
     const [fetchedUserData, setFetchedUserData] = useState(null);
     // Initialize your custom useGet hook
@@ -55,16 +55,7 @@ const ProfilePage = () => {
 
     // Determine if the current user is a doctor based on Redux role
     const isDoctor = role === "DOCTOR";
-    useEffect(() => {
-        console.log("User State after rehydration/update:", {
-            userId,
-            role,
-            isLogged,
-        });
-        // Your data fetching logic can safely go here as well,
-        // as it will run after the state is available.
-        // ... (rest of your fetchUserData logic)
-    }, [userId, role, isLogged]); // Dependency array
+    
     // useEffect hook to fetch user data when component mounts or user details change
     useEffect(() => {
         const fetchUserData = async () => {
@@ -77,7 +68,7 @@ const ProfilePage = () => {
                     endpoint = `/api/patient/get-patient/${userId}`;
                 } else if (role === "DOCTOR") {
                     // Endpoint for fetching doctor data (assuming a similar structure)
-                    endpoint = `/doctor/${userId}`;
+                    endpoint = `/api/doctor/${userId}`;
                 }
 
                 // If an endpoint is determined, call getItem from useGet
@@ -203,7 +194,7 @@ const ProfilePage = () => {
                                 pt: 3,
                                 pb: 2, // Added padding bottom
                                 // px: 5, // Added horizontal padding
-                                width: {xs:"auto", md: "500px"},
+                                width: {xs:"auto", md: "800px"},
                             }}
                         >
                             {loading ? (

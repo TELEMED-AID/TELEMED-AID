@@ -28,6 +28,7 @@ public class DoctorSearchResponse {
             Map<Doctor, List<DoctorAvailableDay>> availabilityByDoctor
     ) {
         DoctorSearchResponse response = new DoctorSearchResponse();
+        response.setUserId(doctor.getUserId());
         response.setName(doctor.getName());
         response.setPhone(doctor.getPhone());
         response.setSpecialization(doctor.getSpecialization().getSpecializationName());

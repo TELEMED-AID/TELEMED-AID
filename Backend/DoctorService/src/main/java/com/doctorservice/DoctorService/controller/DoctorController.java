@@ -14,7 +14,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/doctor")
+@RequestMapping("/api/doctor")
 @RequiredArgsConstructor
 public class DoctorController {
     private final DoctorService doctorService;
@@ -64,7 +64,7 @@ public class DoctorController {
             @RequestParam(required = false) DayOfWeek availabilityDay,
             @RequestParam(required = false) @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "7") int size) {
 
         DoctorSearchRequest request = DoctorSearchRequest.builder()
                 .name(name)
