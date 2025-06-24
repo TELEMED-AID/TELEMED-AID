@@ -14,9 +14,9 @@ import java.time.LocalTime;
 @Builder
 @ToString
 public class MakeAppointmentDTO {
-    private String UserId;
-    private Long DoctorId;
-    private LocalDate Date;
+    private Long userId;
+    private Long doctorId;
+    private LocalDate date;
     private LocalTime time;
-    private AppointmentState State;
+    private AppointmentState state;
 }

@@ -22,11 +22,11 @@ public class AppointmentQueryService {
      * already enriched with that doctor’s details.
      */
     public List<AppointmentResponseDTO> getAppointmentsForUser(
-            String userId, Long doctorIdFilter) {
+            Long userId, Long doctorIdFilter) {
 
         List<Appointment> appointments = (doctorIdFilter != null)
-                ? appointmentRepository.findByIdUserIDAndIdDoctorID(userId, doctorIdFilter)
-                : appointmentRepository.findByIdUserID(userId);
+                ? appointmentRepository.findById_UserIdAndId_DoctorId(userId, doctorIdFilter)
+                : appointmentRepository.findById_UserId(userId);
 
         // Delegate enrichment of EACH appointment to the Integration flow
         return appointments.stream()

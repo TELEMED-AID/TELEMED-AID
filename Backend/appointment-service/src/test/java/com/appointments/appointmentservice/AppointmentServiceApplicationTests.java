@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 class AppointmentServiceApplicationTests {
 
-    private final String userId = "user123";
+    private final Long userId = 123L;
     private final Long doctorId = 456L;
     private final LocalDate futureDate = LocalDate.now().plusDays(1);
     private final LocalTime appointmentTime = LocalTime.of(10, 0);
@@ -42,18 +42,18 @@ class AppointmentServiceApplicationTests {
     @Test
     void testFindAppointmentsByUserId() {
         MakeAppointment makeAppointment = mock(MakeAppointment.class);
-        when(makeAppointment.findByIdUserID(userId)).thenReturn(List.of(new Appointment(), new Appointment()));
+        when(makeAppointment.findById_UserId(userId)).thenReturn(List.of(new Appointment(), new Appointment()));
 
-        List<Appointment> result = makeAppointment.findByIdUserID(userId);
+        List<Appointment> result = makeAppointment.findById_UserId(userId);
         assertEquals(2, result.size());
     }
 
     @Test
     void testFindAppointmentsByDoctorId() {
         MakeAppointment makeAppointment = mock(MakeAppointment.class);
-        when(makeAppointment.findByIdDoctorID(doctorId)).thenReturn(List.of(new Appointment()));
+        when(makeAppointment.findById_DoctorId(doctorId)).thenReturn(List.of(new Appointment()));
 
-        List<Appointment> result = makeAppointment.findByIdDoctorID(doctorId);
+        List<Appointment> result = makeAppointment.findById_DoctorId(doctorId);
         assertEquals(1, result.size());
     }
 
@@ -143,7 +143,7 @@ class AppointmentServiceApplicationTests {
         MakeAppointment repo = mock(MakeAppointment.class);
         AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway enricher = mock(AppointmentEnrichmentFlowConfig.AppointmentEnrichmentGateway.class);
 
-        when(repo.findByIdUserID(userId)).thenReturn(List.of(appt));
+        when(repo.findById_UserId(userId)).thenReturn(List.of(appt));
         when(enricher.enrich(appt)).thenReturn(enrichedDto);
 
         AppointmentQueryService queryService = new AppointmentQueryService(repo, enricher);
@@ -169,7 +169,7 @@ class AppointmentServiceApplicationTests {
                 .state(AppointmentState.PENDING)
                 .build();
 
-        when(appointmentRepository.findByIdUserIDAndIdDoctorID(userId, doctorIdFilter))
+        when(appointmentRepository.findById_UserIdAndId_DoctorId(userId, doctorIdFilter))
                 .thenReturn(List.of(appointment));
         when(appointment.getId()).thenReturn(appointmentID);
         when(appointment.getAppointmentState()).thenReturn(AppointmentState.PENDING);
@@ -180,7 +180,7 @@ class AppointmentServiceApplicationTests {
         List<AppointmentResponseDTO> result = appointmentQueryService.getAppointmentsForUser(userId, doctorIdFilter);
 
         verify(appointmentRepository, times(1))
-                .findByIdUserIDAndIdDoctorID(userId, doctorIdFilter);
+                .findById_UserIdAndId_DoctorId(userId, doctorIdFilter);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -197,9 +197,9 @@ class AppointmentServiceApplicationTests {
         CancelAppointment cancelAppointment = new CancelAppointment(mockRepository);
 
         assertFalse(cancelAppointment.cancelAppointment(null, 1L, LocalDate.now(), LocalTime.now()));
-        assertFalse(cancelAppointment.cancelAppointment("user123", null, LocalDate.now(), LocalTime.now()));
-        assertFalse(cancelAppointment.cancelAppointment("user123", 1L, null, LocalTime.now()));
-        assertFalse(cancelAppointment.cancelAppointment("user123", 1L, LocalDate.now(), null));
+        assertFalse(cancelAppointment.cancelAppointment(123L, null, LocalDate.now(), LocalTime.now()));
+        assertFalse(cancelAppointment.cancelAppointment(123L, 1L, null, LocalTime.now()));
+        assertFalse(cancelAppointment.cancelAppointment(123L, 1L, LocalDate.now(), null));
 
         verifyNoInteractions(mockRepository);
     }
@@ -213,7 +213,7 @@ class AppointmentServiceApplicationTests {
                 .when(mockRepository)
                 .deleteById(any(AppointmentID.class));
 
-        boolean result = cancelAppointment.cancelAppointment("user123", 1L, LocalDate.now(), LocalTime.now());
+        boolean result = cancelAppointment.cancelAppointment(123L, 1L, LocalDate.now(), LocalTime.now());
 
         assertFalse(result);
         verify(mockRepository, times(1)).deleteById(any(AppointmentID.class));

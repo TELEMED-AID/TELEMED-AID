@@ -40,8 +40,10 @@ public class AppointmentEnrichmentFlowConfig {
 
     /* ───── Call Doctor service when a doctor id arrives on doctorReq ───── */
     @ServiceActivator(inputChannel = "doctorReq")
-    public DoctorDataDTO doctorLookup(Long doctorId) {
-        return doctorClient.getDoctorById(doctorId);
+    public DoctorDataDTO doctorLookup(Long userId) {
+        DoctorDataDTO doctorDataDTO = doctorClient.getDoctorById(userId);
+        System.out.println("Doctor data: " + doctorDataDTO);
+        return doctorDataDTO;
     }
 
     /* ───── Main Content-Enricher flow (no IntegrationFlows) ───── */
@@ -53,7 +55,7 @@ public class AppointmentEnrichmentFlowConfig {
 
                 /* 1. copy doctorId into a header for later use */
                 .enrichHeaders(h -> h.headerExpression(
-                        "doctorId", "payload.id.doctorID"))
+                        "doctorId", "payload.id.doctorId"))
 
                 /* 2. convert Appointment → DTO without doctorDetails */
                 .<Appointment, AppointmentResponseDTO>transform(appt ->

@@ -18,7 +18,6 @@ import lombok.*;
 public class Appointment {
 
     @EmbeddedId
-    @NonNull
     private AppointmentID id;  // Embedded composite key
 
     @Column(name = "appointment_state", length = 20, nullable = false)

@@ -226,10 +226,12 @@ const Appointment = () => {
                 setRows(transformedRows);
                 setRowCount(response.totalItems);
             }
+            return response;
         } catch (error) {
             console.error("Error fetching doctors:", error);
             setRows([]);
             setRowCount(0);
+            throw error;
         }
     };
     const handleBookAppointment = async (slotData) => {
@@ -261,23 +263,24 @@ const Appointment = () => {
         const appointmentDate = today.add(daysToAdd, "day"); // calculate future date
         const appointmentDateToSend = appointmentDate.format("YYYY-MM-DD"); // format properly
         const appointmentData = {
-            UserId: userId,
-            DoctorId: slotData.doctorId,
-            Date: appointmentDateToSend,
+            userId: userId,
+            doctorId: slotData.doctorId,
+            date: appointmentDateToSend,
             time: slotData.timeslot.split("-")[0] + ":00",
-            State: "PENDING",
+            state: "PENDING",
         };
+        // console.log("appointment to be scheduled: " , appointmentData)
         await postItem(
             "/api/appointment/book",
             appointmentData,
             (responseData) => {
-                console.log("Success:", responseData);
+                // console.log("Success:", responseData);
                 // Refresh with current search criteria
                 searchDoctors({
                     ...searchCriteria,
                     page: paginationModel.page,
                     size: paginationModel.pageSize,
-                });
+                }).catch(console.error);
             },
             "Appointment booked!",
             "Booking failed",
@@ -334,7 +337,7 @@ const Appointment = () => {
         const cleanParams = Object.fromEntries(
             Object.entries(searchParams).filter(([_, v]) => v != null)
         );
-        console.log("Search Criteria Sent to Backend:", cleanParams);
+        // console.log("Search Criteria Sent to Backend:", cleanParams);
         setSearchCriteria(cleanParams);
         setPaginationModel((prev) => ({ ...prev, page: 0 }));
         searchDoctors(cleanParams);

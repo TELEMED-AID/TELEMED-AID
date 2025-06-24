@@ -30,24 +30,35 @@ public class AppointmentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to book appointment");
         }
     }
-    @PostMapping("/cancel")
-    public ResponseEntity<String> cancelAppointment(@RequestBody MakeAppointmentDTO request) {
-        boolean success = cancelAppointmentService.cancelAppointment(request.getUserId(), request.getDoctorId(), request.getDate(), request.getTime());
-        if (success) {
-            return ResponseEntity.ok("Appointment canceled successfully");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Failed to cancel appointment");
+    @DeleteMapping("/cancel")
+    public ResponseEntity<?> cancelAppointment(@RequestBody MakeAppointmentDTO request) {
+        try {
+            boolean success = cancelAppointmentService.cancelAppointment(
+                    request.getUserId(),
+                    request.getDoctorId(),
+                    request.getDate(),
+                    request.getTime()
+            );
+
+            if (success) {
+                return ResponseEntity.ok().build(); // 204 might be more appropriate
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error canceling appointment: " + e.getMessage());
         }
     }
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointments(
-            @PathVariable String userId) {
+            @PathVariable Long userId) {
         return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, null));
     }
 
     @GetMapping("/user/{userId}/doctor/{doctorId}")
     public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointmentsWithDoctor(
-            @PathVariable String userId,
+            @PathVariable Long userId,
             @PathVariable Long doctorId) {
         return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, doctorId));
     }

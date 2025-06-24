@@ -2,13 +2,15 @@ package com.appointments.appointmentservice.DTOs;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import java.sql.Date;
 
 @Data
 @Builder
+@ToString
 public class DoctorDataDTO {
-    private Long id;
+    private Long userId;
     private String name;
     private String phone;
     private Date birthDate;

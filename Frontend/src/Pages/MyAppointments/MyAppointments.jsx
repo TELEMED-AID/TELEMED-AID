@@ -27,12 +27,14 @@ import Footer from "../../Components/Footer/Footer";
 import Navbar from "../../Components/Navbar/Navbar";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import useGet from "../../Hooks/useGet";
+import useDelete from "../../Hooks/useDelete";
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [error, setError] = useState(null);
     const { userId } = useSelector((state) => state.user);
     const { loading, getItem } = useGet();
+    const { loading: cancelLoading, deleteItem } = useDelete();
 
     // Function to fetch appointments from backend
     const fetchAppointments = async () => {
@@ -40,7 +42,7 @@ const MyAppointments = () => {
             `api/appointment/user/${userId}`,
             false, // disable automatic snackbar
             (data) => {
-                console.log("Successfully fetched appointments:", data); // Add this line
+                // console.log("Successfully fetched appointments:", data);
                 setAppointments(data);
                 setError(null);
             },
@@ -59,13 +61,29 @@ const MyAppointments = () => {
 
     // Function to handle appointment cancellation
     const handleCancelAppointment = async (appointment) => {
-        // try {
-        //     // You might want to create a similar useDelete hook for this
-        //     await axiosInstance.delete(`/appointment/${appointment.id}`);
-        //     fetchAppointments(); // Refresh the list
-        // } catch (err) {
-        //     console.error("Error cancelling appointment:", err);
-        // }
+        const cancellationData = {
+            userId: userId, 
+            doctorId: appointment.doctorDetails.userId, // Assuming doctor ID is nested under 'doctorDetails'
+            date: appointment.date,
+            time: appointment.time,
+            state: "PENDING", // Set the state to CANCELLED as required
+        };
+        await deleteItem(
+            `/api/appointment/cancel`,
+            cancellationData, // Pass the data payload here
+            (data) => {
+                // deleteCallback
+                // Success callback - refresh appointments
+                fetchAppointments();
+            },
+            "Appointment cancelled successfully", // successMessage
+            "Failed to cancel appointment", // errorMessage
+            (err) => {
+                // errorCallback
+                console.error("Error cancelling appointment:", err);
+            },
+            true // showSnackbar (explicitly true for cancellation feedback)
+        );
     };
 
     // Function to format the date
@@ -196,7 +214,14 @@ const MyAppointments = () => {
                                                     {
                                                         appointment
                                                             .doctorDetails.name
+                                                    }{" "}
+                                                    (
+                                                    {
+                                                        appointment
+                                                            .doctorDetails
+                                                            .userId
                                                     }
+                                                    )
                                                 </Typography>
                                                 <Typography
                                                     variant="subtitle2"
@@ -267,7 +292,7 @@ const MyAppointments = () => {
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid item xs={6}>
+                                            <Grid >
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -353,13 +378,20 @@ const MyAppointments = () => {
                                                             appointment
                                                         )
                                                     }
+                                                    disabled={cancelLoading}
                                                     sx={{
                                                         textTransform: "none",
                                                         fontWeight: "bold",
                                                         borderRadius: "",
                                                     }}
                                                 >
-                                                    Cancel
+                                                    {cancelLoading ? (
+                                                        <CircularProgress
+                                                            size={24}
+                                                        />
+                                                    ) : (
+                                                        "Cancel"
+                                                    )}
                                                 </Button>
                                             ) : null}
                                             <Chip

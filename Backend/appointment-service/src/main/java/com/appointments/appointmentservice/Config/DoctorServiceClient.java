@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface DoctorServiceClient {
 //    @GetMapping("/doctor/availability")
 //    ResponseEntity<String> getDoctors(@RequestBody CreatePatientRequest request);
-@GetMapping("/api/doctor/{Id}")
-DoctorDataDTO getDoctorById(@PathVariable("Id") Long nationalId);
+@GetMapping("/api/doctor/{userId}")
+DoctorDataDTO getDoctorById(@PathVariable("userId") Long userId);
 }
