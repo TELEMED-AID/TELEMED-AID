@@ -1,16 +1,24 @@
 import React from "react";
 import { Autocomplete, TextField } from "@mui/material";
 
-const DropdownBox = ({ label, name, setValue, error, helperText, options }) => {
+const DropdownBox = ({
+    label,
+    name,
+    setValue,
+    register,
+    error,
+    helperText,
+    options,
+}) => {
     return (
         <Autocomplete
             sx={{
                 mb: 2,
             }}
             options={options}
-            getOptionLabel={(option) => option.name}
+            getOptionLabel={(option) => option.label || ""} // Changed from option.name
             onChange={(_, selectedOption) => {
-                setValue(name, selectedOption ? selectedOption.name : "", {
+                setValue(name, selectedOption ? selectedOption.value : "", {
                     shouldValidate: true,
                 });
             }}
@@ -21,6 +29,7 @@ const DropdownBox = ({ label, name, setValue, error, helperText, options }) => {
                     fullWidth
                     error={!!error}
                     helperText={helperText}
+                    {...register(name)} // Added register prop
                 />
             )}
         />

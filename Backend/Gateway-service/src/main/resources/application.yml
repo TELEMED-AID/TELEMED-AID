@@ -26,7 +26,7 @@ spring:
         - id: "doctor-service"
           uri: lb://Doctor-Service
           predicates:
-            - Path=/doctor/**
+            - Path=/api/doctor/**
           filters:
             - name: CircuitBreaker
               args:
@@ -62,7 +62,7 @@ spring:
         - id: "appointment-service"
           uri: lb://Appointment-Service
           predicates:
-            - Path=/appointment/**
+            - Path=/api/appointment/**
           filters:
             - name: CircuitBreaker
               args:
