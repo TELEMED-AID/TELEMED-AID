@@ -18,6 +18,8 @@ import {
   Public,
   Flag
 } from '@mui/icons-material';
+import usePost from "../../Hooks/usePost"; // أو حسب مكان الملف
+import {QUESTION_PUBLISH_URL} from "../../API/APIRoutes"
 import { blue } from '@mui/material/colors';
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
@@ -26,16 +28,10 @@ import { useNavigate } from 'react-router-dom';
 
 const AddQuestion = () => {
   const navigate = useNavigate();
-  
-  // Current patient's hardcoded info (will come from auth context later)
-  const patientInfo = {
-    id: 'patient-123',
-    name: "John Smith",
-    age: 32,
-    gender: "Male",
-    nationality: "Canadian",
-    country: "Canada"
-  };
+  const [patientWrittenName, setPatientWrittenName] = useState('');
+  const [title, setTitle] = useState('');
+  const { loading, postItem } = usePost();
+
 
   const getInitials = (name) =>
     name
@@ -49,27 +45,30 @@ const AddQuestion = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !title.trim() || !patientWrittenName.trim()) return;
 
     const newQuestion = {
+      patientWrittenName,
+      title,
       content,
-      patientId: patientInfo.id,
-      // In real app, this will be sent to your backend API
+      questionTime: new Date().toISOString()
     };
 
-    try {
-      // Here you'll call your API to save the question
-      // await api.post('/questions', newQuestion);
-      alert('Question submitted successfully!');
-      setContent('');
-      // Navigate back to ShowQuestions page after successful submission
-      navigate('/ShowQuestions'); // Adjust the route as needed
-    } catch (error) {
-      console.error('Error submitting question:', error);
-      alert('Error submitting question');
-    }
+    await postItem(
+        QUESTION_PUBLISH_URL,
+        newQuestion,
+        () => {
+          setContent('');
+          setTitle('');
+          setPatientWrittenName('');
+          navigate('/ShowQuestions');
+        },
+        "Question submitted successfully!",
+        "Failed to submit question."
+    );
   };
-const handleCancel = () => {
+
+  const handleCancel = () => {
   navigate('/ShowQuestions'); // or '/articles'
 };
   return (
@@ -78,50 +77,7 @@ const handleCancel = () => {
       <Navbar />
       <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>
         {/* Patient Profile */}
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={3} sx={{ textAlign: 'center' }}>
-                <Avatar
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    mb: 2,
-                    backgroundColor: blue[500],
-                    fontSize: '2rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {getInitials(patientInfo.name)}
-                </Avatar>
-                <Chip
-                  label="Patient"
-                  color="primary"
-                />
-              </Grid>
 
-              <Grid item xs={12} md={9}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {patientInfo.name}
-                </Typography>
-                <Grid container spacing={10}>
-                  <Grid item xs={12} sm={6}>
-                    <Stack spacing={2}>
-                      <Typography><Cake sx={{ mr: 1 }} /> {patientInfo.age} years</Typography>
-                      <Typography><Wc sx={{ mr: 1 }} /> {patientInfo.gender}</Typography>
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Stack spacing={2}>
-                      <Typography><Public sx={{ mr: 1 }} /> {patientInfo.country}</Typography>
-                      <Typography><Flag sx={{ mr: 1 }} /> {patientInfo.nationality}</Typography>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
 
         {/* Question Form */}
         <Typography variant="h5" gutterBottom sx={{
@@ -142,6 +98,28 @@ const handleCancel = () => {
 
         <Paper elevation={3} sx={{ p: 3 }}>
           <form onSubmit={handleSubmit}>
+            <TextField
+                fullWidth
+                label="Display Name"
+                variant="outlined"
+                value={patientWrittenName}
+                onChange={(e) => setPatientWrittenName(e.target.value)}
+                sx={{ mb: 3 }}
+                required
+                helperText="Enter the name you want to appear publicly (can be fake for privacy)"
+            />
+
+            <TextField
+                fullWidth
+                label="Question Title"
+                variant="outlined"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                sx={{ mb: 3 }}
+                required
+                helperText="Enter a clear and short title for your question"
+            />
+
             <TextField
               fullWidth
               label="Your Question"
@@ -173,7 +151,11 @@ const handleCancel = () => {
                     backgroundColor: blue[700],
                   },
                 }}
-                disabled={!content.trim() || content.length < 30}
+                disabled={
+                    !content.trim() || content.length < 30 ||
+                    !title.trim() || !patientWrittenName.trim()
+                }
+
               >
                 Submit Question
               </Button>

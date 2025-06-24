@@ -1,15 +1,14 @@
 package com.example.article_microservice.Service.Implementation;
 
 import com.example.article_microservice.DTO.Question.CommentDTO;
-import com.example.article_microservice.DTO.DoctorDTO;
 import com.example.article_microservice.DTO.Question.CommentResponseDTO;
 import com.example.article_microservice.DTO.Question.QuestionDetailsResponseDTO;
 import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
 import com.example.article_microservice.DTO.Question.ReceivedQuestionDTO;
 import com.example.article_microservice.DTO.Question.VoteDTO;
 import com.example.article_microservice.Model.*;
+import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import com.example.article_microservice.Repository.CommentRepository;
-import com.example.article_microservice.Repository.DoctorRepository;
 import com.example.article_microservice.Repository.QuestionRepository;
 import com.example.article_microservice.Repository.VoteRepository;
 import com.example.article_microservice.Service.Interface.QuestionService;
@@ -31,12 +30,11 @@ public class QuestionServiceImpl implements QuestionService {
     @Autowired
     private QuestionRepository questionRepository;
     @Autowired
-    private DoctorRepository doctorRepository;
+    private EnrichedDoctorRepository enrichedDoctorRepository;
     @Autowired
     private CommentRepository commentRepository;
     @Autowired
     private VoteRepository voteRepository;
-
     @Override
     public ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO) {
         /*
@@ -86,8 +84,8 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public ResponseEntity<?> commentOnQuestion(CommentDTO commentDTO) {
-        Optional<Doctor> doctorOptional = doctorRepository.findById(commentDTO.getDoctorId());
-        if (doctorOptional.isEmpty())
+        Optional<EnrichedDoctor> enrichedDoctorOptional = enrichedDoctorRepository.findById(commentDTO.getDoctorId());
+        if (enrichedDoctorOptional.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
 
         Optional<Question> questionOptional = questionRepository.findById(commentDTO.getQuestionId());
@@ -96,14 +94,15 @@ public class QuestionServiceImpl implements QuestionService {
 
         try {
             Comment comment = new Comment();
-            comment.setDoctor(doctorOptional.get());
+            comment.setEnrichedDoctorId(enrichedDoctorOptional.get().getId());
             comment.setQuestion(questionOptional.get());
             comment.setContent(commentDTO.getContent());
             comment.setTime(commentDTO.getCommentTime());
 
             Comment response = commentRepository.save(comment);
             CommentResponseDTO commentResponseDTO = new CommentResponseDTO(response.getId(), response.getContent(),
-                    response.getTime(), response.getDoctor().getName(),
+                    response.getTime(), enrichedDoctorOptional.get().getName(), enrichedDoctorOptional.get().getSpecializationName(),
+                    enrichedDoctorOptional.get().getCareerLevel(),
                     0);
             return ResponseEntity.status(HttpStatus.CREATED).body(commentResponseDTO);
         }
@@ -112,28 +111,6 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    @Override
-    public ResponseEntity<?> addDoctor(DoctorDTO doctorDTO){
-        if (doctorRepository.existsById(doctorDTO.getId())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Doctor with this ID already exists");
-        }
-        try {
-            Doctor doctor = new Doctor();
-            doctor.setId(doctorDTO.getId());
-            doctor.setName(doctorDTO.getName());
-            doctor.setCareerLevel(doctorDTO.getCareerLevel());
-            doctor.setSpecializationName(doctorDTO.getSpecializationName());
-            doctor.setArticles(new ArrayList<>());
-            doctor.setComments(new ArrayList<>());
-
-            doctorRepository.save(doctor);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body("Doctor added successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving doctor, retry please");
-        }
-    }
-    // Comments needs to be modified: get votes along with the request (Create comment response DTO)
     @Transactional
     @Override
     public ResponseEntity<?> getCommentsOnQuestion(Long questionId) {
@@ -150,67 +127,74 @@ public class QuestionServiceImpl implements QuestionService {
                         .mapToInt(vote -> vote.getRank())
                         .sum();
 
+                EnrichedDoctor enrichedDoctor = enrichedDoctorRepository.findById(comment.getEnrichedDoctorId()).get();
                 CommentResponseDTO commentResponse = new CommentResponseDTO(
                         comment.getId(),
                         comment.getContent(),
                         comment.getTime(),
-                        comment.getDoctor().getName(),
+                        enrichedDoctor.getName(),
+                        enrichedDoctor.getSpecializationName(),
+                        enrichedDoctor.getCareerLevel(),
                         voteCount
                 );
                 commentResponses.add(commentResponse);
             }
 
-            QuestionDetailsResponseDTO questionDetails = new QuestionDetailsResponseDTO(
-                    question.getId(),
-                    question.getTitle(),
-                    question.getContent(),
-                    question.getPatientWrittenName(),
-                    question.getQuestionTime(),
-                    commentResponses
-            );
-
-            return ResponseEntity.ok().body(questionDetails);
+            return ResponseEntity.ok().body(commentResponses);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments, please retry");
         }
     }
 
-    public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO){
-        try{
+    public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO) {
+        try {
             Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());
-            if(commentOptional.isEmpty()){
+            if (commentOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Comment not found");
             }
-            Optional<Doctor> doctor = doctorRepository.findById(voteDTO.getDoctorId());
-            if(doctor.isEmpty()) {
+            Optional<EnrichedDoctor> enrichedDoctor = enrichedDoctorRepository.findById(voteDTO.getDoctorId());
+            if (enrichedDoctor.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Doctor not found");
             }
-            VoteId voteId = new VoteId(voteDTO.getDoctorId(),
-                voteDTO.getCommentId());
+
+            VoteId voteId = new VoteId(voteDTO.getDoctorId(), voteDTO.getCommentId());
             Optional<Vote> voteExist = voteRepository.findById(voteId);
+
             int r;
-            if(voteExist.isPresent() && (voteDTO.getRank() + voteExist.get().getRank() == 0))
+            // If doctor revotes with the same option = he is cancelling his choice actually
+            // Which means it's zero now
+            if (voteExist.isPresent() && Objects.equals(voteDTO.getRank(), voteExist.get().getRank())) {
                 r = 0;
-            else
+            } else {
                 r = voteDTO.getRank();
+            }
+
             Vote vote = voteExist.orElseGet(Vote::new);
+            vote.setVoteId(voteId);
             vote.setRank(r);
             vote.setComment(commentOptional.get());
-            vote.setDoctor(doctor.get());
 
-            vote.setVoteId(voteId);
-            Vote response = voteRepository.save(vote);
-            Comment comm = commentRepository.findById(voteDTO.getCommentId()).get();
 
-            VoteDTO responseVoteDTO = new VoteDTO(response.getComment().getId(), response.getDoctor().getId(),
-                    comm.getVotes().stream()
-                            .mapToInt(v -> v.getRank())
-                            .sum());
+            Vote savedVote = voteRepository.save(vote);
+
+            Comment comm = commentOptional.get();
+
+            int totalVotes = comm.getVotes().stream()
+                    .mapToInt(Vote::getRank)
+                    .sum();
+
+            VoteDTO responseVoteDTO = new VoteDTO(
+                    savedVote.getVoteId().getCommentId(),
+                    savedVote.getVoteId().getDoctorId(),
+                    totalVotes
+            );
+
             return ResponseEntity.status(HttpStatus.CREATED).body(responseVoteDTO);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while adding your vote" +
-                    ", please retry");
-        }
 
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while adding your vote, please retry");
+        }
     }
+
 }

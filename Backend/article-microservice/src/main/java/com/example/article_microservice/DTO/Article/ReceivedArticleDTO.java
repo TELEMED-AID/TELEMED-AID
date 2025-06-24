@@ -14,7 +14,7 @@ public class ReceivedArticleDTO {
     @NotBlank(message = "Empty article, cannot be published")
     private String content;
     @NotNull(message = "Please right your ID")
-    private Long doctorNationalId;
+    private Long doctorId;
     @NotNull(message = "Please give a time")
     private Instant articleTime;
 }
