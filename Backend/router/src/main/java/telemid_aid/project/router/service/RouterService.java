@@ -24,6 +24,7 @@ public class RouterService {
         Message<UserRequest> message = MessageBuilder.withPayload(userData)
                 .setHeader("role", userData.getRole())
                 .build();
+        System.out.println("message: " + message);
         routerInputChannel.send(message);
     }
 
@@ -45,7 +46,7 @@ public class RouterService {
                     .body(response.getBody());
         } catch (FeignException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error calling patient service: " + e.getMessage());
+                    .body("Error calling doctor service: " + e.getMessage());
         }
     }
 }
