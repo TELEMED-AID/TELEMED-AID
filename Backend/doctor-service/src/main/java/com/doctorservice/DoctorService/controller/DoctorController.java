@@ -23,6 +23,7 @@ public class DoctorController {
     public ResponseEntity<?> createDoctor(
             @Valid @RequestBody CreateDoctorRequest request
     ) {
+        System.out.println("Router sent the doctor data: " + request);
         DoctorResponse response = doctorService.createDoctor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

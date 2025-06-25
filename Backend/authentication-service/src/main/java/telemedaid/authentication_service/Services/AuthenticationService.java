@@ -31,8 +31,6 @@ public class AuthenticationService implements RouterGateway {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final PatientServiceClient patientServiceClient; // Feign Client
-    private final DoctorServiceClient doctorServiceClient;
     private final VerificationServiceClient verificationServiceClient;
     private final RouterGateway routerGateway;
 
@@ -59,10 +57,11 @@ public class AuthenticationService implements RouterGateway {
                     .userId(user.getId())
                     .name(request.getName())
                     .countryName(request.getCountryName())
-                    .countryId(request.getCountryId())
+                    .countryId("EGP")
                     .phone(request.getPhone())
                     .gender(request.getGender())
                     .birthDate(request.getDateOfBirth())
+                    .role(user.getRole())
                     .build();
             routeUserData(patientRequest);
             /*patientServiceClient.createPatient(patientRequest);*/ /* Feign client to patient-service*/
@@ -100,11 +99,12 @@ public class AuthenticationService implements RouterGateway {
                     .name(request.getName())
                     .birthDate(request.getDateOfBirth())
                     .careerLevelName(request.getCareerLevelName())
-                    .countryId(request.getCountryId())
+                    .countryId("EGP")
                     .countryName(request.getCountryName())
                     .gender(request.getGender())
                     .phone(request.getPhone())
                     .specializationName(request.getSpecializationName())
+                    .role(user.getRole())
                     .build();
             routeUserData(createDoctorRequest);
             /*doctorServiceClient.addDoctor(createDoctorRequest);*/ /* Feign client to doctor-service*/

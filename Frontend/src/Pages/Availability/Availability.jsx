@@ -115,7 +115,7 @@ const handleSubmit = async () => {
 
         // Send to backend
         const response = await postItem(
-            `/doctor/${userId}/availability`,
+            `/api/doctor/${userId}/availability`,
             requestData,
             (data, sent) => {
                 console.log("Callback success:", data, sent);

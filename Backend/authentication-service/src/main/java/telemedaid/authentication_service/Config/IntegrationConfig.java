@@ -23,7 +23,7 @@ public class IntegrationConfig {
     @ServiceActivator(inputChannel = "routerChannel")
     public MessageHandler httpOutboundGateway() {
         HttpRequestExecutingMessageHandler handler =
-                new HttpRequestExecutingMessageHandler("http://localhost:8081/api/router/route");
+                new HttpRequestExecutingMessageHandler("http://localhost:8086/api/router/route");
         handler.setHttpMethod(HttpMethod.POST);
         handler.setExpectedResponseType(String.class);
         return handler;
