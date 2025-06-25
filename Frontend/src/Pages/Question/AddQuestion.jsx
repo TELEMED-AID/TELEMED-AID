@@ -50,16 +50,20 @@ const AddQuestion = () => {
         };
 
         await postItem(
-            QUESTION_PUBLISH_URL,
-            newQuestion,
+            QUESTION_PUBLISH_URL, // url
+            newQuestion, // item (data to send)
             () => {
+                // postCallback
                 setContent("");
                 setTitle("");
                 setPatientWrittenName("");
                 navigate("/ShowQuestions");
             },
-            "Question submitted successfully!",
-            "Failed to submit question."
+            "Question submitted successfully!", // successMessage
+            "Failed to submit question.", // errorMessage
+            null, // errorCallback (optional, pass null if none)
+            true, // showSnackbar (optional, true by default)
+            "post" // method (optional, "post" by default)
         );
     };
 

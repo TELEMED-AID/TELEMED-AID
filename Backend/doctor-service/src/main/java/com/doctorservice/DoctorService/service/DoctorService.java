@@ -8,7 +8,6 @@ import com.doctorservice.DoctorService.repository.DoctorRepository;
 import com.doctorservice.DoctorService.repository.SpecializationRepository;
 import com.doctorservice.DoctorService.util.DoctorMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import telemedaid.common_dto.DTOs.KafkaEnricherDTO;
-
+import java.time.DayOfWeek;
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
@@ -189,6 +188,25 @@ public class DoctorService {
         List<CareerLevel> careerLevels = careerLevelRepository.findAll();
         return careerLevels.stream()
                 .map(CareerLevelDto::toDto)
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public void deleteDoctorAvailability(Long userId, DayOfWeek dayOfWeek) {
+        Doctor doctor = doctorRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with ID: " + userId));
+
+        // Remove all available days matching the dayOfWeek
+        doctor.getAvailableDays().removeIf(day -> day.getDayOfWeek() == dayOfWeek);
+        doctorRepository.save(doctor);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DayAvailabilityResponse> getDoctorAvailability(Long userId) {
+        Doctor doctor = doctorRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with ID: " + userId));
+
+        return doctor.getAvailableDays().stream()
+                .map(DayAvailabilityResponse::toDto)
                 .collect(Collectors.toList());
     }
 

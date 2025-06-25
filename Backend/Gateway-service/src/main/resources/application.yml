@@ -51,14 +51,14 @@ spring:
             - name: CircuitBreaker
               args:
                 name: chatting-service
-        - id: "article-and-forum-service"
+        - id: "article-service"
           uri: lb://Article-Service
           predicates:
             - Path=/article/**
           filters:
             - name: CircuitBreaker
               args:
-                name: article-and-forum-service
+                name: article-service
         - id: "appointment-service"
           uri: lb://Appointment-Service
           predicates:

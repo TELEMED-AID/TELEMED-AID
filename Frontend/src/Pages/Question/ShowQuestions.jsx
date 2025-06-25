@@ -210,7 +210,7 @@ const ShowQuestions = () => {
                 <Button
                     variant="contained"
                     startIcon={<Add />}
-                    onClick={() => navigate('/questions/ask')}
+                    onClick={() => navigate('/AddQuestion')}
                     sx={{ mt: 2, backgroundColor: blue[500], '&:hover': { backgroundColor: blue[700] } }}
                 >
                   Ask First Question

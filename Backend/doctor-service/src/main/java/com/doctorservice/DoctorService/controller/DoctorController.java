@@ -86,5 +86,21 @@ public class DoctorController {
     public List<CareerLevelDto> getAllCareerLevels() {
         return doctorService.getAllCareerLevels();
     }
+    @DeleteMapping("/{userId}/availability/{dayOfWeek}")
+    public ResponseEntity<?> deleteDoctorAvailability(
+            @PathVariable Long userId,
+            @PathVariable DayOfWeek dayOfWeek) {
+
+        doctorService.deleteDoctorAvailability(userId, dayOfWeek);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{userId}/availability")
+    public ResponseEntity<List<DayAvailabilityResponse>> getDoctorAvailability(
+            @PathVariable Long userId) {
+
+        List<DayAvailabilityResponse> availability = doctorService.getDoctorAvailability(userId);
+        return ResponseEntity.ok(availability);
+    }
 
 }

@@ -40,7 +40,7 @@ const UpdateInfo = () => {
                 let response;
                 if (role === "DOCTOR") {
                     response = await getItem(
-                        `/doctor/${userId}`,
+                        `/api/doctor/${userId}`,
                         false, // disable snackbar
                         (data) => {
                             setFormData({
@@ -81,7 +81,7 @@ const UpdateInfo = () => {
         };
 
         fetchUserData();
-    }, [role, getItem]);
+    }, [role]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -114,7 +114,7 @@ const UpdateInfo = () => {
                     specialization: formData.specialization,
                     careerLevel: formData.careerLevel,
                 };
-                updateEndpoint = "/doctor/22";
+                updateEndpoint = "/api/doctor/22";
             } else {
                 updateData = {
                     name: formData.name,
