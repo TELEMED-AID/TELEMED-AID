@@ -22,10 +22,8 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String content;
     private Instant time;
-    @ManyToOne
-    @JoinColumn(name = "doctor_id")
-    @JsonManagedReference
-    private Doctor doctor;
+    // id
+    private Long enrichedDoctorId;
     @ManyToOne
     @JoinColumn(name = "question_id")
     @JsonIgnore

@@ -2,15 +2,15 @@ package com.example.article_microservice.Article.Service;
 
 import com.example.article_microservice.DTO.Article.ReceivedArticleDTO;
 import com.example.article_microservice.Model.Article;
-import com.example.article_microservice.Model.Doctor;
+import com.example.article_microservice.Model.EnrichedDoctor;
 import com.example.article_microservice.Repository.ArticleRepository;
-import com.example.article_microservice.Repository.DoctorRepository;
+import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import com.example.article_microservice.Service.Implementation.ArticleServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.*;
+import org.springframework.http.ResponseEntity;
 
 import java.time.Instant;
 import java.util.*;
@@ -27,7 +27,7 @@ public class ArticleServiceImplTest {
     private ArticleRepository articleRepository;
 
     @Mock
-    private DoctorRepository doctorRepository;
+    private EnrichedDoctorRepository enrichedDoctorRepository;
 
     @BeforeEach
     void setUp() {
@@ -42,13 +42,12 @@ public class ArticleServiceImplTest {
         dto.setContent("Here are five practical tips...");
         dto.setCategory("Cardiology");
         dto.setArticleTime(Instant.parse("2025-05-08T10:15:00Z"));
-        dto.setDoctorNationalId(12345678901234L);
+        dto.setDoctorId(12345678901234L);
 
-        Doctor doctor = new Doctor();
+        EnrichedDoctor doctor = new EnrichedDoctor();
         doctor.setId(12345678901234L);
-        doctor.setName("Dr. Smith");
 
-        when(doctorRepository.findById(dto.getDoctorNationalId())).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(dto.getDoctorId())).thenReturn(Optional.of(doctor));
 
         ResponseEntity<?> response = articleService.publishArticle(dto);
 
@@ -64,9 +63,9 @@ public class ArticleServiceImplTest {
         dto.setContent("Tips...");
         dto.setCategory("Cardiology");
         dto.setArticleTime(Instant.now());
-        dto.setDoctorNationalId(999L);
+        dto.setDoctorId(999L);
 
-        when(doctorRepository.findById(999L)).thenReturn(Optional.empty());
+        when(enrichedDoctorRepository.findById(999L)).thenReturn(Optional.empty());
 
         ResponseEntity<?> response = articleService.publishArticle(dto);
 
@@ -82,10 +81,12 @@ public class ArticleServiceImplTest {
         dto.setContent("Tips...");
         dto.setCategory("Cardiology");
         dto.setArticleTime(Instant.now());
-        dto.setDoctorNationalId(1L);
+        dto.setDoctorId(1L);
 
-        Doctor doctor = new Doctor();
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        EnrichedDoctor doctor = new EnrichedDoctor();
+        doctor.setId(1L);
+
+        when(enrichedDoctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
         when(articleRepository.save(any())).thenThrow(RuntimeException.class);
 
         ResponseEntity<?> response = articleService.publishArticle(dto);
@@ -129,16 +130,12 @@ public class ArticleServiceImplTest {
     @Test
     void testGetCertainArticle_ValidId_ReturnsArticle() {
         Article article = new Article();
-        Doctor doctor = new Doctor();
-        doctor.setName("Dr. X");
-        doctor.setCareerLevel("Consultant");
-        doctor.setSpecializationName("Cardiology");
-        article.setDoctor(doctor);
         article.setId(1L);
         article.setTitle("T1");
         article.setContent("C1");
         article.setCategory("Cardiology");
         article.setArticleTime(Instant.now());
+        article.setEnrichedDoctorId(123L);
 
         when(articleRepository.findById(1L)).thenReturn(Optional.of(article));
 

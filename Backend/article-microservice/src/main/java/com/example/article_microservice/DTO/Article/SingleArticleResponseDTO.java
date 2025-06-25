@@ -1,10 +1,10 @@
 package com.example.article_microservice.DTO.Article;
 
 import com.example.article_microservice.Model.Article;
+import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import lombok.Data;
 
 import java.time.Instant;
-
 @Data
 public class SingleArticleResponseDTO {
     private Long id;
@@ -22,8 +22,15 @@ public class SingleArticleResponseDTO {
         this.category = article.getCategory();
         this.content = article.getContent();
         this.articleTime = article.getArticleTime();
-        this.doctorName = article.getDoctor().getName();
-        this.doctorCareerLevel = article.getDoctor().getCareerLevel();
-        this.doctorSpecialization = article.getDoctor().getSpecializationName();
+    }
+
+    public void enrichDoctorData(EnrichedDoctorRepository enrichedDoctorRepository, Long enrichedDoctorId) {
+        enrichedDoctorRepository.findById(enrichedDoctorId)
+                .ifPresent(doctor -> {
+                    this.doctorName = doctor.getName();
+                    this.doctorCareerLevel = doctor.getCareerLevel();
+                    this.doctorSpecialization = doctor.getSpecializationName();
+                });
     }
 }
+

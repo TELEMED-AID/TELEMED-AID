@@ -20,9 +20,7 @@ public class Article {
     private String category;
     @Column(columnDefinition = "TEXT")
     private String content;
-    @ManyToOne
-    @JoinColumn(name = "doctor_id")
-    @JsonBackReference
-    private Doctor doctor;
+    // id
+    private Long enrichedDoctorId;
     private Instant articleTime;
 }

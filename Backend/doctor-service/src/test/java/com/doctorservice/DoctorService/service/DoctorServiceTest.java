@@ -36,6 +36,9 @@ class DoctorServiceTest {
     @Mock
     private SpecializationRepository specializationRepository;
 
+    @Mock
+    private DoctorEventProducer doctorEventProducer;
+
     @InjectMocks
     private DoctorService doctorService;
 
@@ -119,6 +122,8 @@ class DoctorServiceTest {
         assertEquals("Ziad Aly", response.getName());
         assertEquals("01201841997", response.getPhone());
         verify(doctorRepository, times(1)).save(existingDoctor);
+        verify(doctorEventProducer, times(1)).sendDoctorEvent(any());
+
     }
 
     @Test
@@ -226,3 +231,4 @@ class DoctorServiceTest {
 
     }
 }
+
