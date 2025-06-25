@@ -10,7 +10,6 @@ public interface QuestionService {
     ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO);
     ResponseEntity<?> searchQuestion(String term, int page, int size);
     ResponseEntity<?> commentOnQuestion(CommentDTO commentDTO);
-    ResponseEntity<?> addDoctor(DoctorDTO doctorDTO);
     ResponseEntity<?> getCommentsOnQuestion(Long id);
     ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO);
 }

@@ -11,7 +11,7 @@ import java.time.Instant;
 public class QuestionSearchResponseDTO {
     private Long id;
     private String title;
-    private String contentSnippet; // Short preview
+    private String content;
     private String patientWrittenName;
     private Instant questionTime;
 
@@ -19,9 +19,7 @@ public class QuestionSearchResponseDTO {
         this.id = question.getId();
         this.title = question.getTitle();
         this.patientWrittenName = question.getPatientWrittenName();
-        this.contentSnippet = question.getContent().length() > 100
-                ? question.getContent().substring(0, 100) + "..."
-                : question.getContent();
+        this.content = question.getContent();
         this.questionTime = question.getQuestionTime();
     }
 }

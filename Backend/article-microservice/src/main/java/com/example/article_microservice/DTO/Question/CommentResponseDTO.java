@@ -14,6 +14,8 @@ public class CommentResponseDTO {
     private String content;
     private Instant time;
     private String doctorName;
+    private String doctorSpecialization;
+    private String doctorCareerLevel;
     private int voteCount;
 }
 

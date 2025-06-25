@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Doctor {
     @Id
-    @Column(name="userId", nullable = false)
+    @Column(name="user_id", nullable = false)
     private Long userId;
 
     @Column(name = "name", nullable = false, length = 50)

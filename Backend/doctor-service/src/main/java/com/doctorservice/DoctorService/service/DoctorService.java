@@ -6,6 +6,7 @@ import com.doctorservice.DoctorService.exception.EntityNotFoundException;
 import com.doctorservice.DoctorService.repository.CareerLevelRepository;
 import com.doctorservice.DoctorService.repository.DoctorRepository;
 import com.doctorservice.DoctorService.repository.SpecializationRepository;
+import com.doctorservice.DoctorService.util.DoctorMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -13,16 +14,28 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import telemedaid.common_dto.DTOs.KafkaEnricherDTO;
+import java.time.DayOfWeek;
 @Service
 @RequiredArgsConstructor
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final CareerLevelRepository careerLevelRepository;
     private final SpecializationRepository specializationRepository;
+    private final DoctorEventProducer doctorEventProducer;
 
     @Transactional
     public DoctorResponse createDoctor(CreateDoctorRequest request) {
+        if(specializationRepository.findBySpecializationName(request.getSpecializationName()).isEmpty()) {
+            Specialization specialization = new Specialization();
+            specialization.setSpecializationName(request.getSpecializationName());
+            specializationRepository.save(specialization);
+        }
+        if(careerLevelRepository.findByCareerLevelName(request.getCareerLevelName()).isEmpty()) {
+            CareerLevel careerLevel = new CareerLevel();
+            careerLevel.setCareerLevelName(request.getCareerLevelName());
+            careerLevelRepository.save(careerLevel);
+        }
         Doctor doctor = Doctor.builder()
                 .userId(request.getUserId())
                 .name(request.getName())
@@ -34,8 +47,14 @@ public class DoctorService {
                 .careerLevel(careerLevelRepository.findByCareerLevelName(request.getCareerLevelName()).orElse(null))
                 .specialization(specializationRepository.findBySpecializationName(request.getSpecializationName()).orElse(null))
                 .build();
+        //     doctorEventProducer.sendDoctorEvent(doctorDTO);
 
         Doctor savedDoctor = doctorRepository.save(doctor);
+        if(savedDoctor.getUserId() != null) {
+            KafkaEnricherDTO kafkaEnricherDTO = DoctorMapper.toDoctorDTO(savedDoctor);
+            doctorEventProducer.sendDoctorEvent(kafkaEnricherDTO);
+        }
+
         return DoctorResponse.doctorToDoctorResponse(savedDoctor);
     }
 
@@ -70,6 +89,12 @@ public class DoctorService {
             doctor.setCareerLevel(careerLevel);
         }
         Doctor updatedDoctor = doctorRepository.save(doctor);
+        if(updatedDoctor.getUserId() != null) {
+            KafkaEnricherDTO kafkaEnricherDTO = DoctorMapper.toDoctorDTO(updatedDoctor);
+            doctorEventProducer.sendDoctorEvent(kafkaEnricherDTO);
+        }
+
+
         return DoctorResponse.doctorToDoctorResponse(updatedDoctor);
     }
     @Transactional(readOnly = true)
@@ -165,4 +190,24 @@ public class DoctorService {
                 .map(CareerLevelDto::toDto)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public void deleteDoctorAvailability(Long userId, DayOfWeek dayOfWeek) {
+        Doctor doctor = doctorRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with ID: " + userId));
+
+        // Remove all available days matching the dayOfWeek
+        doctor.getAvailableDays().removeIf(day -> day.getDayOfWeek() == dayOfWeek);
+        doctorRepository.save(doctor);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DayAvailabilityResponse> getDoctorAvailability(Long userId) {
+        Doctor doctor = doctorRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with ID: " + userId));
+
+        return doctor.getAvailableDays().stream()
+                .map(DayAvailabilityResponse::toDto)
+                .collect(Collectors.toList());
+    }
+
 }

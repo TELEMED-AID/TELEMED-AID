@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 @RestController
-@CrossOrigin
 @RequestMapping("/article/question")
 
 public class QuestionController {
@@ -30,12 +29,7 @@ public class QuestionController {
     public ResponseEntity<?> commentOnQuestion(@Valid @RequestBody CommentDTO commentDTO) {
         return questionService.commentOnQuestion(commentDTO);
     }
-    @PostMapping("/addDoctor")
-    public ResponseEntity<?> addDoctor(@Valid @RequestBody DoctorDTO doctorDTO) {
-        // Add service could have been put in the article service also
-        return questionService.addDoctor(doctorDTO);
-    }
-    @GetMapping("/getCommentsOnPost")
+    @GetMapping("/getOne")
     public ResponseEntity<?> getCommentsOnQuestion(@RequestParam Long questionId) {
         return questionService.getCommentsOnQuestion(questionId);
     }

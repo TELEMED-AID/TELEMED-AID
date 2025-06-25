@@ -21,20 +21,20 @@ import static org.mockito.Mockito.*;
 
 public class QuestionServiceImplTest {
 
-    @InjectMocks
-    private QuestionServiceImpl questionService;
-
     @Mock
     private QuestionRepository questionRepository;
 
     @Mock
-    private DoctorRepository doctorRepository;
+    private EnrichedDoctorRepository enrichedDoctorRepository;
 
     @Mock
     private CommentRepository commentRepository;
 
     @Mock
     private VoteRepository voteRepository;
+
+    @InjectMocks
+    private QuestionServiceImpl questionService;
 
     @BeforeEach
     void setUp() {
@@ -49,7 +49,12 @@ public class QuestionServiceImplTest {
         receivedQuestionDTO.setContent("Cardiology");
         receivedQuestionDTO.setTitle("Heart Health Tips");
         receivedQuestionDTO.setQuestionTime(Instant.parse("2025-05-08T10:15:00Z"));
+
+        // Mock save to return the saved question (could be with id)
+        when(questionRepository.save(any(Question.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         ResponseEntity<?> response = questionService.postQuestion(receivedQuestionDTO);
+
         assertEquals(201, response.getStatusCodeValue());
         verify(questionRepository, times(1)).save(any(Question.class));
     }
@@ -57,17 +62,16 @@ public class QuestionServiceImplTest {
     // TC-ART-12: Database Exception During Question Posting
     @Test
     void testPostQuestion_DatabaseException_ReturnsInternalServerError() {
-        // Arrange
         ReceivedQuestionDTO questionDTO = new ReceivedQuestionDTO();
         questionDTO.setTitle("Test Title");
         questionDTO.setContent("Test Content");
         questionDTO.setQuestionTime(Instant.now());
         questionDTO.setPatientWrittenName("John Doe");
-        // Simulate exception when saving question
+
         doThrow(new RuntimeException("DB Error")).when(questionRepository).save(any(Question.class));
-        // Act
+
         ResponseEntity<?> response = questionService.postQuestion(questionDTO);
-        // Assert
+
         assertEquals(500, response.getStatusCodeValue());
         assertEquals("An unexpected error occurred. Please try again later.", response.getBody());
         verify(questionRepository, times(1)).save(any(Question.class));
@@ -76,11 +80,10 @@ public class QuestionServiceImplTest {
     // TC-ART-13: Valid Question Search Request
     @Test
     void testSearchQuestion_ValidRequest_ReturnsPaginatedResults() {
-        // Arrange
         String searchTerm = "diabetes treatment";
         int page = 0;
         int size = 10;
-        // Create sample Question objects for search results
+
         Question question1 = new Question();
         question1.setTitle("Diabetes Treatment Options");
         question1.setContent("Learn about the latest diabetes treatments");
@@ -93,84 +96,60 @@ public class QuestionServiceImplTest {
         question2.setQuestionTime(Instant.now());
         question2.setPatientWrittenName("Patient B");
 
-        // Mock repository to return the questions for the search term
         List<Question> questionList = Arrays.asList(question1, question2);
         Page<Question> questionPage = new PageImpl<>(questionList, PageRequest.of(page, size), questionList.size());
 
-        when(questionRepository.searchByRelevance(anyString(), any(Pageable.class)))
-                .thenReturn(questionPage);
+        when(questionRepository.searchByRelevance(anyString(), any(Pageable.class))).thenReturn(questionPage);
 
-        // Act
         ResponseEntity<?> response = questionService.searchQuestion(searchTerm, page, size);
 
-        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody() instanceof Page);
 
         Page<QuestionSearchResponseDTO> resultPage = (Page<QuestionSearchResponseDTO>) response.getBody();
-        assertEquals(2, resultPage.getContent().size());  // We have 2 mock questions
+        assertEquals(2, resultPage.getContent().size());
 
-        // Verify the repository was called once with the search term
         verify(questionRepository, times(1)).searchByRelevance(anyString(), any(Pageable.class));
     }
 
-        // TC-ART-14: Empty or Invalid Search Term
-        @Test
-        void testSearchQuestion_EmptyOrInvalidTerm_ReturnsBadRequest() {
-            // Test case 1: Search term is an empty string
-            String searchTerm = "";
-            int page = 0;
-            int size = 10;
+    // TC-ART-14: Empty or Invalid Search Term
+    @Test
+    void testSearchQuestion_EmptyOrInvalidTerm_ReturnsBadRequest() {
+        String searchTerm = "";
+        int page = 0;
+        int size = 10;
 
-            // Act
-            ResponseEntity<?> response = questionService.searchQuestion(searchTerm, page, size);
+        ResponseEntity<?> response = questionService.searchQuestion(searchTerm, page, size);
+        assertEquals(400, response.getStatusCodeValue());
+        assertEquals("Search term cannot be empty", response.getBody());
 
-            // Assert
-            assertEquals(400, response.getStatusCodeValue());
-            assertEquals("Search term cannot be empty", response.getBody());
+        searchTerm = null;
+        response = questionService.searchQuestion(searchTerm, page, size);
+        assertEquals(400, response.getStatusCodeValue());
+        assertEquals("Search term cannot be empty", response.getBody());
 
-            // Test case 2: Search term is null
-            searchTerm = null;
+        searchTerm = "  ";
+        response = questionService.searchQuestion(searchTerm, page, size);
+        assertEquals(400, response.getStatusCodeValue());
+        assertEquals("Search term cannot be empty", response.getBody());
+    }
 
-            // Act
-            response = questionService.searchQuestion(searchTerm, page, size);
+    // TC-ART-15: Database Exception During Search
+    @Test
+    void testSearchQuestion_DatabaseException_ReturnsBadRequest() {
+        String searchTerm = "valid term";
+        int page = 0;
+        int size = 10;
 
-            // Assert
-            assertEquals(400, response.getStatusCodeValue());
-            assertEquals("Search term cannot be empty", response.getBody());
+        when(questionRepository.searchByRelevance(anyString(), any(Pageable.class)))
+                .thenThrow(new RuntimeException("Database error"));
 
-            // Test case 3: Search term is just whitespace
-            searchTerm = "  ";
+        ResponseEntity<?> response = questionService.searchQuestion(searchTerm, page, size);
 
-            // Act
-            response = questionService.searchQuestion(searchTerm, page, size);
+        assertEquals(400, response.getStatusCodeValue());
+        assertEquals("Change the search terms to make them more distinctive and retry", response.getBody());
 
-            // Assert
-            assertEquals(400, response.getStatusCodeValue());
-            assertEquals("Search term cannot be empty", response.getBody());
-        }
-
-        // TC-ART-15: Database Exception During Search
-        @Test
-        void testSearchQuestion_DatabaseException_ReturnsBadRequest() {
-            // Arrange
-            String searchTerm = "valid term";
-            int page = 0;
-            int size = 10;
-
-            // Simulate exception during search query
-            when(questionRepository.searchByRelevance(anyString(), any(Pageable.class)))
-                    .thenThrow(new RuntimeException("Database error"));
-
-            // Act
-            ResponseEntity<?> response = questionService.searchQuestion(searchTerm, page, size);
-
-            // Assert
-            assertEquals(400, response.getStatusCodeValue());
-            assertEquals("Change the search terms to make them more distinctive and retry", response.getBody());
-
-            // Verify the repository's search method was called
-            verify(questionRepository, times(1)).searchByRelevance(anyString(), any(Pageable.class));
+        verify(questionRepository, times(1)).searchByRelevance(anyString(), any(Pageable.class));
     }
 
     // TC-QST-16: Valid Comment on Question
@@ -183,17 +162,17 @@ public class QuestionServiceImplTest {
         Instant commentTime = Instant.now();
         CommentDTO commentDTO = new CommentDTO(doctorId, content, questionId, commentTime);
 
-        // Create mock doctor and question objects
-        Doctor doctor = new Doctor();
-        doctor.setId(doctorId);
-        doctor.setName("Dr. Smith");
+        // Create mock enriched doctor and question objects
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(doctorId);
+        enrichedDoctor.setName("Dr. Smith");
 
         Question question = new Question();
         question.setId(questionId);
         question.setTitle("How to stay hydrated?");
 
         // Mock the repository calls
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(doctorId)).thenReturn(Optional.of(enrichedDoctor));
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
 
         // Mock the save method to return a saved comment object
@@ -201,7 +180,7 @@ public class QuestionServiceImplTest {
         mockComment.setId(1L);
         mockComment.setContent(content);
         mockComment.setTime(commentTime);
-        mockComment.setDoctor(doctor);
+        mockComment.setEnrichedDoctorId(enrichedDoctor.getId());
         mockComment.setQuestion(question);
 
         // Mocking the commentRepository.save() method
@@ -219,7 +198,7 @@ public class QuestionServiceImplTest {
         assertEquals(mockComment.getId(), responseBody.getId());
         assertEquals(mockComment.getContent(), responseBody.getContent());
         assertEquals(mockComment.getTime(), responseBody.getTime());
-        assertEquals(mockComment.getDoctor().getName(), responseBody.getDoctorName());
+        assertEquals(enrichedDoctor.getName(), responseBody.getDoctorName());
 
         // Verify the comment repository's save method was called once
         verify(commentRepository, times(1)).save(any(Comment.class));
@@ -236,7 +215,7 @@ public class QuestionServiceImplTest {
         CommentDTO commentDTO = new CommentDTO(doctorId, content, questionId, commentTime);
 
         // Mock the repository calls
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.empty());
+        when(enrichedDoctorRepository.findById(doctorId)).thenReturn(Optional.empty());
 
         // Act
         ResponseEntity<?> response = questionService.commentOnQuestion(commentDTO);
@@ -259,11 +238,11 @@ public class QuestionServiceImplTest {
         Instant commentTime = Instant.now();
         CommentDTO commentDTO = new CommentDTO(doctorId, content, nonExistentQuestionId, commentTime);
 
-        // Mock the doctor existence
-        Doctor doctor = new Doctor();
-        doctor.setId(doctorId);
-        doctor.setName("Dr. Smith");
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        // Mock the enriched doctor existence
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(doctorId);
+        enrichedDoctor.setName("Dr. Smith");
+        when(enrichedDoctorRepository.findById(doctorId)).thenReturn(Optional.of(enrichedDoctor));
 
         // Mock the non-existent question
         when(questionRepository.findById(nonExistentQuestionId)).thenReturn(Optional.empty());
@@ -286,11 +265,11 @@ public class QuestionServiceImplTest {
         Instant commentTime = Instant.now();
         CommentDTO commentDTO = new CommentDTO(doctorId, content, questionId, commentTime);
 
-        // Mock the doctor and question
-        Doctor doctor = new Doctor();
-        doctor.setId(doctorId);
-        doctor.setName("Dr. Smith");
-        when(doctorRepository.findById(doctorId)).thenReturn(Optional.of(doctor));
+        // Mock the enriched doctor and question
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(doctorId);
+        enrichedDoctor.setName("Dr. Smith");
+        when(enrichedDoctorRepository.findById(doctorId)).thenReturn(Optional.of(enrichedDoctor));
 
         Question question = new Question();
         question.setId(questionId);
@@ -318,31 +297,36 @@ public class QuestionServiceImplTest {
         question.setTitle("How to stay hydrated?");
         question.setContent("Drink water regularly");
 
-        // Create mock doctor
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
-        doctor.setName("Dr. Smith");
+        // Create mock enriched doctor
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(1L);
+        enrichedDoctor.setName("Dr. Smith");
+        enrichedDoctor.setCareerLevel("Senior");
+        enrichedDoctor.setSpecializationName("Cardiology");
 
         // Create a comment
         Comment comment = new Comment();
         comment.setId(1L);
         comment.setContent("Drink more water");
         comment.setTime(Instant.now());
-        comment.setDoctor(doctor);
+        comment.setEnrichedDoctorId(enrichedDoctor.getId());
         comment.setQuestion(question);
 
         // Simulate votes
         Vote vote1 = new Vote();
-        vote1.setRank(1);  // Simulating a vote with rank 1
+        vote1.setRank(1);
         Vote vote2 = new Vote();
-        vote2.setRank(-1);  // Simulating a vote with rank 1
-        comment.setVotes(Arrays.asList(vote1, vote2));  // Adding votes to the comment
+        vote2.setRank(-1);
+        comment.setVotes(Arrays.asList(vote1, vote2));
 
         // Add comment to the question
-        question.setComments(Collections.singletonList(comment));  // Directly setting the comment on the question
+        question.setComments(Collections.singletonList(comment));
 
         // Mock the repository method for finding a question
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+        // Mock enrichedDoctorRepository to return the enrichedDoctor when fetching by ID in service if needed
+        when(enrichedDoctorRepository.findById(enrichedDoctor.getId())).thenReturn(Optional.of(enrichedDoctor));
 
         // Act
         ResponseEntity<?> response = questionService.getCommentsOnQuestion(questionId);
@@ -351,17 +335,15 @@ public class QuestionServiceImplTest {
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody() instanceof QuestionDetailsResponseDTO);
 
-        // Cast response body to QuestionDetailsResponseDTO and assert comment details
         QuestionDetailsResponseDTO responseBody = (QuestionDetailsResponseDTO) response.getBody();
         assertEquals(questionId, responseBody.getId());
         assertEquals("How to stay hydrated?", responseBody.getTitle());
         assertEquals("Drink water regularly", responseBody.getContent());
         assertEquals(1, responseBody.getComments().size());
 
-        // Assert comment content and vote count
         assertEquals("Drink more water", responseBody.getComments().get(0).getContent());
         assertEquals("Dr. Smith", responseBody.getComments().get(0).getDoctorName());
-        assertEquals(0, responseBody.getComments().get(0).getVoteCount());  // Vote count should be 1 - 1
+        assertEquals(0, responseBody.getComments().get(0).getVoteCount());  // 1 - 1 = 0
     }
 
     //  TC-ART-21: Retrieve Comments on Non-Existent Question
@@ -413,17 +395,17 @@ public class QuestionServiceImplTest {
         comment.setId(1L);
         comment.setVotes(new ArrayList<>());
 
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(1L);
 
         Vote vote = new Vote();
         vote.setVoteId(new VoteId(1L, 1L));
         vote.setRank(1);
-        vote.setDoctor(doctor);
+        vote.setVoteId(new VoteId(enrichedDoctor.getId(), comment.getId()));
         vote.setComment(comment);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(1L)).thenReturn(Optional.of(enrichedDoctor));
         when(voteRepository.findById(any())).thenReturn(Optional.empty());
         when(voteRepository.save(any())).thenReturn(vote);
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment)); // For vote count
@@ -459,7 +441,7 @@ public class QuestionServiceImplTest {
         Comment comment = new Comment();
         comment.setId(1L);
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-        when(doctorRepository.findById(999L)).thenReturn(Optional.empty());
+        when(enrichedDoctorRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act
         ResponseEntity<?> response = questionService.addVoteToQuestion(voteDTO);
@@ -471,27 +453,28 @@ public class QuestionServiceImplTest {
 
     // TC-ART-26: Cancel Vote with Opposite Rank
     @Test
-    void testCancelVoteWithOppositeRank_ReturnsCreatedWithZeroRank() {
+    void testCancelVoteWithSameRank_ReturnsCreatedWithZeroRank() {
         // Arrange
-        VoteDTO voteDTO = new VoteDTO(1L, 1L, -1);
+        VoteDTO voteDTO = new VoteDTO(1L, 1L, 1);
         Comment comment = new Comment();
         comment.setId(1L);
         comment.setVotes(new ArrayList<>());
 
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(1L);
 
         Vote existingVote = new Vote();
-        existingVote.setVoteId(new VoteId(1L, 1L));
         existingVote.setRank(1);
-        existingVote.setDoctor(doctor);
+        existingVote.setVoteId(new VoteId(enrichedDoctor.getId(), comment.getId()));
         existingVote.setComment(comment);
 
+        // Add existing vote to comment's votes list
+        comment.getVotes().add(existingVote);
+
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(1L)).thenReturn(Optional.of(enrichedDoctor));
         when(voteRepository.findById(any())).thenReturn(Optional.of(existingVote));
         when(voteRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment)); // For vote count
 
         // Act
         ResponseEntity<?> response = questionService.addVoteToQuestion(voteDTO);
@@ -502,6 +485,7 @@ public class QuestionServiceImplTest {
         assertEquals(0, responseVoteDTO.getRank());
     }
 
+
     // TC-ART-27: Unexpected Error During Voting
     @Test
     void testUnexpectedErrorDuringVoting_Returns500() {
@@ -509,11 +493,11 @@ public class QuestionServiceImplTest {
         VoteDTO voteDTO = new VoteDTO(1L, 1L, 1);
         Comment comment = new Comment();
         comment.setId(1L);
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(1L);
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
-        when(doctorRepository.findById(1L)).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(1L)).thenReturn(Optional.of(enrichedDoctor));
         when(voteRepository.findById(any())).thenThrow(new RuntimeException("Unexpected error"));
 
         // Act
@@ -523,4 +507,39 @@ public class QuestionServiceImplTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCodeValue());
         assertEquals("Error while adding your vote, please retry", response.getBody());
     }
+    @Test
+    void testVoteWithOppositeRank_ReturnsCreatedWithCorrectRank() {
+        // Arrange
+        VoteDTO voteDTO = new VoteDTO(1L, 1L, -1);  // New vote with rank -1
+        Comment comment = new Comment();
+        comment.setId(1L);
+        comment.setVotes(new ArrayList<>());
+
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(1L);
+
+        Vote existingVote = new Vote();
+        existingVote.setRank(1);  // Existing vote rank is 1 (opposite)
+        existingVote.setVoteId(new VoteId(enrichedDoctor.getId(), comment.getId()));
+        existingVote.setComment(comment);
+
+        // Add existing vote to comment's votes list
+        comment.getVotes().add(existingVote);
+
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(comment));
+        when(enrichedDoctorRepository.findById(1L)).thenReturn(Optional.of(enrichedDoctor));
+        when(voteRepository.findById(any())).thenReturn(Optional.of(existingVote));
+        when(voteRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        ResponseEntity<?> response = questionService.addVoteToQuestion(voteDTO);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED.value(), response.getStatusCodeValue());
+        VoteDTO responseVoteDTO = (VoteDTO) response.getBody();
+
+        // Since ranks differ, the vote should update to new rank (-1)
+        assertEquals(-1, responseVoteDTO.getRank());
+    }
+
 }

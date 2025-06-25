@@ -8,60 +8,42 @@ import {
   Paper,
   Divider,
   Button,
-  Chip
+  Chip,
+  TextField,
+  Pagination,
+  InputAdornment
 } from '@mui/material';
-import { Article, Category, MedicalServices, Add } from '@mui/icons-material';
+import {
+  Article,
+  Category,
+  MedicalServices,
+  Add,
+  Search as SearchIcon
+} from '@mui/icons-material';
 import { blue } from '@mui/material/colors';
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from 'react-router-dom';
+import useFetch from '../../Hooks/useFetch';
+import { ARTICLE_SEARCH_URL } from "../../API/APIRoutes";
 
 const ShowArticles = () => {
   const [expandedArticles, setExpandedArticles] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const articlesPerPage = 5;
   const navigate = useNavigate();
 
-  // Mock data - will be replaced with DB fetch
-  const articles = [
-    {
-      id: 'art-001',
-      title: "Advances in Cardiac Treatment",
-      content: "Recent breakthroughs in cardiac treatment have shown significant improvement in patient outcomes. The new techniques involve minimally invasive procedures that reduce recovery time. These procedures are now being adopted worldwide, with success rates exceeding 90% in most cases. Patients report less pain and faster return to normal activities compared to traditional open-heart surgeries. The article explores several case studies and the long-term benefits observed over a 5-year period.",
-      category: "Cardiology",
-      date: "2023-06-15",
-      doctorId: "doc-123",
-      doctorName: "Dr. Sarah Johnson",
-      doctorSpecialization: "Cardiologist"
-    },
-    {
-      id: 'art-002',
-      title: "Pediatric Nutrition Guidelines",
-      content: "Updated nutrition guidelines for children emphasize the importance of balanced diets from an early age. The new recommendations include increased intake of whole grains, reduced sugar consumption, and earlier introduction of diverse food groups. Research shows that children following these guidelines have lower rates of obesity and better cognitive development. The article provides detailed meal plans for different age groups and addresses common parental concerns about picky eaters and food allergies.",
-      category: "Pediatrics",
-      date: "2023-05-22",
-      doctorId: "doc-456",
-      doctorName: "Dr. Michael Chen",
-      doctorSpecialization: "Pediatrician"
-    },
-    {
-      id: 'art-003',
-      title: "Neurological Developments in 2023",
-      content: "This year has seen remarkable progress in understanding neurodegenerative diseases. New research suggests that early intervention with a combination of medication and cognitive therapy can slow progression of conditions like Alzheimer's by up to 40%. Breakthroughs in imaging technology allow for earlier diagnosis, while experimental treatments targeting protein buildup in the brain show promise in clinical trials. The article reviews these developments and discusses their implications for future treatment protocols.",
-      category: "Neurology",
-      date: "2023-04-10",
-      doctorId: "doc-789",
-      doctorName: "Dr. Emily Wong",
-      doctorSpecialization: "Neurologist"
-    }
-  ];
+  const { data: articles, totalPages, isLoading, error } = useFetch(searchTerm, currentPage, articlesPerPage, ARTICLE_SEARCH_URL);
 
   const getInitials = (name) =>
-    name
-      .split(' ')
-      .filter(part => part.length > 0)
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
+      name
+          .split(' ')
+          .filter(part => part.length > 0)
+          .map(part => part[0])
+          .join('')
+          .toUpperCase();
 
   const toggleExpand = (articleId) => {
     setExpandedArticles(prev => ({
@@ -70,134 +52,147 @@ const ShowArticles = () => {
     }));
   };
 
-  return (
-    <>
-      <ScrollToTop />
-      <Navbar />
-      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-          '&:before, &:after': {
-            content: '""',
-            flex: 1,
-            // borderBottom: '1px solid',
-            borderColor: 'divider',
-            mr: 1,
-            ml: 1
-          }
-        }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Medical Articles
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => navigate('/AddArticle')} // Adjust the route as needed
-            sx={{
-              bgcolor: "#33b4d4",
-              "&:hover": {
-                bgcolor: "#2a9cb3",
-              },
-              ml: 2,
-            }}
-          >
-            New Article
-          </Button>
-        </Box>
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setCurrentPage(1); // Reset to first page when search changes
+  };
 
-        {articles.length === 0 ? (
-          <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-            <Article sx={{ fontSize: 60, color: "#33b4d4", mb: 2 }} />
-            <Typography variant="h6" color="textSecondary">
-              No articles available yet
+  const handlePageChange = (_, value) => {
+    setCurrentPage(value);
+  };
+
+
+  return (
+      <>
+        <ScrollToTop />
+        <Navbar />
+        <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 4
+          }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              Medical Articles
             </Typography>
             <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => navigate('/articles/create')}
-              sx={{
-                mt: 2,
-                bgcolor: "#33b4d4",
-              "&:hover": {
-                bgcolor: "#2a9cb3"}
-              }}
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => navigate('/AddArticle')}
+                sx={{
+                  bgcolor: "#33b4d4",
+                  "&:hover": {
+                    bgcolor: "#2a9cb3",
+                  },
+                }}
             >
-              Create First Article
+              New Article
             </Button>
-          </Paper>
-        ) : (
-          <Paper elevation={3} sx={{ p: 0 }}>
-            {articles.map((article, index) => (
-              <React.Fragment key={article.id}>
-                <Box sx={{ p: 3 }}>
-                  <CardHeader
-                    avatar={
-                      <Avatar sx={{ bgcolor: "#33b4d4", width: 50, height: 50 }}>
-                        {getInitials(article.doctorName)}
-                      </Avatar>
-                    }
-                    title={article.doctorName}
-                    subheader={`${article.doctorSpecialization} • ${article.date}`}
-                    action={
-                      <Chip
-                        icon={<Category />}
-                        label={article.category}
-                        color="primary"
-                        sx={{ mr: 2 }}
-                      />
-                    }
-                  />
-                  <CardContent sx={{ pt: 0 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
-                      {article.title}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        whiteSpace: 'pre-line',
-                        mb: 3,
-                        ...(!expandedArticles[article.id] && {
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        })
-                      }}
-                    >
-                      {article.content}
-                    </Typography>
-                    <Button
-                      variant="outlined"
-                      startIcon={<MedicalServices />}
-                      onClick={() => toggleExpand(article.id)}
-                      sx={{
-                        color: "#33b4d4",
-                        borderColor: "#33b4d4",
-                        '&:hover': {
-                          borderColor: "#2a9cb3",
-                          backgroundColor: blue[50]
-                        }
-                      }}
-                    >
-                      {expandedArticles[article.id] ? 'Show Less' : 'Read Full Article'}
-                    </Button>
-                  </CardContent>
-                </Box>
+          </Box>
 
-                {/* Add divider after each article except the last one */}
-                {index < articles.length - 1 && (
-                  <Divider sx={{ mx: 3, border: '1px solid' }} />
-                )}
-              </React.Fragment>
-            ))}
-          </Paper>
-        )}
-      </Box>
-      <Footer />
-    </>
+          <TextField
+              placeholder="Search articles..."
+              variant="outlined"
+              fullWidth
+              value={searchTerm}
+              onChange={handleSearchChange}
+              sx={{ mb: 4 }}
+              InputProps={{
+                startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                )
+              }}
+          />
+
+          {articles.length === 0 ? (
+              <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                <Article sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+                <Typography variant="h6" color="textSecondary">
+                  No articles found
+                </Typography>
+              </Paper>
+          ) : (
+              <>
+                <Paper elevation={3} sx={{ p: 0 }}>
+                  {articles.map((article, index) => (
+                      <React.Fragment key={article.id}>
+                        <Box sx={{ p: 3 }}>
+                          <CardHeader
+                              avatar={
+                                <Avatar sx={{ bgcolor: blue[500], width: 50, height: 50 }}>
+                                  {getInitials(article.doctorName)}
+                                </Avatar>
+                              }
+                              title={article.doctorName}
+                              subheader={`${article.doctorSpecialization} • ${article.date}`}
+                              action={
+                                <Chip
+                                    icon={<Category />}
+                                    label={article.category}
+                                    color="primary"
+                                    sx={{ mr: 2 }}
+                                />
+                              }
+                          />
+                          <CardContent sx={{ pt: 0 }}>
+                            <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+                              {article.title}
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                  whiteSpace: 'pre-line',
+                                  mb: 3,
+                                  ...(!expandedArticles[article.id] && {
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                  })
+                                }}
+                            >
+                              {article.content}
+                            </Typography>
+                            <Button
+                                variant="outlined"
+                                startIcon={<MedicalServices />}
+                                onClick={() => toggleExpand(article.id)}
+                                sx={{
+                                  color: blue[500],
+                                  borderColor: blue[500],
+                                  '&:hover': {
+                                    borderColor: blue[700],
+                                    backgroundColor: blue[50]
+                                  }
+                                }}
+                            >
+                              {expandedArticles[article.id] ? 'Show Less' : 'Read Full Article'}
+                            </Button>
+                          </CardContent>
+                        </Box>
+                        {index < articles.length - 1 && (
+                            <Divider sx={{ mx: 3, border: '1px solid' }} />
+                        )}
+                      </React.Fragment>
+                  ))}
+                </Paper>
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                  <Pagination
+                      count={totalPages}
+                      page={currentPage}
+                      onChange={handlePageChange}
+                      color="primary"
+                  />
+                </Box>
+              </>
+          )}
+        </Box>
+        <Footer />
+      </>
   );
 };
 
