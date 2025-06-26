@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -209,5 +211,23 @@ public class DoctorService {
                 .map(DayAvailabilityResponse::toDto)
                 .collect(Collectors.toList());
     }
+    @Transactional
+    public void bookTimeSlot(Long doctorId, DayOfWeek day, LocalTime startTime, boolean booked) {
+        // Verify the doctor exists
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new EntityNotFoundException("Doctor not found with ID: " + doctorId));
 
+        // Find the time slot by day and start time
+        TimeSlot timeSlot = doctor.getAvailableDays().stream()
+                .filter(dayAvailability -> dayAvailability.getDayOfWeek() == day)
+                .flatMap(dayAvailability -> dayAvailability.getTimeSlots().stream())
+                .filter(slot -> slot.getStartTime().equals(startTime))
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("Time slot not found for doctor %d on %s at %s",
+                                doctorId, day, startTime)));
+
+        timeSlot.setBooked(booked);
+        doctorRepository.save(doctor);
+    }
 }

@@ -28,6 +28,7 @@ import Navbar from "../../Components/Navbar/Navbar";
 import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import useGet from "../../Hooks/useGet";
 import useDelete from "../../Hooks/useDelete";
+import usePost from "../../Hooks/usePost";
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
@@ -35,6 +36,7 @@ const MyAppointments = () => {
     const { userId } = useSelector((state) => state.user);
     const { loading, getItem } = useGet();
     const { loading: cancelLoading, deleteItem } = useDelete();
+    const { loading: bookingLoading, postItem } = usePost(); // Get postItem from usePost
 
     // Function to fetch appointments from backend
     const fetchAppointments = async () => {
@@ -68,12 +70,34 @@ const MyAppointments = () => {
             time: appointment.time,
             state: "PENDING", // Set the state to CANCELLED as required
         };
+
+        const handleAppointmentSuccess = async (responseData) => {
+            try {
+                // Second POST - Mark time slot as booked
+                await postItem(
+                    `/api/doctor/${appointment.doctorDetails.userId}/availability/book`,
+                    {
+                        day: new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(),
+                        startTime: appointment.time,
+                        booked: false
+                    },
+                    () => {
+                    },
+                    "Time slot unbooked successfully!",
+                    "Failed to update time slot status"
+                );
+            } catch (error) {
+                console.error("Error updating time slot:", error);
+                alert("Appointment was created but failed to update time slot status");
+            }
+        };
         await deleteItem(
             `/api/appointment/cancel`,
             cancellationData, // Pass the data payload here
             (data) => {
                 // deleteCallback
                 // Success callback - refresh appointments
+                handleAppointmentSuccess();
                 fetchAppointments();
             },
             "Appointment cancelled successfully", // successMessage

@@ -26,5 +26,6 @@ public class TimeSlot {
 
     @Max(value = 6, message = "Duration cannot exceed 6 hours")
     private Byte duration;
-
+    @Builder.Default
+    private boolean booked = false; // New field
 }

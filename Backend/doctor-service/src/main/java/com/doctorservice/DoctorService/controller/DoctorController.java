@@ -102,5 +102,11 @@ public class DoctorController {
         List<DayAvailabilityResponse> availability = doctorService.getDoctorAvailability(userId);
         return ResponseEntity.ok(availability);
     }
-
+    @PostMapping("/{userId}/availability/book")
+    public ResponseEntity<?> bookTimeSlot(
+            @PathVariable Long userId,
+            @Valid @RequestBody BookTimeSlotRequest request) {
+        doctorService.bookTimeSlot(userId, request.getDay(), request.getStartTime(), request.isBooked());
+        return ResponseEntity.ok().build();
+    }
 }

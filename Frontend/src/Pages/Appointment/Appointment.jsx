@@ -28,6 +28,8 @@ const transformDoctorData = (doctors) => {
                     slot.duration
                 ),
                 duration: slot.duration,
+                booked: slot.booked // Add booked status
+
             }))
         );
 
@@ -44,6 +46,8 @@ const transformDoctorData = (doctors) => {
                     timeslot: "No time slots",
                     phone: doctor.phone,
                     rawAvailability: doctor.availability,
+                    booked: true // Mark as booked to disable button
+
                 },
             ];
         }
@@ -59,6 +63,8 @@ const transformDoctorData = (doctors) => {
             timeslot: `${slot.startTime}-${slot.endTime}`,
             phone: doctor.phone,
             rawAvailability: doctor.availability,
+            booked: slot.booked // Include booked status
+
         }));
     });
 };
@@ -157,32 +163,49 @@ const Appointment = () => {
             headerAlign: "center",
             headerName: "Book",
             width: 170,
-            headerClassName: "header",
-            align: "center",
-            renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => handleBookAppointment(params.row)}
-                    disabled={params.row.day === "Not available"}
-                    sx={{
-                        backgroundColor:
-                            params.row.day === "Not available"
-                                ? "#e0e0e0"
-                                : "#33b4d4",
-                        "&:hover": {
-                            backgroundColor:
-                                params.row.day === "Not available"
-                                    ? "#e0e0e0"
-                                    : "#2a96b3",
-                        },
-                    }}
-                >
-                    {params.row.day === "Not available"
-                        ? "Unavailable"
-                        : "Book Now"}
-                </Button>
-            ),
+            renderCell: (params) => {
+                const isUnavailable = params.row.day === "Not available";
+                const isBooked = params.row.booked;
+                const isDisabled = isUnavailable || isBooked;
+
+                return (
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleBookAppointment(params.row)}
+                        disabled={isDisabled}
+                        sx={{
+                            backgroundColor: isBooked
+                                ? "#f44336" // Solid red for booked
+                                : isUnavailable
+                                    ? "#e0e0e0" // Grey for unavailable
+                                    : "#4caf50", // Green for available
+                            "&:hover": {
+                                backgroundColor: isBooked
+                                    ? "#d32f2f" // Darker red on hover
+                                    : isUnavailable
+                                        ? "#e0e0e0" // Keep grey on hover
+                                        : "#388e3c", // Darker green on hover
+                            },
+                            "&.Mui-disabled": {
+                                backgroundColor: isBooked
+                                    ? "#f44336" // Keep red when disabled
+                                    : "#e0e0e0", // Grey for unavailable
+                                color: isBooked
+                                    ? "#fff" // White text for red button
+                                    : "rgba(0, 0, 0, 0.26)", // Default disabled text
+                            },
+                            color: "#fff",
+                        }}
+                    >
+                        {isUnavailable
+                            ? "Unavailable"
+                            : isBooked
+                                ? "Booked"
+                                : "Book Now"}
+                    </Button>
+                );
+            },
         },
     ];
     const [searchCriteria, setSearchCriteria] = useState({});
@@ -240,58 +263,76 @@ const Appointment = () => {
             return;
         }
 
-        // Map weekday names to dayjs numerical values (0 = Sunday ... 6 = Saturday)
-        const dayOfWeekMap = {
-            SUNDAY: 0,
-            MONDAY: 1,
-            TUESDAY: 2,
-            WEDNESDAY: 3,
-            THURSDAY: 4,
-            FRIDAY: 5,
-            SATURDAY: 6,
-        };
-
-        const today = dayjs(); // today's date
-        const todayDay = today.day() + 1; // 0-6
-        const targetDay = dayOfWeekMap[slotData.day]; // convert "Monday" => 1 etc.
-
-        let daysToAdd = targetDay - todayDay;
-        if (daysToAdd <= 0) {
-            daysToAdd += 7; // always pick the next occurrence of the day
+        if (slotData.booked) {
+            alert("This time slot is already booked");
+            return;
         }
 
-        const appointmentDate = today.add(daysToAdd, "day"); // calculate future date
-        const appointmentDateToSend = appointmentDate.format("YYYY-MM-DD"); // format properly
-        const appointmentData = {
-            userId: userId,
-            doctorId: slotData.doctorId,
-            date: appointmentDateToSend,
-            time: slotData.timeslot.split("-")[0] + ":00",
-            state: "PENDING",
+        // Calculate appointment date
+        const dayOfWeekMap = {
+            SUNDAY: 0, MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3,
+            THURSDAY: 4, FRIDAY: 5, SATURDAY: 6
         };
-        // console.log("appointment to be scheduled: " , appointmentData)
-        await postItem(
-            "/api/appointment/book",
-            appointmentData,
-            (responseData) => {
-                // console.log("Success:", responseData);
-                // Refresh with current search criteria
-                searchDoctors({
-                    ...searchCriteria,
-                    page: paginationModel.page,
-                    size: paginationModel.pageSize,
-                }).catch(console.error);
-            },
-            "Appointment booked!",
-            "Booking failed",
-            null,
-            true,
-            "post",
-            {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-            }
-        );
+
+        const today = dayjs();
+        const todayDay = today.day();
+        const targetDay = dayOfWeekMap[slotData.day];
+
+        let daysToAdd = targetDay - todayDay;
+        if (daysToAdd <= 0) daysToAdd += 7;
+
+        const appointmentDate = today.add(daysToAdd, "day");
+        const appointmentDateToSend = appointmentDate.format("YYYY-MM-DD");
+        const startTime = slotData.timeslot.split("-")[0] + ":00";
+
+        try {
+            // Define success handler for appointment booking
+            const handleAppointmentSuccess = async (responseData) => {
+                try {
+                    // Second POST - Mark time slot as booked
+                    await postItem(
+                        `/api/doctor/${slotData.doctorId}/availability/book`,
+                        {
+                            day: slotData.day,
+                            startTime: startTime,
+                            booked: true
+                        },
+                        () => {
+                            // Refresh data after successful booking
+                            searchDoctors({
+                                ...searchCriteria,
+                                page: paginationModel.page,
+                                size: paginationModel.pageSize,
+                            });
+                        },
+                        "Time slot booked successfully!",
+                        "Failed to update time slot status"
+                    );
+                } catch (error) {
+                    console.error("Error updating time slot:", error);
+                    alert("Appointment was created but failed to update time slot status");
+                }
+            };
+
+            // First POST - Create appointment with success handler
+            await postItem(
+                "/api/appointment/book",
+                {
+                    userId: userId,
+                    doctorId: slotData.doctorId,
+                    date: appointmentDateToSend,
+                    time: startTime,
+                    state: "PENDING"
+                },
+                handleAppointmentSuccess, // Using the defined success handler
+                "Creating appointment...",
+                "Failed to create appointment"
+            );
+
+        } catch (error) {
+            console.error("Booking error:", error);
+            alert("An error occurred during booking. Please try again.");
+        }
     };
     const fetchDropdownOptions = async () => {
         try {
@@ -491,10 +532,10 @@ const Appointment = () => {
                                         }}
                                         minTime={
                                             selectedDate &&
-                                            dayjs(selectedDate).isSame(
-                                                dayjs(),
-                                                "day"
-                                            )
+                                                dayjs(selectedDate).isSame(
+                                                    dayjs(),
+                                                    "day"
+                                                )
                                                 ? dayjs()
                                                 : null
                                         }
@@ -570,9 +611,9 @@ const Appointment = () => {
                                 backgroundColor: "rgba(63, 81, 181, 0.08)",
                             },
                             "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                                {
-                                    margin: 0,
-                                },
+                            {
+                                margin: 0,
+                            },
                             "& .MuiDataGrid-columnHeader": {
                                 display: "flex",
                                 justifyContent: "center",
