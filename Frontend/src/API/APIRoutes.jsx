@@ -6,3 +6,9 @@ export const USER_SIGNUP_DOCTOR_URL = `${USER_AUTHENTICATION_URL}/signup/doctor`
 export const GET_CURRENT_USER = `${USER_AUTHENTICATION_URL}/get-current-user`;
 export const GET_VERIFICATION_LINK = `${USER_AUTHENTICATION_URL}/verify-id`;
 export const USER_LOGOUT = `${USER_AUTHENTICATION_URL}/logout`;
+
+/******** Chat **********/
+export const CHAT_URL = "/chat";
+export const GET_CHAT_ROOMS = `${CHAT_URL}/rooms`;
+export const GET_CHAT_ROOM_MESSAGES = `${CHAT_URL}/messages`;
+

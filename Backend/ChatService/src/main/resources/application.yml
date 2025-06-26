@@ -7,9 +7,9 @@ spring:
       discovery:
         locator: true
   datasource:
-    url: "jdbc:postgresql://pg-3263529-karemtarek0222-5b8a.i.aivencloud.com:28761/defaultdb?ssl-mode=REQUIRED"
+    url: "jdbc:postgresql://pg-279e6e20-tarektempo015-db92.i.aivencloud.com:28688/defaultdb?ssl=true&sslmode=require"
     username: "avnadmin"
-    password: "AVNS_ZHq-pn-V-9rTdydKnND"
+    password: "AVNS_RvLdahdOHCXA00EfjMN"
     driver-class-name: "org.postgresql.Driver"
   jpa:
     database-platform: "org.hibernate.dialect.PostgreSQLDialect"

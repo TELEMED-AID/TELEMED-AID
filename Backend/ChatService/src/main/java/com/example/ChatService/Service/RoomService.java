@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
@@ -33,21 +35,23 @@ public class RoomService {
             room.setOwnerId(roomCreationDto.getOwnerId());
 
             List<RoomUser> roomUsers = roomCreationDto.getUsers().stream()
-                    .map(user -> RoomUser.builder()
-                            .room(room)
-                            .userId(user.getId())
-                            .userName(user.getName())
-                            .build())
-                    .toList();
+                    .map(user -> {
+                        RoomUser ru = new RoomUser();
+                        ru.setUserId(user.getId());
+                        ru.setUserName(user.getName());
+                        ru.setRoom(room);
+                        return ru;
+                    })
+                    .collect(Collectors.toList());
 
             room.setRoomUsers(roomUsers);
-            roomRepository.save(room);
 
-            return room.getId();
+            return roomRepository.save(room).getId();
         } catch (Exception e) {
             throw new RoomCreationException("Failed to create room", e);
         }
     }
+
 
     public Boolean joinRoom(JoinRoomDto joinRoomDto) {
         try {
@@ -76,7 +80,8 @@ public class RoomService {
 
     public List<SimpleRoomsDto> getAllRoomForUser(Long userId) {
         try {
-            List<Room> rooms = roomRepository.findRoomsWithUsersByUserId(userId);
+
+            List<Room> rooms = roomRepository.findRoomsWithAllUsersByUserId(userId);
             return rooms.stream()
                     .map(room -> SimpleRoomsDto.builder()
                             .roomId(room.getId())
@@ -112,6 +117,11 @@ public class RoomService {
                 .map(message -> SimpleMessageDto.builder()
                         .id(message.getId())
                         .senderId(message.getSenderId())
+                        .senderName(room.getRoomUsers().stream()
+                                .filter(ru -> ru.getUserId().equals(message.getSenderId()))
+                                .findFirst()
+                                .map(RoomUser::getUserName)
+                                .orElse("Unknown User"))
                         .content(message.getContent())
                         .createdAt(message.getCreatedAt())
                         .build())
@@ -119,9 +129,10 @@ public class RoomService {
     }
 
     @Transactional
-    public Boolean sendMessage(ChatMessageDto message) {
+    public SimpleMessageDto sendMessage(ChatMessageDto message) {
 
         try {
+            System.out.println(message.toString());
             if (!isUserInRoom(message.getSenderId(), message.getRoomId())) {
                 throw new RuntimeException("User is not in the room");
             }
@@ -136,7 +147,19 @@ public class RoomService {
                     .build();
 
             messageRepository.save(newMessage);
-            return true;
+
+            SimpleMessageDto simpleMessageDto = SimpleMessageDto.builder()
+                    .id(newMessage.getId())
+                    .senderId(newMessage.getSenderId())
+                    .senderName(room.getRoomUsers().stream()
+                            .filter(ru -> ru.getUserId().equals(newMessage.getSenderId()))
+                            .findFirst()
+                            .map(RoomUser::getUserName)
+                            .orElse("Unknown User"))
+                    .content(newMessage.getContent())
+                    .createdAt(newMessage.getCreatedAt())
+                    .build();
+            return simpleMessageDto;
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error occurred");
         }

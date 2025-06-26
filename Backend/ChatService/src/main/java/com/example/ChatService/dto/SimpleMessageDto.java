@@ -18,6 +18,7 @@ public class SimpleMessageDto {
     private Long id;
     @NotBlank(message = "Sender ID is required")
     private Long senderId;
+    private String senderName;
     private String content;
     private Date createdAt;
 
