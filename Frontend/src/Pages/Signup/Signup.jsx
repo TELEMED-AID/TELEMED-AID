@@ -41,11 +41,15 @@ import TimerIcon from "@mui/icons-material/Timer";
 import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 export default function Signup() {
     const { handleSubmit, setValue } = useForm();
-
+    const [specializations, setSpecializations] = useState([]);
+    const [careerLevels, setCareerLevels] = useState([]);
+    const [loadingSpecializations, setLoadingSpecializations] = useState(false);
+    const [loadingCareerLevels, setLoadingCareerLevels] = useState(false);
     let validationSchema = Joi.object({
         name: NameValidation("Full Name"),
         nationalId: NationalIdValidation("National Id"),
         countryName: DropDownValidation("Country Name", false),
+        countryId: WithoutValidation,
         phone: PhoneValidation("Phone Number"),
         dateOfBirth: pastOrNowDateValidation,
         gender: DropDownValidation("Gender", false),
@@ -58,6 +62,7 @@ export default function Signup() {
         name: "",
         nationalId: "",
         countryName: "",
+        countryId: "",  // Add this field
         phone: "",
         dateOfBirth: "",
         gender: "",
@@ -95,7 +100,10 @@ export default function Signup() {
     };
     const findCountryPhoneCode = (countryName) => {
         let country = countries.find((country) => country.name === countryName);
-        return country?.phoneCode;
+        return {
+            phoneCode: country?.phoneCode,
+            countryId: country?.code  // Add this line
+        };
     };
 
     const getVerificationLink = (data) => {
@@ -115,7 +123,39 @@ export default function Signup() {
     const [isVerificationButtonEnabled, setIsVerificationButtonEnabled] =
         useState(localStorage.getItem("lastClickTime") ? false : true);
     const [timeRemaining, setTimeRemaining] = useState(0);
+    useEffect(() => {
+        if (isDoctor) {
+            // Fetch specializations
+            setLoadingSpecializations(true);
+            getItem(
+                '/api/doctor/specialization', // Adjust this endpoint as needed
+                false,
+                (response) => {
+                    setSpecializations(response);
+                    setLoadingSpecializations(false);
+                },
+                (error) => {
+                    console.error("Error fetching specializations:", error);
+                    setLoadingSpecializations(false);
+                }
+            );
 
+            // Fetch career levels
+            setLoadingCareerLevels(true);
+            getItem(
+                '/api/doctor/career-level', // Adjust this endpoint as needed
+                false,
+                (response) => {
+                    setCareerLevels(response);
+                    setLoadingCareerLevels(false);
+                },
+                (error) => {
+                    console.error("Error fetching career levels:", error);
+                    setLoadingCareerLevels(false);
+                }
+            );
+        }
+    }, [isDoctor]);
     useEffect(() => {
         const lastClickTime = localStorage.getItem("lastClickTime");
 
@@ -172,22 +212,21 @@ export default function Signup() {
     };
 
     const onSignupSubmit = async () => {
-        console.log("******************************************");
         const currentInquiryId = localStorage.getItem("inquiryId") || "";
         // Update requestState with role and inquiryId
         const updatedRequestState = {
             ...requestState,
             role: isDoctor ? "DOCTOR" : "PATIENT",
-            inquiryId: currentInquiryId, // Add this line
+            inquiryId: "inq_z5hXEQxdWAZKjsyGQtThHZx9XciB", // Add this line
+            countryId: requestState.countryId,
         };
+        console.log(updatedRequestState);
         if (!isDoctor) {
             const {
                 specializationName,
                 careerLevelName,
                 ...patientRequestState
             } = requestState;
-            console.log(patientRequestState);
-
             const patientRequest = await submitFormWithValidation(
                 patientRequestState,
                 false,
@@ -201,14 +240,13 @@ export default function Signup() {
                 return;
             }
             // api to call request for user signup user request
-            console.log(patientRequest);
             postItem(
                 USER_SIGNUP_PATIENT_URL,
                 patientRequest,
                 signupRequestCallBack,
                 "Signup Success",
                 null,
-                () => {},
+                () => { },
                 true,
                 "post"
             );
@@ -239,7 +277,7 @@ export default function Signup() {
                 signupRequestCallBack,
                 "Signup Success",
                 null,
-                () => {},
+                () => { },
                 true,
                 "post"
             );
@@ -357,14 +395,16 @@ export default function Signup() {
                                     name="country"
                                     state={requestState.countryName}
                                     setState={(value) => {
+                                        const countryInfo = findCountryPhoneCode(value);
                                         setRequestState({
                                             ...requestState,
                                             countryName: value,
+                                            countryId: countryInfo.countryId  // Store the country code
                                         });
                                         setErrors({
                                             ...errors,
                                             countryName: "",
-                                        }); // Clear error message on selection
+                                        });
                                     }}
                                     helperText={errors?.countryName}
                                     items={countries}
@@ -390,7 +430,7 @@ export default function Signup() {
                                             <InputAdornment position="start">
                                                 {findCountryPhoneCode(
                                                     requestState.countryName
-                                                )}
+                                                ).phoneCode}
                                             </InputAdornment>
                                         ),
                                     }}
@@ -573,82 +613,67 @@ export default function Signup() {
                                 <Box
                                     sx={{
                                         display: "flex",
-                                        flexDirection: {
-                                            xs: "column",
-                                            sm: "row",
-                                        }, // Stack on mobile, row on desktop
-                                        gap: 2, // Consistent spacing between items
+                                        flexDirection: { xs: "column", sm: "row" },
+                                        gap: 2,
                                         justifyContent: "space-evenly",
                                         mb: 2,
                                     }}
                                 >
-                                    <Box
-                                        sx={{
-                                            width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ mb: 1 }}
-                                        >
+                                    <Box sx={{ width: { xs: "100%", sm: "45%" } }}>
+                                        <Typography variant="body1" sx={{ mb: 1 }}>
                                             Specialization
                                         </Typography>
-                                        <SearchableDropDown
-                                            placeholder="Select your specialization"
-                                            name="specialization"
-                                            state={
-                                                requestState.specializationName
-                                            }
-                                            setState={(value) => {
-                                                setRequestState({
-                                                    ...requestState,
-                                                    specializationName: value,
-                                                });
-                                                setErrors({
-                                                    ...errors,
-                                                    specializationName: "",
-                                                }); // Clear error message on selection
-                                            }}
-                                            helperText={
-                                                errors?.specializationName
-                                            }
-                                            items={[
-                                                { name: "test1" },
-                                                { name: "test3" },
-                                            ]} // Fill it from the backend
-                                        />
+                                        {loadingSpecializations ? (
+                                            <LoadingComponent size="1.5rem" thickness={4} />
+                                        ) : (
+                                            <SearchableDropDown
+                                                placeholder="Select your specialization"
+                                                name="specialization"
+                                                state={requestState.specializationName}
+                                                setState={(value) => {
+                                                    setRequestState({
+                                                        ...requestState,
+                                                        specializationName: value,
+                                                    });
+                                                    setErrors({
+                                                        ...errors,
+                                                        specializationName: "",
+                                                    });
+                                                }}
+                                                helperText={errors?.specializationName}
+                                                items={specializations.map(spec => ({
+                                                    name: spec.specializationName || spec.name
+                                                }))}
+                                            />
+                                        )}
                                     </Box>
-                                    <Box
-                                        sx={{
-                                            width: { xs: "100%", sm: "45%" }, // Full width on mobile, 45% on desktop
-                                        }}
-                                    >
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ mb: 1 }}
-                                        >
+                                    <Box sx={{ width: { xs: "100%", sm: "45%" } }}>
+                                        <Typography variant="body1" sx={{ mb: 1 }}>
                                             Career Level
                                         </Typography>
-                                        <SearchableDropDown
-                                            placeholder="Select your career level"
-                                            name="career"
-                                            state={requestState.careerLevelName}
-                                            setState={(value) => {
-                                                setRequestState({
-                                                    ...requestState,
-                                                    careerLevelName: value,
-                                                });
-                                                setErrors({
-                                                    ...errors,
-                                                    careerLevelName: "",
-                                                }); // Clear error message on selection
-                                            }}
-                                            helperText={errors?.careerLevelName}
-                                            items={[
-                                                { name: "test1" },
-                                                { name: "test3" },
-                                            ]} // Fill it from the backend
-                                        />
+                                        {loadingCareerLevels ? (
+                                            <LoadingComponent size="1.5rem" thickness={4} />
+                                        ) : (
+                                            <SearchableDropDown
+                                                placeholder="Select your career level"
+                                                name="career"
+                                                state={requestState.careerLevelName}
+                                                setState={(value) => {
+                                                    setRequestState({
+                                                        ...requestState,
+                                                        careerLevelName: value,
+                                                    });
+                                                    setErrors({
+                                                        ...errors,
+                                                        careerLevelName: "",
+                                                    });
+                                                }}
+                                                helperText={errors?.careerLevelName}
+                                                items={careerLevels.map(level => ({
+                                                    name: level.careerLevelName || level.name
+                                                }))}
+                                            />
+                                        )}
                                     </Box>
                                 </Box>
                             </>

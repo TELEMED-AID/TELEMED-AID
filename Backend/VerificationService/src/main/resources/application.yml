@@ -37,7 +37,7 @@ endpoints:
 
 
 persona:
-  secret-key: persona_sandbox_bf8d63ed-1776-4a15-af11-22485d69ca70
+  secret-key: persona_sandbox_0d767e24-8333-43a3-b73c-15a8e21f7ae0
 
 inquiry:
-  template-id: itmpl_EsFy863H5Rt5uLyqw7gcJfyB8geq
+  template-id: itmpl_HHfacNC4rg2pKAFVmzkgUGbmStoH

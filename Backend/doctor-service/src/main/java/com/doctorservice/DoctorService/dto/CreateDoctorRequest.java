@@ -27,7 +27,7 @@ public class CreateDoctorRequest {
     private String gender;  // Added new field
 
     @NotBlank(message = "Phone is required")
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
+//    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone format")
     private String phone;  // Changed from phoneNumber to phone
 
     @NotNull(message = "Birth date is required")
