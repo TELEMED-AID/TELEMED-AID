@@ -4,6 +4,7 @@ import com.telemidAid.patient_service.dtos.CreatePatientRequest;
 import com.telemidAid.patient_service.dtos.GetPatientRequest;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
 import com.telemidAid.patient_service.service.PatientService;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

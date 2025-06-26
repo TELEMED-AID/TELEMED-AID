@@ -1,5 +1,6 @@
 import useGet from '../../Hooks/useGet';
 import React, { useState } from 'react';
+import { useSelector } from "react-redux";
 import {
   Box,
   Typography,
@@ -39,9 +40,10 @@ const ShowQuestions = () => {
   const navigate = useNavigate();
   const { loading: commentLoading, postItem } = usePost();
   const { getItem } = useGet();
-  const isDoctor = true;
-  const currentDoctorId = 1;
   const [commentTexts, setCommentTexts] = useState({});
+  const { userId, role } = useSelector((state) => state.user);
+  const currentDoctorId = userId;
+  const isDoctor = role === "DOCTOR";
 
   const { data: questions, totalPages, isLoading } = useFetch(
       searchTerm,
@@ -178,7 +180,7 @@ const ShowQuestions = () => {
         <Navbar />
         <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>Patient Questions</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>General Questions</Typography>
             <Button
                 variant="contained"
                 startIcon={<Add />}
@@ -205,13 +207,13 @@ const ShowQuestions = () => {
               </Box>
           ) : questions.length === 0 ? (
               <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-                <QuestionAnswer sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+                <QuestionAnswer sx={{ fontSize: 60, color: "#33b4d4", mb: 2 }} />
                 <Typography variant="h6" color="textSecondary">No questions available yet</Typography>
                 <Button
                     variant="contained"
                     startIcon={<Add />}
                     onClick={() => navigate('/AddQuestion')}
-                    sx={{ mt: 2, backgroundColor: blue[500], '&:hover': { backgroundColor: blue[700] } }}
+                    sx={{ mt: 2, backgroundColor: "#33b4d4", '&:hover': { backgroundColor: "#2a9cb3" } }}
                 >
                   Ask First Question
                 </Button>

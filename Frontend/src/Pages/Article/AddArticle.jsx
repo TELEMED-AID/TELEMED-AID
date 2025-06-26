@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
     Box,
     Button,
@@ -16,6 +17,7 @@ import {
     FormControl,
     InputLabel,
     CircularProgress,
+    Alert,
 } from "@mui/material";
 import {
     MedicalServices,
@@ -34,23 +36,80 @@ import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import { useNavigate } from "react-router-dom";
 import { ARTICLE_PUBLISH_URL } from "../../API/APIRoutes";
 import usePost from "../../Hooks/usePost";
+import useGet from "../../Hooks/useGet";
 
 const AddArticle = () => {
     const navigate = useNavigate();
     const { loading, postItem } = usePost();
+    const { getItem } = useGet();
+    const { userId, role } = useSelector((state) => state.user);
 
-    // Hardcoded doctor info
-    const doctorInfo = {
-        id: 1,
-        name: "Dr. Amr Taman",
-        specialization: "Cardiology",
-        careerLevel: "Consultant",
-        age: 20,
-        gender: "Male",
-        country: "EGY",
-        nationality: "Egyptian",
-        phone: "+20-1234568-123-4567",
-    };
+    // State for doctor info and categories
+    const [doctorInfo, setDoctorInfo] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [loadingDoctor, setLoadingDoctor] = useState(true);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [error, setError] = useState(null);
+
+    const [title, setTitle] = useState("");
+    const [content, setContent] = useState("");
+    const [category, setCategory] = useState("");
+
+    useEffect(() => {
+        if (role !== "DOCTOR") {
+            setError("Only doctors can submit articles");
+            setLoadingDoctor(false);
+            setLoadingCategories(false);
+            return;
+        }
+
+        const fetchDoctorData = async () => {
+            try {
+                await getItem(
+                    `/api/doctor/${userId}`,
+                    false,
+                    (response) => {
+                        setDoctorInfo(response);
+                        setLoadingDoctor(false);
+                    },
+                    (error) => {
+                        setError("Failed to load doctor information");
+                        setLoadingDoctor(false);
+                    }
+                );
+            } catch (err) {
+                setError("Error fetching doctor data");
+                setLoadingDoctor(false);
+            }
+        };
+
+        const fetchCategories = async () => {
+            try {
+                await getItem(
+                    `/api/doctor/specialization`,
+                    false,
+                    (response) => {
+                        setCategories(response);
+                        setLoadingCategories(false);
+                        // Set the first category as default if available
+                        if (response.length > 0) {
+                            setCategory(response[0]);
+                        }
+                    },
+                    (error) => {
+                        setError("Failed to load categories");
+                        setLoadingCategories(false);
+                    }
+                );
+            } catch (err) {
+                setError("Error fetching categories");
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchDoctorData();
+        fetchCategories();
+    }, [userId, role]);
 
     const getInitials = (name) =>
         name
@@ -60,21 +119,6 @@ const AddArticle = () => {
             .join("")
             .toUpperCase();
 
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
-    const [category, setCategory] = useState("");
-
-    const categories = [
-        "Cardiology",
-        "Neurology",
-        "Pediatrics",
-        "Oncology",
-        "Dermatology",
-        "General Medicine",
-        "Surgery",
-        "Psychiatry",
-    ];
-
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!title.trim() || !content.trim() || !category) return;
@@ -83,7 +127,7 @@ const AddArticle = () => {
             title,
             content,
             category,
-            doctorId: doctorInfo.id,
+            doctorId: userId, // Use the current user's ID
             articleTime: new Date().toISOString(),
         };
 
@@ -105,11 +149,131 @@ const AddArticle = () => {
         navigate("/ShowArticles");
     };
 
+    if (loadingDoctor || loadingCategories) {
+        return (
+            <>
+                <Navbar />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "80vh",
+                    }}
+                >
+                    <CircularProgress />
+                </Box>
+                <Footer />
+            </>
+        );
+    }
+
+    if (error) {
+        return (
+            <>
+                <Navbar />
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "80vh",
+                        p: 3,
+                    }}
+                >
+                    <Alert severity="error">{error}</Alert>
+                </Box>
+                <Footer />
+            </>
+        );
+    }
+
     return (
         <>
             <ScrollToTop />
             <Navbar />
             <Box sx={{ maxWidth: 1000, mx: "auto", p: 3 }}>
+                {/* Doctor Info Card */}
+                {doctorInfo && (
+                    <Card sx={{ mb: 3 }}>
+                        <CardContent>
+                            <Grid container spacing={2} alignItems="center">
+                                <Grid item>
+                                    <Avatar
+                                        sx={{
+                                            bgcolor: blue[500],
+                                            width: 56,
+                                            height: 56,
+                                        }}
+                                    >
+                                        {getInitials(doctorInfo.name)}
+                                    </Avatar>
+                                </Grid>
+                                <Grid item xs>
+                                    <Typography variant="h6">
+                                        {doctorInfo.name}
+                                    </Typography>
+                                    <Stack
+                                        direction="row"
+                                        spacing={1}
+                                        sx={{ mt: 1, flexWrap: "wrap" }}
+                                    >
+                                        {doctorInfo.specialization && (
+                                            <Chip
+                                                icon={<MedicalServices />}
+                                                label={doctorInfo.specialization}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.careerLevel && (
+                                            <Chip
+                                                icon={<Badge />}
+                                                label={doctorInfo.careerLevel}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.age && (
+                                            <Chip
+                                                icon={<Cake />}
+                                                label={`${doctorInfo.age} years`}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.gender && (
+                                            <Chip
+                                                icon={<Wc />}
+                                                label={doctorInfo.gender}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.nationality && (
+                                            <Chip
+                                                icon={<Public />}
+                                                label={doctorInfo.nationality}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.country && (
+                                            <Chip
+                                                icon={<Flag />}
+                                                label={doctorInfo.country}
+                                                size="small"
+                                            />
+                                        )}
+                                        {doctorInfo.phone && (
+                                            <Chip
+                                                icon={<Phone />}
+                                                label={doctorInfo.phone}
+                                                size="small"
+                                            />
+                                        )}
+                                    </Stack>
+                                </Grid>
+                            </Grid>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* Article Form */}
                 <Typography
                     variant="h5"
@@ -165,8 +329,8 @@ const AddArticle = () => {
                                         required
                                     >
                                         {categories.map((cat) => (
-                                            <MenuItem key={cat} value={cat}>
-                                                {cat}
+                                            <MenuItem key={cat.specializationName} value={cat.specializationName}>
+                                                {cat.specializationName}
                                             </MenuItem>
                                         ))}
                                     </Select>
@@ -236,3 +400,15 @@ const AddArticle = () => {
 };
 
 export default AddArticle;
+
+
+const categories = [
+    "Cardiology",
+    "Neurology",
+    "Pediatrics",
+    "Oncology",
+    "Dermatology",
+    "General Medicine",
+    "Surgery",
+    "Psychiatry",
+];

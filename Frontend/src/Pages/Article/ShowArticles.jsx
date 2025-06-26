@@ -109,7 +109,7 @@ const ShowArticles = () => {
 
           {articles.length === 0 ? (
               <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
-                <Article sx={{ fontSize: 60, color: blue[200], mb: 2 }} />
+                <Article sx={{ fontSize: 60, color: "#33b4d4", mb: 2 }} />
                 <Typography variant="h6" color="textSecondary">
                   No articles found
                 </Typography>

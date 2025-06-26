@@ -74,28 +74,28 @@ const Footer = () => {
                                 }}
                             >
                                 <Link
-                                    href="/"
+                                    href="/home"
                                     color="inherit"
                                     underline="hover"
                                 >
                                     Home
                                 </Link>
                                 <Link
-                                    href="/about"
+                                    href="/home"
                                     color="inherit"
                                     underline="hover"
                                 >
                                     About
                                 </Link>
                                 <Link
-                                    href="/services"
+                                    href="/home"
                                     color="inherit"
                                     underline="hover"
                                 >
                                     Services
                                 </Link>
                                 <Link
-                                    href="/contact"
+                                    href="/home"
                                     color="inherit"
                                     underline="hover"
                                 >

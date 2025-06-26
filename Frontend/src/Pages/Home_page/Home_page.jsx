@@ -48,28 +48,28 @@ const features = [
         description:
             "Patients can post detailed medical or wellness-related questions. These are publicly visible to registered doctors, encouraging community-based knowledge sharing and support.",
         image: questionsImg,
-        route: "/questions",
+        route: "/ShowQuestions",
     },
     {
         title: "Doctor Answers & Voting System",
         description:
             "Doctors can respond to patient questions and vote on other doctors' answers to highlight the most helpful responses. This peer-review approach helps patients trust the best advice.",
         image: voteImg,
-        route: "/answers",
+        route: "/showQuestions",
     },
     {
         title: "Publish Medical Articles",
         description:
             "Doctors can share their expertise by posting health-related articles. These articles help educate patients and establish the doctor’s credibility within the platform.",
         image: articlesImg,
-        route: "/articles",
+        route: "/showArticles",
     },
     {
         title: "Live Chat During Appointments",
         description:
             "At the time of the appointment, patients and doctors can engage in real-time chat. This feature allows efficient remote consultations without the need for physical visits. Note: You can create a chatting room from the profile",
         image: chatImg,
-        route: "/profile",
+        route: "/chat",
     },
 ];
 

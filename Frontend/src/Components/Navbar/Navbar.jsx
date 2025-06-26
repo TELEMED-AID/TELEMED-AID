@@ -48,6 +48,7 @@ const Navbar = () => {
     };
 
     const navItems = [
+        { name: "Home", path: "/home" },
         { name: "Profile", path: "/profile" },
         { name: "My Appointments", path: "/my-appointments" },
         { name: "Book an Appointment", path: "/book-appointment" },
