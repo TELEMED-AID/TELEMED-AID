@@ -57,7 +57,7 @@ public class AuthenticationService implements RouterGateway {
                     .userId(user.getId())
                     .name(request.getName())
                     .countryName(request.getCountryName())
-                    .countryId("EGP")
+                    .countryId(request.getCountryId())
                     .phone(request.getPhone())
                     .gender(request.getGender())
                     .birthDate(request.getDateOfBirth())

@@ -14,20 +14,6 @@ import {
     REGISTER,
 } from "redux-persist";
 import { combineReducers } from "redux";
-
-import storage from "redux-persist/lib/storage"; // Defaults to localStorage for web
-import {
-    persistStore,
-    persistReducer,
-    FLUSH,
-    REHYDRATE,
-    PAUSE,
-    PERSIST,
-    PURGE,
-    REGISTER,
-} from "redux-persist";
-import { combineReducers } from "redux"; // Used to combine multiple slice reducers
-
 // Configuration for redux-persist
 const persistConfig = {
     key: "root",

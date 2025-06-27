@@ -114,13 +114,13 @@ const UpdateInfo = () => {
                     specialization: formData.specialization,
                     careerLevel: formData.careerLevel,
                 };
-                updateEndpoint = "/api/doctor/22";
+                updateEndpoint = `/api/doctor/${userId}`;
             } else {
                 updateData = {
                     name: formData.name,
                     phone: formData.phone,
                 };
-                updateEndpoint = "/api/patient/update-patient/1"; // Assuming '1' is a placeholder for the patient ID
+                updateEndpoint = `/api/patient/update-patient/${userId}`; // Assuming '1' is a placeholder for the patient ID
             }
 
             // Use putItem instead of postItem

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSelector } from 'react-redux';
 import {
   Box,
   Typography,
@@ -39,25 +40,10 @@ import { Client } from "@stomp/stompjs";
 import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 import CircularProgress from "@mui/material/CircularProgress";
 
-// request to get all doctors (name, id)
-const availableUsers = [
-  "Dr. Brown",
-  "Nurse Jane",
-  "Patient Carol",
-  "Dr. Miller",
-  "Patient Dave",
-];
-// request to get all doctors (name, id)
-const mockUsers = [
-  { id: 1, name: "Dr. Smith", role: "Doctor" },
-  { id: 2, name: "Dr. Johnson", role: "Doctor" },
-  { id: 3, name: "Dr. Alice", role: "Doctor" },
-  { id: 4, name: "Dr. Bob", role: "Doctor" },
-];
 
 const ChatPage = () => {
   const navigate = useNavigate();
-
+  const { userId, role, isLogged } = useSelector((state) => state.user);
   const [sendingMessage, setSendingMessage] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -76,15 +62,63 @@ const ChatPage = () => {
   const [roomPopupOpen, setRoomPopupOpen] = useState(false);
   const { loading: sendMessageLoading, postItem: sendMessageApi } =
     usePostItem();
-  const { loading: getAllChatsLoading, getItem: getAllChats } = useGet();
+  const { loading: getAllChatsLoading, getItem: getAllChats, getItem } = useGet();
   const { loading: getChatMessagesLoading, getItem: getChatMessages } =
     useGet();
-
+  const Doctor = "DOCTOR";
   const [connected, setConnected] = useState(false);
   const [rooms, setRooms] = useState([]);
 
   const stompClient = useRef(null);
 
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [mockUsers, setMockUsers] = useState([]);
+
+  // Fetch simplified doctor data
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const response = await getItem('/api/doctor/simplified', false);
+
+        if (response) {
+          // Transform data for availableUsers (just names)
+          const doctorNames = response.map(doctor => doctor.name);
+          setAvailableUsers(doctorNames);
+          console.log('Available Users:', doctorNames);
+          
+          // Transform data for mockUsers (with id, name, role)
+          const formattedDoctors = response.map(doctor => ({
+            id: doctor.userId,  // matches SimplifiedDoctorDto.userId
+            name: doctor.name,  // matches SimplifiedDoctorDto.name
+            role: Doctor,
+            specialization: doctor.specializationName,  // from DTO
+            careerLevel: doctor.careerLevelName  // from DTO
+          }));
+          
+          setMockUsers(formattedDoctors);
+          console.log('Mock Users:', formattedDoctors);
+        }
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+        // Fallback to default data if API fails
+        // setAvailableUsers([
+        //   "Dr. Brown",
+        //   "Nurse Jane",
+        //   "Patient Carol",
+        //   "Dr. Miller",
+        //   "Patient Dave"
+        // ]);
+        // setMockUsers([
+        //   { id: 1, name: "Dr. Smith", role: "Doctor" },
+        //   { id: 2, name: "Dr. Johnson", role: "Doctor" },
+        //   { id: 3, name: "Dr. Alice", role: "Doctor" },
+        //   { id: 4, name: "Dr. Bob", role: "Doctor" }
+        // ]);
+      }
+    };
+
+    fetchDoctors();
+}, []); // Empty dependency array
   useEffect(() => {
     // setMessages(mockMessages[currentRoom] || []);
   }, [currentRoom]);
@@ -110,7 +144,7 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    getAllChats(GET_CHAT_ROOMS + "/1", false, getAllChatsCallBack);
+    getAllChats(GET_CHAT_ROOMS + `/${userId}`, false, getAllChatsCallBack);
   }, []);
 
   const scrollToBottom = () => {
@@ -129,7 +163,7 @@ const ChatPage = () => {
     if (message.trim()) {
       setSendingMessage(true);
       const chatMessage = {
-        senderId: 1,
+        senderId: userId,
         roomId: currentRoom,
         content: message,
         createdAt: new Date().toLocaleTimeString([], {
@@ -155,7 +189,7 @@ const ChatPage = () => {
 
   const handleRoomSelect = (roomId) => {
     const client = new Client({
-      brokerURL: `ws://localhost:8080/ws?userId=${1}&roomId=${roomId}`,
+      brokerURL: `ws://localhost:8080/ws?userId=${userId}&roomId=${roomId}`,
       reconnectDelay: 5000,
 
       onConnect: () => {
@@ -176,7 +210,7 @@ const ChatPage = () => {
           const msg = JSON.parse(message.body);
           console.log("Received message:", msg);
           setMessages((prev) => [...prev, msg]);
-          if (msg.senderId === 1) {
+          if (msg.senderId === userId) {
             setMessage("");
             setSendingMessage(false);
           }
@@ -520,7 +554,7 @@ const ChatPage = () => {
                     sx={{
                       display: "flex",
                       justifyContent:
-                        msg.senderId === 1 ? "flex-end" : "flex-start",
+                        msg.senderId === userId ? "flex-end" : "flex-start",
                       mb: 2,
                     }}
                   >
@@ -534,8 +568,8 @@ const ChatPage = () => {
                         p: 2,
                         borderRadius: 2,
                         bgcolor:
-                          msg.senderId === 1 ? "#33b4d4" : "background.paper",
-                        color: msg.senderId === 1 ? "#ffffff" : "text.primary",
+                          msg.senderId === userId ? "#33b4d4" : "background.paper",
+                        color: msg.senderId === userId ? "#ffffff" : "text.primary",
                         boxShadow: 1,
                       }}
                     >
@@ -552,7 +586,7 @@ const ChatPage = () => {
                           display: "block",
                           textAlign: "right",
                           color:
-                            msg.senderId === 1
+                            msg.senderId === userId
                               ? "rgba(255,255,255,0.7)"
                               : "text.secondary",
                         }}
