@@ -44,4 +44,7 @@ public interface MakeAppointment extends JpaRepository<Appointment, AppointmentI
             @Param("doctorId") Long doctorId,
             @Param("date") LocalDate date,
             @Param("time") LocalTime time);
+
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.id.doctorId = :userId")
+    long countByDoctorId(@Param("userId") Long userId);
 }
