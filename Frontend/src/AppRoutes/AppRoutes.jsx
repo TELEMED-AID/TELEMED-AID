@@ -1,5 +1,5 @@
-// Description: This file contains the routes for the application.
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import * as DefaultRoutes from "../AppRoutes/DefaultRoutes";
 import Login from "../Pages/Login/Login";
 import Signup from "../Pages/Signup/Signup";
@@ -17,55 +17,82 @@ import MyAppointments from "../Pages/MyAppointments/MyAppointments";
 import Appointment from "../Pages/Appointment/Appointment";
 import PageNotFound from "../Pages/PageNotFound/PageNotFound";
 import ChatPage from "../Pages/ChatPage/ChatPage";
+import Unauthorized from "../Pages/Unauthorized/Unauthorized.jsx";
 import { sampleAppointments } from "../Utils/HelperObjects";
 
 export default function Paths() {
+    const { role, isLogged } = useSelector((state) => state.user);
+
     return (
         <Router>
             <Routes>
+                {/* Public routes */}
                 <Route path="/" element={<Login />} />
                 <Route path={DefaultRoutes.Login} element={<Login />} />
                 <Route path={DefaultRoutes.Signup} element={<Signup />} />
-                <Route
-                    path={DefaultRoutes.roomCreation}
-                    element={<RoomCreationPopup />}
+                <Route path="/unauthorized" element={<Unauthorized />} />
+
+                {/* Protected routes */}
+                <Route 
+                    path={DefaultRoutes.profile} 
+                    element={isLogged ? <ProfilePage /> : <Navigate to={DefaultRoutes.Login} replace />} 
                 />
-                <Route
-                    path={DefaultRoutes.profile}
-                    element={<ProfilePage  />}
+                <Route 
+                    path={DefaultRoutes.home} 
+                    element={isLogged ? <Home_page /> : <Navigate to={DefaultRoutes.Login} replace />} 
                 />
-                <Route path={DefaultRoutes.home} element={<Home_page />} />
-                <Route
-                    path={DefaultRoutes.updateInfo}
-                    element={<UpdateInfo  />}
+                <Route 
+                    path={DefaultRoutes.updateInfo} 
+                    element={isLogged ? <UpdateInfo /> : <Navigate to={DefaultRoutes.Login} replace />} 
                 />
-                <Route
-                    path={DefaultRoutes.updatePassword}
-                    element={<UpdatePassword role={"DOCTOR"} />}
+                <Route 
+                    path={DefaultRoutes.updatePassword} 
+                    element={isLogged ? <UpdatePassword role={role} /> : <Navigate to={DefaultRoutes.Login} replace />} 
                 />
-                <Route
-                    path={DefaultRoutes.availability}
-                    element={<Availability />}
+                <Route 
+                    path={DefaultRoutes.myAppointments} 
+                    element={isLogged ? <MyAppointments appointments={sampleAppointments} /> : <Navigate to={DefaultRoutes.Login} replace />} 
                 />
-                <Route
-                    path={DefaultRoutes.myAppointments}
+                <Route 
+                    path={DefaultRoutes.bookAppointment} 
+                    element={isLogged ? <Appointment /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                />
+                <Route 
+                    path={DefaultRoutes.chat} 
+                    element={isLogged ? <ChatPage /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                />
+                <Route 
+                    path={DefaultRoutes.ShowArticles} 
+                    element={isLogged ? <ShowArticles /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                />
+                <Route 
+                    path={DefaultRoutes.AddQuestion} 
+                    element={isLogged ? <AddQuestion /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                />
+                <Route 
+                    path={DefaultRoutes.ShowQuestions} 
+                    element={isLogged ? <ShowQuestions /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                />
+
+                {/* Doctor-only routes */}
+                <Route 
+                    path={DefaultRoutes.availability} 
                     element={
-                        <MyAppointments appointments={sampleAppointments} />
-                    }
+                        isLogged && role === "DOCTOR" ? 
+                            <Availability /> : 
+                            <Navigate to="/unauthorized" replace />
+                    } 
                 />
-                <Route
-                    path={DefaultRoutes.bookAppointment}
-                    element={<Appointment />}
+                <Route 
+                    path={DefaultRoutes.AddArticle} 
+                    element={
+                        isLogged && role === "DOCTOR" ? 
+                            <AddArticle /> : 
+                            <Navigate to="/unauthorized" replace />
+                    } 
                 />
-                <Route
-                    path={DefaultRoutes.chat}
-                    element={<ChatPage />}
-                />
-                <Route path={DefaultRoutes.AddArticle} element={<AddArticle />} />
-                <Route path={DefaultRoutes.ShowArticles} element={<ShowArticles />} />
-                <Route path={DefaultRoutes.AddQuestion} element={<AddQuestion/>} />
-                <Route path={DefaultRoutes.ShowQuestions} element={<ShowQuestions/>} />
-                {/* Catch-all route for undefined paths */}
+
+                {/* Catch-all route */}
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
         </Router>
