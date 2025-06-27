@@ -226,7 +226,8 @@ export default function Signup() {
                 specializationName,
                 careerLevelName,
                 ...patientRequestState
-            } = requestState;
+            } = updatedRequestState;
+            console.log(patientRequestState);
             const patientRequest = await submitFormWithValidation(
                 patientRequestState,
                 false,
@@ -744,7 +745,8 @@ export default function Signup() {
                                     type="submit"
                                     variant="contained"
                                     disabled={
-                                        !isSignupButtonEnabled || signupLoading
+                                        // !isSignupButtonEnabled || signupLoading
+                                        false
                                     }
                                     sx={{
                                         width: "100%",
