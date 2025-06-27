@@ -33,10 +33,13 @@ import usePost from "../../Hooks/usePost";
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [error, setError] = useState(null);
-    const { userId } = useSelector((state) => state.user);
+    const { userId, role } = useSelector((state) => state.user); // Get role from Redux
     const { loading, getItem } = useGet();
     const { loading: cancelLoading, deleteItem } = useDelete();
     const { loading: bookingLoading, postItem } = usePost(); // Get postItem from usePost
+
+    const [doctorAppointmentCount, setDoctorAppointmentCount] = useState(0); // New state for count
+    const { loading: countLoading, getItem: getCount } = useGet(); // New getter for count
 
     // Function to fetch appointments from backend
     const fetchAppointments = async () => {
@@ -55,16 +58,36 @@ const MyAppointments = () => {
         );
     };
 
+    // Only fetch doctor count if user is a DOCTOR
+    const fetchDoctorAppointmentCount = async () => {
+        if (role === "DOCTOR") {
+            await getCount(
+                `api/appointment/user/${userId}/as-doctor/count`,
+                false,
+                (count) => {
+                    setDoctorAppointmentCount(count);
+                },
+                (err) => {
+                    console.error(
+                        "Error fetching doctor appointment count:",
+                        err
+                    );
+                }
+            );
+        }
+    };
+
     useEffect(() => {
         if (userId) {
             fetchAppointments();
+            fetchDoctorAppointmentCount();
         }
-    }, [userId]);
+    }, [userId, role]); // Add role to dependency array
 
     // Function to handle appointment cancellation
     const handleCancelAppointment = async (appointment) => {
         const cancellationData = {
-            userId: userId, 
+            userId: userId,
             doctorId: appointment.doctorDetails.userId, // Assuming doctor ID is nested under 'doctorDetails'
             date: appointment.date,
             time: appointment.time,
@@ -77,28 +100,34 @@ const MyAppointments = () => {
                 await postItem(
                     `/api/doctor/${appointment.doctorDetails.userId}/availability/book`,
                     {
-                        day: new Date(appointment.date).toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase(),
+                        day: new Date(appointment.date)
+                            .toLocaleDateString("en-US", { weekday: "long" })
+                            .toUpperCase(),
                         startTime: appointment.time,
-                        booked: false
+                        booked: false,
                     },
-                    () => {
-                    },
+                    () => {},
                     "Time slot unbooked successfully!",
                     "Failed to update time slot status"
                 );
             } catch (error) {
                 console.error("Error updating time slot:", error);
-                alert("Appointment was created but failed to update time slot status");
+                alert(
+                    "Appointment was created but failed to update time slot status"
+                );
             }
         };
         await deleteItem(
             `/api/appointment/cancel`,
             cancellationData, // Pass the data payload here
-            (data) => {
+            async (data) => {
                 // deleteCallback
                 // Success callback - refresh appointments
-                handleAppointmentSuccess();
-                fetchAppointments();
+                await handleAppointmentSuccess();
+                await fetchAppointments();
+                if (role === "DOCTOR") {
+                    await fetchDoctorAppointmentCount(); // Refresh doctor count if user is a doctor
+                }
             },
             "Appointment cancelled successfully", // successMessage
             "Failed to cancel appointment", // errorMessage
@@ -316,7 +345,7 @@ const MyAppointments = () => {
                                                     </Typography>
                                                 </Stack>
                                             </Grid>
-                                            <Grid >
+                                            <Grid>
                                                 <Stack
                                                     direction="row"
                                                     spacing={1}
@@ -438,6 +467,116 @@ const MyAppointments = () => {
                         ))}
                     </Grid>
                 )}
+                {role === "DOCTOR" &&
+                    !countLoading &&
+                    doctorAppointmentCount > 0 && (
+                        <Paper
+                            elevation={3}
+                            sx={{
+                                mt: 6,
+                                p: 4,
+                                background:
+                                    "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+                                borderRadius: "12px",
+                                borderLeft: "6px solid #1976d2",
+                                // maxWidth: "1100px",
+                                margin: "40px auto 0",
+                            }}
+                        >
+                            <Typography
+                                variant="h5"
+                                sx={{
+                                    fontWeight: "bold",
+                                    mb: 2,
+                                    color: "#1976d2",
+                                }}
+                            >
+                                <Work sx={{ verticalAlign: "middle", mr: 1 }} />
+                                Your Upcoming Doctor Responsibilities
+                            </Typography>
+
+                            <Typography
+                                variant="body1"
+                                sx={{ mb: 2, fontSize: "1.1rem" }}
+                            >
+                                We're pleased to inform you that you currently
+                                have <strong>{doctorAppointmentCount} </strong>
+                                scheduled appointment
+                                {doctorAppointmentCount !== 1 ? "s" : ""} where
+                                you'll be serving as the attending physician.
+                                This represents{" "}
+                                {doctorAppointmentCount !== 1
+                                    ? "multiple "
+                                    : "an important "}
+                                opportunity to provide your expert medical care
+                                and make a meaningful difference in your
+                                patients' lives.
+                            </Typography>
+
+                            <Typography
+                                variant="body1"
+                                sx={{ mb: 2, fontSize: "1.1rem" }}
+                            >
+                                For each of these appointments, you'll be
+                                automatically added to a dedicated chat room
+                                approximately 15 minutes before the scheduled
+                                time. This will allow you to:
+                            </Typography>
+
+                            <Box component="ul" sx={{ pl: 4, mb: 2 }}>
+                                <Typography
+                                    component="li"
+                                    variant="body1"
+                                    sx={{ fontSize: "1.1rem", mb: 1 }}
+                                >
+                                    Review any preliminary information shared by
+                                    the patient
+                                </Typography>
+                                <Typography
+                                    component="li"
+                                    variant="body1"
+                                    sx={{ fontSize: "1.1rem", mb: 1 }}
+                                >
+                                    Conduct pre-appointment assessments if
+                                    needed
+                                </Typography>
+                                <Typography
+                                    component="li"
+                                    variant="body1"
+                                    sx={{ fontSize: "1.1rem" }}
+                                >
+                                    Prepare any necessary medical resources or
+                                    documentation
+                                </Typography>
+                            </Box>
+
+                            <Typography
+                                variant="body1"
+                                sx={{ mb: 3, fontSize: "1.1rem" }}
+                            >
+                                <strong>Punctuality is crucial</strong> - your
+                                patients are counting on your timely arrival to
+                                begin their consultation. We recommend being
+                                prepared and available at least 5 minutes before
+                                each scheduled appointment time to ensure a
+                                smooth experience for all parties involved.
+                            </Typography>
+
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    fontStyle: "italic",
+                                    color: "#2e7d32",
+                                    fontSize: "1.1rem",
+                                }}
+                            >
+                                Your dedication to patient care is what makes
+                                our healthcare community exceptional. Thank you
+                                for your commitment to providing outstanding
+                                medical service.
+                            </Typography>
+                        </Paper>
+                    )}
             </Box>
             <Footer />
         </>

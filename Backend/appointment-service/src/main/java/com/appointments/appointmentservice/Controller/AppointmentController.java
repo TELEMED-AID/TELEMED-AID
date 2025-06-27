@@ -56,6 +56,12 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, null));
     }
 
+    @GetMapping("/user/{userId}/as-doctor/count")
+    public ResponseEntity<Long> getAppointmentCountWhereUserIsDoctor(
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(appointmentQueryService.countAppointmentsWhereUserIsDoctor(userId));
+    }
+
     @GetMapping("/user/{userId}/doctor/{doctorId}")
     public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointmentsWithDoctor(
             @PathVariable Long userId,

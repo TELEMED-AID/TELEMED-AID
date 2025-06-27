@@ -33,4 +33,7 @@ public class AppointmentQueryService {
                 .map(enricher::enrich)
                 .toList();
     }
+    public long countAppointmentsWhereUserIsDoctor(Long userId) {
+        return appointmentRepository.countByDoctorId(userId);
+    }
 }
