@@ -147,6 +147,7 @@ const ProfilePage = () => {
             }
         };
     // Handler for navigation buttons
+
     const handleButtonClick = (action) => {
         switch (action) {
             case "update-profile":
@@ -594,6 +595,32 @@ const ProfilePage = () => {
                     open={roomPopupOpen}
                     onClose={() => setRoomPopupOpen(false)}
                     users={mockUsers}
+                    onCreateRoom={(roomName, selectedUserIds) => {
+                        const selectedDoctors = mockUsers
+                            .filter(
+                                (user) =>
+                                    selectedUserIds.includes(user.id) &&
+                                    user.role === "Doctor"
+                            )
+                            .map((user) => ({
+                                id: user.id,
+                                name: user.name,
+                            }));
+
+                        const requestData = {
+                            roomName,
+                            participants: selectedDoctors,
+                        };
+
+                        // Print the request data to console
+                        console.log("Request data to backend:", requestData);
+
+                        // Optional: Close popup
+                        setRoomPopupOpen(false);
+
+                        // Optional: handleRoomSelect / UI logic can stay or be removed for now
+                        // handleRoomSelect(newRoom.id);
+                    }}
                 />
             </Box>
             <Footer />

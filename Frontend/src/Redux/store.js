@@ -1,8 +1,19 @@
 // src/app/store.js
 import { configureStore } from "@reduxjs/toolkit";
-// Assuming these slices are in the same 'app' directory, or adjust paths as needed
 import snackBarReducer from "./snackBarSlice";
 import userReducer from "./userSlice";
+import storage from "redux-persist/lib/storage";
+import {
+    persistStore,
+    persistReducer,
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from "redux-persist";
+import { combineReducers } from "redux";
 
 import storage from "redux-persist/lib/storage"; // Defaults to localStorage for web
 import {
@@ -25,8 +36,8 @@ const persistConfig = {
 
 // Combine all your individual slice reducers into a single root reducer
 const rootReducer = combineReducers({
-    user: userReducer, // The user slice will be stored under the 'user' key in your state
-    snackBar: snackBarReducer, // The snackBar slice will be stored under the 'snackBar' key
+    user: userReducer,
+    snackBar: snackBarReducer,
 });
 
 // Create a persisted reducer by wrapping your rootReducer with persistReducer
@@ -42,6 +53,7 @@ export const store = configureStore({
             serializableCheck: {
                 // These action types are dispatched by redux-persist and are intentionally non-serializable
                 // Ignoring them prevents console warnings/errors
+
                 ignoredActions: [
                     FLUSH,
                     REHYDRATE,
