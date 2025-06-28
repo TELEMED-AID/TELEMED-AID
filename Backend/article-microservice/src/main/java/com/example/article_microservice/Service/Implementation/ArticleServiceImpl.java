@@ -15,11 +15,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import com.example.article_microservice.Repository.ArticleRepository;
 import com.example.article_microservice.Service.Interface.ArticleService;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,7 +34,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Autowired
     private EnrichedDoctorRepository enrichedDoctorRepository;
     private final NotificationProducerService notificationProducerService;
-
+    @Transactional
     public ResponseEntity<?> publishArticle(ReceivedArticleDTO receivedArticleDTO){
         Article article = new Article();
         article.setTitle(receivedArticleDTO.getTitle());
@@ -54,7 +54,7 @@ public class ArticleServiceImpl implements ArticleService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving article, try again");
         }
     }
-
+    @Transactional
     @Override
     public ResponseEntity<?> searchArticle(String term, int page, int size) {
         if (term == null || term.trim().isEmpty()) {
@@ -89,7 +89,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
     }
 
-
+    @Transactional
     public ResponseEntity<?> getCertainArticle(Long id){
         if(id < 0)
             return ResponseEntity.badRequest().body("id cannot be negative");

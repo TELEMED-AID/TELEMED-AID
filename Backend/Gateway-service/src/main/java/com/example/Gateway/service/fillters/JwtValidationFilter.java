@@ -31,7 +31,7 @@ public class JwtValidationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getPath().toString();
 
         if (path.startsWith("/auth/") || path.startsWith("/api/patient/") || path.startsWith("/api/doctor/") || path.startsWith("/api/appointment/") 
-        || path.startsWith("/article/")|| path.startsWith("/chat/") || path.startsWith("/ws")) {
+        || path.startsWith("/article/")|| path.startsWith("/chat/") || path.startsWith("/ws/")|| path.startsWith("/notification/")) {
 
             return chain.filter(exchange);
         }

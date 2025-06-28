@@ -40,6 +40,7 @@ public class QuestionServiceImpl implements QuestionService {
     private VoteRepository voteRepository;
     private final NotificationProducerService notificationProducerService;
 
+    @Transactional
     @Override
     public ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO) {
         /*
@@ -64,6 +65,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> searchQuestion(String term, int page, int size){
         if (term == null || term.trim().isEmpty()) {
@@ -89,6 +91,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> commentOnQuestion(CommentDTO commentDTO) {
         Optional<EnrichedDoctor> enrichedDoctorOptional = enrichedDoctorRepository.findById(commentDTO.getDoctorId());
@@ -156,7 +159,7 @@ public class QuestionServiceImpl implements QuestionService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while retrieving comments, please retry");
         }
     }
-
+    @Transactional
     public ResponseEntity<?> addVoteToQuestion(VoteDTO voteDTO) {
         try {
             Optional<Comment> commentOptional = commentRepository.findById(voteDTO.getCommentId());

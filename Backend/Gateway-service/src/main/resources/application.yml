@@ -76,7 +76,14 @@ spring:
             - name: CircuitBreaker
               args:
                 name: appointment-service
-
+        - id: "notification-service"
+          uri: lb://Notification-Service
+          predicates:
+            - Path=/notification/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notification-service
 server:
   port: 8080
 
