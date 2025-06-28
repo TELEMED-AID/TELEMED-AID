@@ -14,7 +14,7 @@ def load_pdf(data):
 
 def text_split_process(docs):
     # Split text into chunks
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=20)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=20)
     texts = text_splitter.split_documents(docs)
     print(len(texts))
     return texts
@@ -25,7 +25,7 @@ def load_model(path):
     # Load LLaMA 2 model
     return CTransformers(model=path,
                 model_type="llama",
-                config={"max_new_tokens": 512
+                config={"max_new_tokens": 384
                 ,'temperature':0.8})
 
 

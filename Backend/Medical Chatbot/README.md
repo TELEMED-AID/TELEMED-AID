@@ -20,6 +20,7 @@ This is the README file for the `Medical Chatbot` setup.
 - `pip install langchain-huggingface`
 - `pip install -U langchain-community`
 - `pip install py-eureka-client`
+- `pip install faiss-cpu`
 - `# Finally run the following command:`
   `python main.py`
 - open up localhost.

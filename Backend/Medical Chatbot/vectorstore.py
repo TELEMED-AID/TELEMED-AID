@@ -1,19 +1,19 @@
-from src.helper import load_pdf, text_split_process, load_model, load_embeddings
-from langchain.vectorstores import Pinecone as PC
-import pinecone
-import os
-from dotenv import load_dotenv
-load_dotenv()
+from src.helper import load_pdf, text_split_process, load_embeddings
+from langchain_community.vectorstores import FAISS
 
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_API_ENV = os.getenv("PINECONE_API_ENV")
+# 1. تحميل بيانات الـ PDF
+docs = load_pdf("data/")
 
-knowledge_base = load_pdf("data/")
-text_chunks = text_split_process(knowledge_base)
+# 2. تقطيع النصوص
+chunks = text_split_process(docs)
+
+# 3. تحميل نموذج التضمين (embeddings)
 embeddings = load_embeddings()
-index_name = "mchatbot"
-# Create a Pinecone client instance
-pc = pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-index = pc.Index(index_name)
-docs_chunks = [t.page_content for t in text_chunks]
-pinecone_index = PC.from_texts(docs_chunks, embeddings, index_name=index_name)
+
+# 4. بناء الفهرس باستخدام FAISS
+faiss_index = FAISS.from_texts([chunk.page_content for chunk in chunks], embedding=embeddings)
+
+# 5. حفظ الفهرس محلياً في مجلد faiss_index
+faiss_index.save_local("faiss_index")
+
+print("FAISS index saved successfully.")

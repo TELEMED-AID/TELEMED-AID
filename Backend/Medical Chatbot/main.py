@@ -1,70 +1,50 @@
-from flask import Flask, render_template, request
+from flask import Flask, request
 from src.helper import load_embeddings, load_model
-from langchain_pinecone import PineconeVectorStore
-from langchain_community.vectorstores import Pinecone as PC
+from langchain.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from dotenv import load_dotenv
 from src.prompt import *
 import os
-import pinecone
 from flask_cors import CORS
 from py_eureka_client import eureka_client
-
+import time
 
 load_dotenv()
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_API_ENV = os.getenv("PINECONE_API_ENV")
+
+# Load FAISS index locally
 embeddings = load_embeddings()
-index_name = 'mchatbot'
+faiss_index = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
 
-# Create a Pinecone client instance
-pc = pinecone.Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-pinecone_index = pc.Index(index_name)
-# semantic_search = PC.from_existing_index(index_name, embeddings)
-semantic_search = PineconeVectorStore.from_existing_index(index_name=index_name,embedding=embeddings)
-PROMPT = PromptTemplate(template=prompt_template,input_variables=["context","question"])
-
-llm_prompt = {"prompt":PROMPT}
+PROMPT = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
 
 MODEL_PATH = os.getenv("MODEL_PATH")
-
 llm = load_model(MODEL_PATH)
 
-qa = RetrievalQA.from_chain_type(llm=llm,
-                                 chain_type="stuff",
-                                 retriever=semantic_search.as_retriever(search_kwargs={"k": 3}),
-                                 return_source_documents=True,
-                                 chain_type_kwargs={"prompt": PROMPT})
-
-# Configure Eureka Client
-EUREKA_SERVER = "http://localhost:8761/eureka/"  # Default Eureka server URL
-APP_NAME = "Ai-Chatbot-Service"  # Service name in Eureka
-FLASK_PORT = 5000  # Port your Flask app runs on
-
-# Initialize Eureka Client
-eureka_client.init(
-    eureka_server=EUREKA_SERVER,
-    app_name=APP_NAME,
-    instance_port=FLASK_PORT,
-    instance_ip="localhost",  
-    instance_host="localhost",
+qa = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=faiss_index.as_retriever(search_kwargs={"k": 1}),
+    return_source_documents=True,
+    chain_type_kwargs={"prompt": PROMPT}
 )
 
-
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
 CORS(app)
-
 
 @app.route("/chatbot/get", methods=["POST"])
 def chatbot():
     data = request.get_json()
     input = data.get("msg", "")
+    start_time = time.time()  # ← Start timer
     results = qa({"query": input})
+    duration = time.time() - start_time  # ← End timer
+
+    print(f"LLM Response Time: {duration:.2f} seconds")  # ← Print duration
     print("Response: ", results["result"])
     if results["result"] == "":
         return {"response": "Sorry, I don't understand that."}, 200
-    return {"response": results["result"]}, 200    
+    return {"response": results["result"]}, 200
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -25,7 +25,7 @@ const Chatbot = () => {
 
         const userMessage = { sender: 'user', text: input };
         setMessages(prev => [...prev, userMessage]);
-
+        setInput('');
         setLoading(true);
 
         try {
@@ -36,7 +36,6 @@ const Chatbot = () => {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
-
             const data = await res.json();
             const botMessage = {
                 sender: 'bot',
