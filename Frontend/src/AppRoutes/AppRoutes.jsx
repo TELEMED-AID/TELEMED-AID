@@ -17,6 +17,7 @@ import MyAppointments from "../Pages/MyAppointments/MyAppointments";
 import Appointment from "../Pages/Appointment/Appointment";
 import PageNotFound from "../Pages/PageNotFound/PageNotFound";
 import ChatPage from "../Pages/ChatPage/ChatPage";
+import Chatbot from "../Pages/Chatbot/Chatbot"
 import { sampleAppointments } from "../Utils/HelperObjects";
 
 export default function Paths() {
@@ -65,6 +66,7 @@ export default function Paths() {
                 <Route path={DefaultRoutes.ShowArticles} element={<ShowArticles />} />
                 <Route path={DefaultRoutes.AddQuestion} element={<AddQuestion/>} />
                 <Route path={DefaultRoutes.ShowQuestions} element={<ShowQuestions/>} />
+                <Route path={DefaultRoutes.chatbot} element={<Chatbot/>} />
                 {/* Catch-all route for undefined paths */}
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
