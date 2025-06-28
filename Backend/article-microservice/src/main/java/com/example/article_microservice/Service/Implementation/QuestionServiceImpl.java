@@ -12,7 +12,9 @@ import com.example.article_microservice.Repository.CommentRepository;
 import com.example.article_microservice.Repository.QuestionRepository;
 import com.example.article_microservice.Repository.VoteRepository;
 import com.example.article_microservice.Service.Interface.QuestionService;
+import com.example.article_microservice.Service.NotificationProducerService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
     @Autowired
     private QuestionRepository questionRepository;
@@ -35,6 +38,8 @@ public class QuestionServiceImpl implements QuestionService {
     private CommentRepository commentRepository;
     @Autowired
     private VoteRepository voteRepository;
+    private final NotificationProducerService notificationProducerService;
+
     @Override
     public ResponseEntity<?> postQuestion(ReceivedQuestionDTO questionDTO) {
         /*
@@ -50,6 +55,8 @@ public class QuestionServiceImpl implements QuestionService {
 
         try {
             questionRepository.save(question);
+            String message = "A new question was posted: " + question.getTitle();
+            notificationProducerService.sendPublicNotification("DOCTOR",message);
             return ResponseEntity.status(HttpStatus.CREATED).body("Question posted successfully");
         } catch (Exception e){
             return ResponseEntity.internalServerError().body("An unexpected error occurred. " +
@@ -100,10 +107,14 @@ public class QuestionServiceImpl implements QuestionService {
             comment.setTime(commentDTO.getCommentTime());
 
             Comment response = commentRepository.save(comment);
+            String doctorName = enrichedDoctorOptional.get().getName();
+            String message = "Dr. " + doctorName + " commented on question: "+ comment.getQuestion().getTitle();
+            notificationProducerService.sendPublicNotification("PATIENTS", message);
             CommentResponseDTO commentResponseDTO = new CommentResponseDTO(response.getId(), response.getContent(),
                     response.getTime(), enrichedDoctorOptional.get().getName(), enrichedDoctorOptional.get().getSpecializationName(),
                     enrichedDoctorOptional.get().getCareerLevel(),
                     0);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(commentResponseDTO);
         }
         catch (Exception e) {

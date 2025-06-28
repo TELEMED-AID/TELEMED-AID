@@ -7,6 +7,8 @@ import com.example.article_microservice.DTO.Question.QuestionSearchResponseDTO;
 import com.example.article_microservice.Model.Article;
 import com.example.article_microservice.Model.EnrichedDoctor;
 import com.example.article_microservice.Repository.EnrichedDoctorRepository;
+import com.example.article_microservice.Service.NotificationProducerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -25,11 +27,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ArticleServiceImpl implements ArticleService {
     @Autowired
     private ArticleRepository articleRepository;
     @Autowired
     private EnrichedDoctorRepository enrichedDoctorRepository;
+    private final NotificationProducerService notificationProducerService;
+
     public ResponseEntity<?> publishArticle(ReceivedArticleDTO receivedArticleDTO){
         Article article = new Article();
         article.setTitle(receivedArticleDTO.getTitle());
@@ -42,6 +47,8 @@ public class ArticleServiceImpl implements ArticleService {
         article.setEnrichedDoctorId(doctorOptional.get().getId());
         try{
             articleRepository.save(article);
+            String message = "A new article was published: " + article.getTitle();
+            notificationProducerService.sendPublicNotification("PATIENT",message);
             return ResponseEntity.status(HttpStatus.CREATED).body("Article saved successfully");
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while saving article, try again");
