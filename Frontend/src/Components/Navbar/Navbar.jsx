@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     AppBar,
     Toolbar,
@@ -14,15 +14,38 @@ import {
     ListItemText,
     Divider,
     Badge,
+    Popover,
+    Typography,
+    Paper,
+    CircularProgress,
+    Chip,
 } from "@mui/material";
-import { Logout as LogoutIcon } from "@mui/icons-material"; // Import the icon
-import { useDispatch } from "react-redux";
+import { Logout as LogoutIcon } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../../Assets/logo.png";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { removeUser } from "../../Redux/userSlice"; // Import your Redux action
+import { removeUser } from "../../Redux/userSlice";
+import useGet from "../../Hooks/useGet";
+import { formatDistanceToNow } from "date-fns";
+
+// Notification type colors and labels mapping
+const NOTIFICATION_TYPES = {
+    PRIVATE: {
+        color: "primary",
+        label: "Private"
+    },
+    ALL_DOCTORS: {
+        color: "secondary",
+        label: "All Doctors"
+    },
+    ALL_PATIENTS: {
+        color: "success",
+        label: "All Patients"
+    }
+};
 
 function HideOnScroll(props) {
     const { children } = props;
@@ -33,19 +56,62 @@ function HideOnScroll(props) {
         </Slide>
     );
 }
+
 const activeGradient = {
     background: "linear-gradient(135deg, #b3e5fc 0%, #e1f5fe 60%)",
     color: "text.primary",
     borderRadius: "4px",
 };
+
 const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [notifications, setNotifications] = useState([]);
+    const [loadingNotifications, setLoadingNotifications] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
+    const { getItem } = useGet();
+    
+    // Get current user from Redux store
+    const currentUser = useSelector(state => state.user.currentUser);
+    const { userId, role, isLogged } = useSelector((state) => state.user);
+
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
+
+    const handleMailClick = (event) => {
+        setAnchorEl(event.currentTarget);
+        fetchNotifications();
+    };
+
+    const handleMailClose = () => {
+        setAnchorEl(null);
+    };
+
+    const fetchNotifications = async () => {
+        setLoadingNotifications(true);
+        try {
+            const data = await getItem("/notification/public/patients", false);
+            console.log("Notifications data:", data);
+            if (data) {
+                // Filter notifications based on type and targetId
+                const filteredNotifications = data.filter(notification => 
+                    notification.type === "ALL_PATIENTS" || 
+                    (notification.type === "PRIVATE" && notification.targetId === userId)
+                );
+                setNotifications(filteredNotifications);
+            }
+        } catch (error) {
+            console.error("Failed to fetch notifications:", error);
+        } finally {
+            setLoadingNotifications(false);
+        }
+    };
+
+    const open = Boolean(anchorEl);
+    const id = open ? 'mail-popover' : undefined;
 
     const navItems = [
         { name: "Home", path: "/home" },
@@ -105,21 +171,19 @@ const Navbar = () => {
                 ))}
                 <Divider sx={{ my: 1 }} />
                 <ListItem
-                    component={Link}
-                    to="/questions"
-                    onClick={handleDrawerToggle}
-                    color= "text.primary"
+                    onClick={handleMailClick}
                     sx={{
                         color: "text.primary",
                         "&:hover": {
                             color: "#33b4d4",
+                            cursor: "pointer",
                         },
                     }}
                 >
-                    <Badge badgeContent={4} color="info" sx={{ mr: 2 }}>
+                    <Badge badgeContent={notifications.length} color="info" sx={{ mr: 2 }}>
                         <MailIcon />
                     </Badge>
-                    <ListItemText primary="Messages"  />
+                    <ListItemText primary="Notifications" />
                 </ListItem>
                 <Divider sx={{ my: 1 }} />
                 <ListItem>
@@ -127,8 +191,8 @@ const Navbar = () => {
                         fullWidth
                         variant="contained"
                         onClick={() => {
-                            dispatch(removeUser()); // Dispatch the removeUser action
-                            navigate("/"); // Navigate to home
+                            dispatch(removeUser());
+                            navigate("/");
                         }}
                         sx={{
                             mx: 1,
@@ -232,12 +296,11 @@ const Navbar = () => {
                                 sx={{
                                     display: { xs: "none", md: "flex" },
                                     alignItems: "center",
-                                    gap: 1, // Adds spacing between items
+                                    gap: 1,
                                 }}
                             >
                                 <IconButton
-                                    component={Link}
-                                    to="/questions"
+                                    onClick={handleMailClick}
                                     sx={{
                                         mx: 1,
                                         "&:hover": {
@@ -247,17 +310,119 @@ const Navbar = () => {
                                         },
                                     }}
                                 >
-                                    <Badge badgeContent={4} color="info">
+                                    <Badge badgeContent={notifications.length} color="info">
                                         <MailIcon />
                                     </Badge>
                                 </IconButton>
+
+                                {/* Notification Popover */}
+                                <Popover
+                                    id={id}
+                                    open={open}
+                                    anchorEl={anchorEl}
+                                    onClose={handleMailClose}
+                                    anchorOrigin={{
+                                        vertical: 'bottom',
+                                        horizontal: 'right',
+                                    }}
+                                    transformOrigin={{
+                                        vertical: 'top',
+                                        horizontal: 'right',
+                                    }}
+                                >
+                                    <Paper sx={{ p: 2, width: 350 }}>
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center', 
+                                            mb: 1 
+                                        }}>
+                                            <Typography variant="h6">Notifications</Typography>
+                                            <Button 
+                                                size="small" 
+                                                onClick={fetchNotifications}
+                                                disabled={loadingNotifications}
+                                                startIcon={
+                                                    loadingNotifications ? (
+                                                        <CircularProgress size={14} />
+                                                    ) : null
+                                                }
+                                            >
+                                                Refresh
+                                            </Button>
+                                        </Box>
+                                        <Divider sx={{ mb: 1 }} />
+                                        {loadingNotifications && notifications.length === 0 ? (
+                                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                                <CircularProgress size={24} />
+                                            </Box>
+                                        ) : notifications.length > 0 ? (
+                                            <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                                                {notifications.map((notification) => (
+                                                    <Box 
+                                                        key={notification._id} 
+                                                        sx={{ 
+                                                            mb: 2, 
+                                                            p: 1.5,
+                                                            borderRadius: 1,
+                                                            backgroundColor: 'background.paper',
+                                                            boxShadow: 1
+                                                        }}
+                                                    >
+                                                        <Box sx={{ 
+                                                            display: 'flex', 
+                                                            justifyContent: 'space-between', 
+                                                            alignItems: 'center',
+                                                            mb: 1 
+                                                        }}>
+                                                            {/* <Chip 
+                                                                label={NOTIFICATION_TYPES[notification.type]?.label || notification.type}
+                                                                color={NOTIFICATION_TYPES[notification.type]?.color || 'default'}
+                                                                size="small"
+                                                            /> */}
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                {formatDistanceToNow(new Date(notification.timestamp), { 
+                                                                    addSuffix: true 
+                                                                })}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Typography variant="body1" sx={{ mb: 1 }}>
+                                                            {notification.message}
+                                                        </Typography>
+                                                        {notification.type === "PRIVATE" && (
+                                                            <Typography 
+                                                                variant="caption" 
+                                                                color="text.secondary" 
+                                                                sx={{ fontStyle: 'italic' }}
+                                                            >
+                                                                Private message
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        ) : (
+                                            <Typography 
+                                                variant="body2" 
+                                                color="text.secondary" 
+                                                sx={{ 
+                                                    p: 2, 
+                                                    textAlign: 'center',
+                                                    fontStyle: 'italic'
+                                                }}
+                                            >
+                                                No notifications available
+                                            </Typography>
+                                        )}
+                                    </Paper>
+                                </Popover>
 
                                 {/* Logout Button */}
                                 <Button
                                     variant="contained"
                                     onClick={() => {
-                                        dispatch(removeUser()); // Dispatch the removeUser action
-                                        navigate("/"); // Navigate to home
+                                        dispatch(removeUser());
+                                        navigate("/");
                                     }}
                                     sx={{
                                         mx: 1,
@@ -284,7 +449,7 @@ const Navbar = () => {
                     open={mobileOpen}
                     onClose={handleDrawerToggle}
                     ModalProps={{
-                        keepMounted: true, // Better open performance on mobile
+                        keepMounted: true,
                     }}
                     sx={{
                         display: { xs: "block", md: "none" },
