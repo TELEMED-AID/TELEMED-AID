@@ -45,6 +45,7 @@ const Navbar = () => {
         { name: "Book an Appointment", path: "/book-appointment" },
         { name: "Articles", path: "/ShowArticles" },
         { name: "Questions", path: "/ShowQuestions" },
+        { name: "Chatbot", path: "/chatbot" },
     ];
 
     const drawer = (
