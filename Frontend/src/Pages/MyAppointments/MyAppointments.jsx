@@ -6,6 +6,7 @@ import {
     Card,
     CardContent,
     Avatar,
+    LinearProgress,
     Chip,
     Divider,
     Grid,
@@ -37,10 +38,130 @@ const MyAppointments = () => {
     const { loading, getItem } = useGet();
     const { loading: cancelLoading, deleteItem } = useDelete();
     const { loading: bookingLoading, postItem } = usePost(); // Get postItem from usePost
-
     const [doctorAppointmentCount, setDoctorAppointmentCount] = useState(0); // New state for count
     const { loading: countLoading, getItem: getCount } = useGet(); // New getter for count
+    const [registeredUsers, setRegisteredUsers] = useState({ patients: [], doctors: [] });
+    const [usersLoading, setUsersLoading] = useState(false);
+    const [usersError, setUsersError] = useState(null);
 
+    useEffect(() => {
+        if (userId) {
+            fetchAppointments();
+            fetchDoctorAppointmentCount();
+        }
+    }, [userId, role]); // Add role to dependency array
+
+    // Fetch registered users when component mounts
+    useEffect(() => {
+        const fetchRegisteredUsers = async () => {
+            if (role !== 'DOCTOR' || !userId) return;
+
+            setUsersLoading(true);
+            setUsersError(null);
+
+            try {
+                // 1. Get user IDs by role from appointment service
+                const userIdsResponse = await getItem(
+                    `/api/appointment/doctor/${userId}/user-ids`,
+                    false // disable automatic snackbar
+                );
+
+                if (!userIdsResponse) {
+                    throw new Error("Failed to fetch user IDs");
+                }
+
+                // Process patient appointments
+                const patientAppointments = userIdsResponse.patientAppointments || [];
+                const patientIds = patientAppointments.map(appt => Number(appt.userId)).filter(id => !isNaN(id));
+
+                // Process doctor appointments
+                const doctorAppointments = userIdsResponse.doctorAppointments || [];
+                const doctorIds = doctorAppointments.map(appt => Number(appt.userId)).filter(id => !isNaN(id));
+
+                console.log("Patient IDs:", patientIds);
+                console.log("Doctor IDs:", doctorIds);
+
+                // Initialize empty results
+                let patientsResult = [];
+                let doctorsResult = [];
+
+                // 2. Fetch patient data (independent call)
+                if (patientIds.length > 0) {
+                    try {
+                        console.log("Fetching patients...");
+                        const patientsResponse = await postItem(
+                            "/api/patient/bulk",
+                            patientIds,
+                            (data, sent) => {
+                                console.log("Received patients:", data); // data is the Map in object form
+                            },
+                            () => { },
+                            "Failed to load patients",
+                            null,
+                            false
+                        );
+                        // Merge patient data with appointment details
+                        patientsResult = patientAppointments.map(appt => {
+                            const patientData = patientsResponse ? patientsResponse[appt.userId] : {};
+                            return {
+                                ...patientData,
+                                date: appt.date,
+                                time: appt.time
+                            };
+                        }).filter(user => user.userId); // Filter out invalid entries
+                    } catch (error) {
+                        console.error("Error fetching patients:", error);
+                        // Continue even if patients fail
+                    }
+                }
+
+                // 3. Fetch doctor data (independent call)
+                if (doctorIds.length > 0) {
+                    try {
+                        console.log("Fetching doctors...");
+                        const doctorsResponse = await postItem(
+                            "/api/doctor/bulk",
+                            doctorIds,
+                            (data, sent) => {
+                                console.log("Received patients:", data); // data is the Map in object form
+                            },
+                            () => { },
+                            "Failed to load doctors",
+                            null,
+                            false
+                        );
+                        // Merge doctor data with appointment details
+                        doctorsResult = doctorAppointments.map(appt => {
+                            const doctorData = doctorsResponse ? doctorsResponse[appt.userId] : {};
+                            return {
+                                ...doctorData,
+                                date: appt.date,
+                                time: appt.time
+                            };
+                        }).filter(user => user.userId); // Filter out invalid entries
+                    } catch (error) {
+                        console.error("Error fetching doctors:", error);
+                        // Continue even if doctors fail
+                    }
+                }
+
+                // Update state with whatever data we could fetch
+                setRegisteredUsers({
+                    patients: patientsResult,
+                    doctors: doctorsResult
+                });
+
+                console.log("Registered Users:", { patients: patientsResult, doctors: doctorsResult });
+            } catch (error) {
+                console.error("Error in main fetch process:", error);
+                setUsersError("Failed to load some user data. Please try again.");
+            } finally {
+                setUsersLoading(false);
+            }
+        };
+
+        fetchRegisteredUsers();
+    }, [userId, role]);
     // Function to fetch appointments from backend
     const fetchAppointments = async () => {
         const response = await getItem(
@@ -77,13 +198,13 @@ const MyAppointments = () => {
         }
     };
 
-    useEffect(() => {
-        if (userId) {
-            fetchAppointments();
-            fetchDoctorAppointmentCount();
-        }
-    }, [userId, role]); // Add role to dependency array
-
+    const getInitials = (name) =>
+        name
+            ?.split(" ")
+            .filter((part) => part.length > 0)
+            .map((part) => part[0])
+            .join("")
+            .toUpperCase();
     // Function to handle appointment cancellation
     const handleCancelAppointment = async (appointment) => {
         const cancellationData = {
@@ -106,7 +227,7 @@ const MyAppointments = () => {
                         startTime: appointment.time,
                         booked: false,
                     },
-                    () => {},
+                    () => { },
                     "Time slot unbooked successfully!",
                     "Failed to update time slot status"
                 );
@@ -193,6 +314,72 @@ const MyAppointments = () => {
         );
     }
 
+    // New component to display users in a grid
+    const UserGrid = ({ users, role }) => {
+        return (
+            <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+                {users.length === 0 ? (
+                    <Typography color="text.secondary">
+                        No {role.toLowerCase()}s found
+                    </Typography>
+                ) : (
+                    <Box
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                            gap: 2,
+                        }}
+                    >
+                        {users.map(user => (
+                            <Paper key={user.userId} elevation={1} sx={{ p: 2 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <Avatar src={user.avatar} sx={{ mr: 2 }}>
+                                        {getInitials(user.name).charAt(0)}
+                                    </Avatar>
+                                    <Box>
+                                        <Typography variant="subtitle1">
+                                            {user.name}
+                                        </Typography>
+                                        {user.date && user.time && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                {formatDate(user.date)} at {formatTime(user.time)}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                </Box>
+                                <Typography variant="body2" color="text.secondary">
+                                    Phone: {user.phone || 'N/A'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Gender: {user.gender || 'N/A'}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Country: {user.countryName || 'N/A'}
+                                </Typography>
+                                {role === 'DOCTOR' && user.specialization && (
+                                    <Box>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Specialization: {user.specialization}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Career Level: {user.careerLevel}
+                                        </Typography>
+                                    </Box>
+                                )}
+                                <Chip
+                                    label={role}
+                                    size="small"
+                                    color={role === 'PATIENT' ? 'secondary' : 'primary'}
+                                    sx={{ mt: 1 }}
+                                />
+                            </Paper>
+                        ))}
+                    </Box>
+                )}
+            </Paper>
+        );
+    };
+
     return (
         <>
             <ScrollToTop />
@@ -225,14 +412,13 @@ const MyAppointments = () => {
                                         height: "100%",
                                         boxShadow:
                                             "0px 10px 25px rgba(0, 0, 0, 0.1)",
-                                        borderLeft: `10px solid ${
-                                            appointment.state === "COMPLETED"
-                                                ? "#4caf50"
-                                                : appointment.state ===
-                                                  "PENDING"
+                                        borderLeft: `10px solid ${appointment.state === "COMPLETED"
+                                            ? "#4caf50"
+                                            : appointment.state ===
+                                                "PENDING"
                                                 ? "#ff9800"
                                                 : "#f44336"
-                                        }`,
+                                            }`,
                                         transition: "transform 0.2s",
                                         "&:hover": {
                                             transform: "translateY(-5px)",
@@ -420,7 +606,7 @@ const MyAppointments = () => {
                                             }}
                                         >
                                             {appointment.state === "PENDING" ||
-                                            appointment.state ===
+                                                appointment.state ===
                                                 "CONFIRMED" ? (
                                                 <Button
                                                     variant="contained"
@@ -451,7 +637,7 @@ const MyAppointments = () => {
                                                 label={appointment.state}
                                                 color={
                                                     statusColors[
-                                                        appointment.state
+                                                    appointment.state
                                                     ] || "default"
                                                 }
                                                 variant="outlined"
@@ -467,7 +653,7 @@ const MyAppointments = () => {
                         ))}
                     </Grid>
                 )}
-                {role === "DOCTOR" &&
+                {/* {role === "DOCTOR" &&
                     !countLoading &&
                     doctorAppointmentCount > 0 && (
                         <Paper
@@ -576,8 +762,31 @@ const MyAppointments = () => {
                                 medical service.
                             </Typography>
                         </Paper>
-                    )}
+                    )} */}
             </Box>
+            {role === 'DOCTOR' && (
+                <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+                    <Typography variant="h5" gutterBottom>
+                        Users Registered With Me
+                    </Typography>
+
+                    {usersLoading ? (
+                        <LinearProgress />
+                    ) : (
+                        <>
+                            <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+                                Patients ({registeredUsers.patients.length})
+                            </Typography>
+                            <UserGrid users={registeredUsers.patients} role="PATIENT" />
+
+                            <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
+                                Doctors ({registeredUsers.doctors.length})
+                            </Typography>
+                            <UserGrid users={registeredUsers.doctors} role="DOCTOR" />
+                        </>
+                    )}
+                </Box>
+            )}
             <Footer />
         </>
     );

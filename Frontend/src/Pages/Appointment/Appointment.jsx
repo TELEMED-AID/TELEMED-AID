@@ -16,7 +16,7 @@ import Navbar from "../../Components/Navbar/Navbar";
 import useGet from "../../Hooks/useGet";
 import { useSelector } from "react-redux";
 import usePost from "../../Hooks/usePost";
-const transformDoctorData = (doctors) => {
+const transformDoctorData = (doctors) => {    
     return doctors.flatMap((doctor) => {
         // Get all available time slots across all days
         const allSlots = doctor.availability.flatMap((day) =>
@@ -222,7 +222,7 @@ const Appointment = () => {
     const [specializations, setSpecializations] = useState([]);
     const [careerLevels, setCareerLevels] = useState([]);
 
-    const { userId } = useSelector((state) => state.user); // Get user ID from Redux
+    const { userId , role } = useSelector((state) => state.user); // Get user ID from Redux
 
     const {
         register,
@@ -322,7 +322,9 @@ const Appointment = () => {
                     doctorId: slotData.doctorId,
                     date: appointmentDateToSend,
                     time: startTime,
-                    state: "PENDING"
+                    state: "PENDING",
+                    userRole: role // Or "DOCTOR" depending on your use case
+
                 },
                 handleAppointmentSuccess, // Using the defined success handler
                 "Creating appointment...",
@@ -563,7 +565,7 @@ const Appointment = () => {
                     </Box>
                 </Box>
             </form>
-
+{/* DataGrid */}
             <Box
                 sx={{
                     display: "flex",
@@ -581,7 +583,7 @@ const Appointment = () => {
                     }}
                 >
                     <DataGrid
-                        rows={rows}
+                        rows={rows.filter(row => row.doctorId !== userId )}
                         columns={columns}
                         rowCount={rowCount}
                         loading={loading}

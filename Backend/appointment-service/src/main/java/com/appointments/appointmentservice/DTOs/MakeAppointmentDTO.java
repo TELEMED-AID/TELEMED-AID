@@ -1,6 +1,6 @@
 package com.appointments.appointmentservice.DTOs;
-
 import com.appointments.appointmentservice.Entities.AppointmentState;
+import com.appointments.appointmentservice.Entities.UserRole;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,4 +19,5 @@ public class MakeAppointmentDTO {
     private LocalDate date;
     private LocalTime time;
     private AppointmentState state;
+    private UserRole userRole ;
 }

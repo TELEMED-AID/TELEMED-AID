@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doctor")
@@ -30,6 +31,12 @@ public class DoctorController {
     @GetMapping
     public ResponseEntity<List<DoctorResponse>> getAllDoctors() {
         List<DoctorResponse> doctors = doctorService.getAllDoctors();
+        return ResponseEntity.ok(doctors);
+    }
+    // DoctorController.java
+    @PostMapping("/bulk")
+    public ResponseEntity<Map<Long, DoctorResponse>> getDoctorsByIds(@RequestBody List<Long> userIds) {
+        Map<Long, DoctorResponse> doctors = doctorService.getDoctorsByIds(userIds);
         return ResponseEntity.ok(doctors);
     }
     @GetMapping("/simplified")

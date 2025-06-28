@@ -23,4 +23,7 @@ public class Appointment {
     @Column(name = "appointment_state", length = 20, nullable = false)
     @Enumerated(EnumType.STRING)
     private AppointmentState appointmentState;
+    @Column(name = "user_role", length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole; // Added field to track user role
 }

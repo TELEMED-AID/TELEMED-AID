@@ -1,14 +1,19 @@
 package com.appointments.appointmentservice.Service;
 
 import com.appointments.appointmentservice.Config.AppointmentEnrichmentFlowConfig;
+import com.appointments.appointmentservice.DTOs.AppointmentDetailsDTO;
 import com.appointments.appointmentservice.DTOs.AppointmentResponseDTO;
+import com.appointments.appointmentservice.DTOs.UserIdsByRoleDTO;
 import com.appointments.appointmentservice.Entities.Appointment;
+import com.appointments.appointmentservice.Entities.UserRole;
 import com.appointments.appointmentservice.Repositories.MakeAppointment;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -36,4 +41,29 @@ public class AppointmentQueryService {
     public long countAppointmentsWhereUserIsDoctor(Long userId) {
         return appointmentRepository.countByDoctorId(userId);
     }
+    public UserIdsByRoleDTO getUserIdsByRoleForDoctorAppointments(Long doctorId) {
+        List<Appointment> appointments = appointmentRepository.findById_DoctorId(doctorId);
+
+        // Create lists of appointment details by role
+        List<AppointmentDetailsDTO> patientAppointments = appointments.stream()
+                .filter(appt -> appt.getUserRole() == UserRole.PATIENT)
+                .map(appt -> new AppointmentDetailsDTO(
+                        appt.getId().getUserId(),
+                        appt.getId().getAppointmentDate(),
+                        appt.getId().getAppointmentTime(),
+                        UserRole.PATIENT))
+                .collect(Collectors.toList());
+
+        List<AppointmentDetailsDTO> doctorAppointments = appointments.stream()
+                .filter(appt -> appt.getUserRole() == UserRole.DOCTOR)
+                .map(appt -> new AppointmentDetailsDTO(
+                        appt.getId().getUserId(),
+                        appt.getId().getAppointmentDate(),
+                        appt.getId().getAppointmentTime(),
+                        UserRole.DOCTOR))
+                .collect(Collectors.toList());
+
+        return new UserIdsByRoleDTO(patientAppointments, doctorAppointments);
+    }
 }
+

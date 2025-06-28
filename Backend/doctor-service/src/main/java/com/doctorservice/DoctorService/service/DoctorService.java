@@ -106,6 +106,16 @@ public class DoctorService {
                 .map(DoctorResponse::doctorToDoctorResponse)
                 .collect(Collectors.toList());
     }
+    // DoctorService.java
+    @Transactional(readOnly = true)
+    public Map<Long, DoctorResponse> getDoctorsByIds(List<Long> userIds) {
+        List<Doctor> doctors = doctorRepository.findAllById(userIds);
+        return doctors.stream()
+                .collect(Collectors.toMap(
+                        Doctor::getUserId,
+                        DoctorResponse::doctorToDoctorResponse
+                ));
+    }
     @Transactional(readOnly = true)
     public List<SimplifiedDoctorDto> getAllSimplifiedDoctors() {
         List<Doctor> doctors = doctorRepository.findAll();

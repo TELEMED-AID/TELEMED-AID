@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -42,7 +45,16 @@ public class PatientService {
                         "Patient with id " + userId + " not found"
                 ));
     }
-
+    // PatientService.java
+    @Transactional(readOnly = true)
+    public Map<Long, GetPatientRequest> getPatientsByIds(List<Long> userIds) {
+        List<Patient> patients = patientRepository.findAllById(userIds);
+        return patients.stream()
+                .collect(Collectors.toMap(
+                        Patient::getUserId,
+                        GetPatientRequest::toDto
+                ));
+    }
     public boolean updatePatient(Long userId, UpdatePatientRequest request) {
         Optional<Patient> optionalPatient = patientRepository.findById(userId);
         if (optionalPatient.isEmpty()) {

@@ -10,13 +10,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/patient")
 @RequiredArgsConstructor
 public class PatientController {
     private final PatientService patientService;
-
     @GetMapping("/get-patient/{userId}")
     public ResponseEntity<?> getPatient(@PathVariable Long userId) {
         try {
@@ -27,7 +29,12 @@ public class PatientController {
                     .body("Patient not found with ID: " + userId);
         }
     }
-
+    // PatientController.java
+    @PostMapping("/bulk")
+    public ResponseEntity<Map<Long, GetPatientRequest>> getPatientsByIds(@RequestBody List<Long> userIds) {
+        Map<Long, GetPatientRequest> patients = patientService.getPatientsByIds(userIds);
+        return ResponseEntity.ok(patients);
+    }
     @PostMapping("/create-patient")
     public ResponseEntity<?> createPatient(@RequestBody CreatePatientRequest request) {
         try {

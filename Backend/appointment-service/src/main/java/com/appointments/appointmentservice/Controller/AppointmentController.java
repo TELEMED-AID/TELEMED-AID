@@ -2,6 +2,7 @@ package com.appointments.appointmentservice.Controller;
 
 import com.appointments.appointmentservice.DTOs.AppointmentResponseDTO;
 import com.appointments.appointmentservice.DTOs.MakeAppointmentDTO;
+import com.appointments.appointmentservice.DTOs.UserIdsByRoleDTO;
 import com.appointments.appointmentservice.Service.AppointmentQueryService;
 import com.appointments.appointmentservice.Service.BookAppointment;
 import com.appointments.appointmentservice.Service.CancelAppointment;
@@ -23,7 +24,13 @@ public class AppointmentController {
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody MakeAppointmentDTO request) {
         System.out.println("request: " + request);
-        boolean success = bookAppointmentService.bookAppointment(request.getUserId(), request.getDoctorId(), request.getDate(), request.getTime());
+        boolean success = bookAppointmentService.bookAppointment(
+                request.getUserId(),
+                request.getDoctorId(),
+                request.getDate(),
+                request.getTime(),
+                request.getUserRole() // Add role parameter
+        );
         if (success) {
             return ResponseEntity.ok("Appointment booked successfully");
         } else {
@@ -61,7 +68,11 @@ public class AppointmentController {
             @PathVariable Long userId) {
         return ResponseEntity.ok(appointmentQueryService.countAppointmentsWhereUserIsDoctor(userId));
     }
-
+    @GetMapping("/doctor/{doctorId}/user-ids")
+    public ResponseEntity<UserIdsByRoleDTO> getUserIdsByRoleForDoctor(@PathVariable Long doctorId) {
+        UserIdsByRoleDTO userIds = appointmentQueryService.getUserIdsByRoleForDoctorAppointments(doctorId);
+        return ResponseEntity.ok(userIds);
+    }
     @GetMapping("/user/{userId}/doctor/{doctorId}")
     public ResponseEntity<List<AppointmentResponseDTO>> getUserAppointmentsWithDoctor(
             @PathVariable Long userId,
