@@ -121,6 +121,7 @@ const Navbar = () => {
         { name: "Articles", path: "/ShowArticles" },
         { name: "Questions", path: "/ShowQuestions" },
         { name: "Chat Room", path: "/chat" },
+        { name: "Chatbot", path: "/chatbot" },
     ];
 
     const drawer = (

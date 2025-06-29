@@ -18,6 +18,7 @@ import Appointment from "../Pages/Appointment/Appointment";
 import PageNotFound from "../Pages/PageNotFound/PageNotFound";
 import ChatPage from "../Pages/ChatPage/ChatPage";
 import Unauthorized from "../Pages/Unauthorized/Unauthorized.jsx";
+import Chatbot from "../Pages/Chatbot/Chatbot"
 import { sampleAppointments } from "../Utils/HelperObjects";
 
 export default function Paths() {
@@ -33,66 +34,71 @@ export default function Paths() {
                 <Route path="/unauthorized" element={<Unauthorized />} />
 
                 {/* Protected routes */}
-                <Route 
-                    path={DefaultRoutes.profile} 
-                    element={isLogged ? <ProfilePage /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.profile}
+                    element={isLogged ? <ProfilePage /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.home} 
-                    element={isLogged ? <Home_page /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.home}
+                    element={isLogged ? <Home_page /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.updateInfo} 
-                    element={isLogged ? <UpdateInfo /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.updateInfo}
+                    element={isLogged ? <UpdateInfo /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.updatePassword} 
-                    element={isLogged ? <UpdatePassword role={role} /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.updatePassword}
+                    element={isLogged ? <UpdatePassword role={role} /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.myAppointments} 
-                    element={isLogged ? <MyAppointments appointments={sampleAppointments} /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.myAppointments}
+                    element={isLogged ? <MyAppointments appointments={sampleAppointments} /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.bookAppointment} 
-                    element={isLogged ? <Appointment /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.bookAppointment}
+                    element={isLogged ? <Appointment /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.chat} 
-                    element={isLogged ? <ChatPage /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.chat}
+                    element={isLogged ? <ChatPage /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.ShowArticles} 
-                    element={isLogged ? <ShowArticles /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.ShowArticles}
+                    element={isLogged ? <ShowArticles /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.AddQuestion} 
-                    element={isLogged ? <AddQuestion /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.AddQuestion}
+                    element={isLogged ? <AddQuestion /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
-                <Route 
-                    path={DefaultRoutes.ShowQuestions} 
-                    element={isLogged ? <ShowQuestions /> : <Navigate to={DefaultRoutes.Login} replace />} 
+                <Route
+                    path={DefaultRoutes.ShowQuestions}
+                    element={isLogged ? <ShowQuestions /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
 
                 {/* Doctor-only routes */}
-                <Route 
-                    path={DefaultRoutes.availability} 
+                <Route
+                    path={DefaultRoutes.availability}
                     element={
-                        isLogged && role === "DOCTOR" ? 
-                            <Availability /> : 
+                        isLogged && role === "DOCTOR" ?
+                            <Availability /> :
                             <Navigate to="/unauthorized" replace />
-                    } 
+                    }
                 />
-                <Route 
-                    path={DefaultRoutes.AddArticle} 
+                <Route
+                    path={DefaultRoutes.AddArticle}
                     element={
-                        isLogged && role === "DOCTOR" ? 
-                            <AddArticle /> : 
+                        isLogged && role === "DOCTOR" ?
+                            <AddArticle /> :
                             <Navigate to="/unauthorized" replace />
-                    } 
+                    }
+                />
+                <Route
+                    path={DefaultRoutes.chat}
+                    element={<ChatPage />}
                 />
 
-                {/* Catch-all route */}
+                <Route path={DefaultRoutes.chatbot} element={<Chatbot />} />
+                {/* Catch-all route for undefined paths */}
                 <Route path="*" element={<PageNotFound />} />
             </Routes>
         </Router>

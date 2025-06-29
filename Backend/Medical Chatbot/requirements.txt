@@ -1,0 +1,9 @@
+ctransformers
+sentence-transformers
+pinecone
+langchain
+flask
+flask-cors
+pypdf
+python-dotenv
+langchain_pinecone
