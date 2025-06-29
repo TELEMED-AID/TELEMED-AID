@@ -18,9 +18,9 @@ import {
     Typography,
     Paper,
     CircularProgress,
-    Chip,
+    Tooltip
 } from "@mui/material";
-import { Logout as LogoutIcon } from "@mui/icons-material";
+import { Logout as LogoutIcon, SmartToy as RobotIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import logo from "../../Assets/logo.png";
@@ -121,7 +121,6 @@ const Navbar = () => {
         { name: "Articles", path: "/ShowArticles" },
         { name: "Questions", path: "/ShowQuestions" },
         { name: "Chat Room", path: "/chat" },
-        { name: "Chatbot", path: "/chatbot" },
     ];
 
     const drawer = (
@@ -214,6 +213,49 @@ const Navbar = () => {
 
     return (
         <>
+            {/* Floating Robot Icon Button - Top Right */}
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 150,
+                    right: 24,
+                    zIndex: 1200,
+                }}
+            >
+                <Tooltip title="Medical Chatbot" arrow>
+                    <IconButton
+                        component={Link}
+                        to="/chatbot"
+                        sx={{
+                            backgroundColor: '#33b4d4',
+                            color: 'white',
+                            width: 50,
+                            height: 50,
+                            '&:hover': {
+                                backgroundColor: '#2a96b3',
+                                transform: 'scale(1.1)',
+                            },
+                            transition: 'all 0.3s ease',
+                            boxShadow: 3,
+                            animation: 'pulse 2s infinite',
+                            '@keyframes pulse': {
+                                '0%': {
+                                    boxShadow: '0 0 0 0 rgba(51, 180, 212, 0.7)'
+                                },
+                                '70%': {
+                                    boxShadow: '0 0 0 10px rgba(51, 180, 212, 0)'
+                                },
+                                '100%': {
+                                    boxShadow: '0 0 0 0 rgba(51, 180, 212, 0)'
+                                }
+                            }
+                        }}
+                    >
+                        <RobotIcon sx={{ fontSize: 32 }} />
+                    </IconButton>
+                </Tooltip>
+            </Box>
+
             <HideOnScroll>
                 <AppBar
                     position="sticky"
@@ -376,11 +418,6 @@ const Navbar = () => {
                                                             alignItems: 'center',
                                                             mb: 1 
                                                         }}>
-                                                            {/* <Chip 
-                                                                label={NOTIFICATION_TYPES[notification.type]?.label || notification.type}
-                                                                color={NOTIFICATION_TYPES[notification.type]?.color || 'default'}
-                                                                size="small"
-                                                            /> */}
                                                             <Typography variant="caption" color="text.secondary">
                                                                 {formatDistanceToNow(new Date(notification.timestamp), { 
                                                                     addSuffix: true 
