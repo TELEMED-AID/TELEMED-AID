@@ -5,11 +5,6 @@ spring:
     config:
       enabled: false
     gateway:
-      httpclient:
-        connect-timeout: 5000
-        response-timeout: 30s
-        websocket:
-          max-frame-payload-length: 65536
       globalcors:
         cors-configurations:
           '[/**]':
@@ -24,18 +19,10 @@ spring:
           uri: lb://Patient-Service
           predicates:
             - Path=/api/patient/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: patient-service
         - id: "doctor-service"
           uri: lb://Doctor-Service
           predicates:
             - Path=/api/doctor/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: doctor-service
         - id: "user-authentication-service"
           uri: lb://Auth-Service
           predicates:
@@ -44,18 +31,10 @@ spring:
           uri: lb://Ai-Chatbot-Service
           predicates:
             - Path=/chatbot/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: ai-chatbot-service
         - id: "chatting-service-http"
           uri: lb://Chatting-Service
           predicates:
             - Path=/chat/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: chatting-service
         - id: chatting-service-ws
           uri: lb://Chatting-Service
           predicates:
@@ -64,26 +43,15 @@ spring:
           uri: lb://Article-Service
           predicates:
             - Path=/article/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: article-service
         - id: "appointment-service"
           uri: lb://Appointment-Service
           predicates:
             - Path=/api/appointment/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: appointment-service
         - id: "notification-service"
           uri: lb://Notification-Service
           predicates:
             - Path=/notification/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                name: notification-service
+
 server:
   port: 8080
 
@@ -110,15 +78,6 @@ management:
     gateway:
       enabled: true
       lowerCaseServiceId: true
-
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        slidingWindowSize: 10
-        permittedNumberOfCallsInHalfOpenState: 4
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
 
 info:
   app:

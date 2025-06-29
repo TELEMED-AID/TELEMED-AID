@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import {
   Box,
   Typography,
@@ -35,11 +35,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import chatWallpaper from "../../Assets/chatwallpaper.jpg";
 import usePostItem from "../../Hooks/usePost";
 import useGet from "../../Hooks/useGet";
-import { GET_CHAT_ROOMS, GET_CHAT_ROOM_MESSAGES } from "../../API/APIRoutes";
+import {
+  GET_CHAT_ROOMS,
+  GET_CHAT_ROOM_MESSAGES,
+  CREATE_CHAT_ROOM,
+  JOIN_CHAT_ROOM,
+} from "../../API/APIRoutes";
 import { Client } from "@stomp/stompjs";
 import LoadingComponent from "../../Components/LoadingComponent/LoadingComponent";
 import CircularProgress from "@mui/material/CircularProgress";
-
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -60,9 +64,14 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [roomPopupOpen, setRoomPopupOpen] = useState(false);
-  const { loading: sendMessageLoading, postItem: sendMessageApi } =
-    usePostItem();
-  const { loading: getAllChatsLoading, getItem: getAllChats, getItem } = useGet();
+  const { loading: createRoomLoading, postItem: createRoomApi } = usePostItem();
+    const { loading: inviteRoomLoading, postItem: inviteRoomAPi } = usePostItem();
+
+  const {
+    loading: getAllChatsLoading,
+    getItem: getAllChats,
+    getItem,
+  } = useGet();
   const { loading: getChatMessagesLoading, getItem: getChatMessages } =
     useGet();
   const Doctor = "DOCTOR";
@@ -74,54 +83,65 @@ const ChatPage = () => {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [mockUsers, setMockUsers] = useState([]);
 
-  // Fetch simplified doctor data
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const response = await getItem('/api/doctor/simplified', false);
+    // Fetch simplified doctor data
+    useEffect(() => {
+      const fetchDoctors = async () => {
+        try {
+          const response = await getItem('/api/doctor/simplified', false);
 
-        if (response) {
-          // Transform data for availableUsers (just names)
-          const doctorNames = response.map(doctor => doctor.name);
-          setAvailableUsers(doctorNames);
-          console.log('Available Users:', doctorNames);
-          
-          // Transform data for mockUsers (with id, name, role)
-          const formattedDoctors = response.map(doctor => ({
-            id: doctor.userId,  // matches SimplifiedDoctorDto.userId
-            name: doctor.name,  // matches SimplifiedDoctorDto.name
-            role: Doctor,
-            specialization: doctor.specializationName,  // from DTO
-            careerLevel: doctor.careerLevelName  // from DTO
-          }));
-          
-          setMockUsers(formattedDoctors);
-          console.log('Mock Users:', formattedDoctors);
+          if (response) {
+            // Transform data for availableUsers (just names)
+            const doctorNames = response.map(doctor => doctor.name);
+            setAvailableUsers(doctorNames);
+            console.log('Available Users:', doctorNames);
+
+            // Transform data for mockUsers (with id, name, role)
+            const formattedDoctors = response.map(doctor => ({
+              id: doctor.userId,  // matches SimplifiedDoctorDto.userId
+              name: doctor.name,  // matches SimplifiedDoctorDto.name
+              role: Doctor,
+              specialization: doctor.specializationName,  // from DTO
+              careerLevel: doctor.careerLevelName  // from DTO
+            }));
+
+            setMockUsers(formattedDoctors);
+            console.log('Mock Users:', formattedDoctors);
+          }
+        } catch (error) {
+          console.error("Error fetching doctors:", error);
+          // Fallback to default data if API fails
+          // setAvailableUsers([
+          //   "Dr. Brown",
+          //   "Nurse Jane",
+          //   "Patient Carol",
+          //   "Dr. Miller",
+          //   "Patient Dave"
+          // ]);
+          // setMockUsers([
+          //   { id: 1, name: "Dr. Smith", role: "Doctor" },
+          //   { id: 2, name: "Dr. Johnson", role: "Doctor" },
+          //   { id: 3, name: "Dr. Alice", role: "Doctor" },
+          //   { id: 4, name: "Dr. Bob", role: "Doctor" }
+          // ]);
         }
-      } catch (error) {
-        console.error("Error fetching doctors:", error);
-        // Fallback to default data if API fails
-        // setAvailableUsers([
-        //   "Dr. Brown",
-        //   "Nurse Jane",
-        //   "Patient Carol",
-        //   "Dr. Miller",
-        //   "Patient Dave"
-        // ]);
-        // setMockUsers([
-        //   { id: 1, name: "Dr. Smith", role: "Doctor" },
-        //   { id: 2, name: "Dr. Johnson", role: "Doctor" },
-        //   { id: 3, name: "Dr. Alice", role: "Doctor" },
-        //   { id: 4, name: "Dr. Bob", role: "Doctor" }
-        // ]);
-      }
-    };
+      };
 
-    fetchDoctors();
-}, []); // Empty dependency array
-  useEffect(() => {
-    // setMessages(mockMessages[currentRoom] || []);
-  }, [currentRoom]);
+      fetchDoctors();
+  }, []); // Empty dependency array
+  // useEffect(() => {
+  //   // setMessages(mockMessages[currentRoom] || []);
+  //   setAvailableUsers([
+  //     { id: 6, name: "Dr. Johnson", role: "Doctor" },
+  //     { id: 7, name: "Dr. Alice", role: "Doctor" },
+  //     { id: 5, name: "Dr. Bob", role: "Doctor" },
+  //   ]);
+  //   setMockUsers([
+  //     { id: 1, name: "kimo", role: "Doctor" },
+  //     { id: 6, name: "Dr. Johnson", role: "Doctor" },
+  //     { id: 7, name: "Dr. Alice", role: "Doctor" },
+  //     { id: 8, name: "Dr. Bob", role: "Doctor" },
+  //   ]);
+  // }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -132,10 +152,20 @@ const ChatPage = () => {
     setRooms(data || []);
   };
 
+  const CreateRoomCallBack = (data) => {
+    setRoomPopupOpen(false);
+    window.location.reload();
+  };
+   const InviteRoomCallBack = (data) => {
+    console.log("Participants added successfully:", data);
+      setSelectedUsers([]);
+      setShowAddParticipantsDialog(false);
+    };
+
   const formatDateFields = (date) => {
     const d = new Date(date);
     const day = d.getDate().toString().padStart(2, "0");
-    const month = (d.getMonth() + 1).toString().padStart(2, "0"); // Months are 0-indexed
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
     const year = d.getFullYear();
     const hours = d.getHours().toString().padStart(2, "0");
     const minutes = d.getMinutes().toString().padStart(2, "0");
@@ -245,26 +275,37 @@ const ChatPage = () => {
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
+  const handleCreateRoom = (roomName, selectedUserIds) => {
+    const selectedDoctors = mockUsers
+      .filter((user) => selectedUserIds.includes(user.id))
+      .map((user) => ({
+        id: user.id,
+        name: user.name,
+      }));
+    selectedDoctors.push({
+      id: userId,
+      name: "Owner",
+    });
 
-  const handleCreateRoom = () => {
-    if (newRoomName.trim()) {
-      // In a real app, you would send this to your backend
-      const newRoom = {
-        id: Date.now().toString(),
-        name: newRoomName,
-        lastMessage: "Room created",
-        unreadCount: 0,
-        participants: ["You"],
-      };
-      rooms.push(newRoom);
-      setNewRoomName("");
-      setShowCreateRoomDialog(false);
-      handleRoomSelect(newRoom.roomId);
-    }
+    const requestData = {
+      roomName,
+      ownerId: userId,
+      users: selectedDoctors,
+    };
+
+    createRoomApi(
+      CREATE_CHAT_ROOM,
+      requestData,
+      CreateRoomCallBack,
+      "Room created successfully"
+    );
+
+    console.log("Request data to backend:", requestData);
   };
 
   const handleAddParticipant = (user) => {
-    if (!selectedUsers.includes(user)) {
+    console.log("Adding participant:", user);
+    if (!selectedUsers.some((u) => u.id === user.id)) {
       setSelectedUsers([...selectedUsers, user]);
     }
   };
@@ -282,26 +323,20 @@ const ChatPage = () => {
       // Prepare the request data
       const requestData = {
         roomId: currentRoom,
-        participants: selectedUsers,
+        users: selectedUsers.map((user) => ({
+          id: user.id,
+          name: user.name,
+        })),
       };
 
       // Print the request data to console
       console.log("Request to add participants:", requestData);
 
-      // In a real app, you would send this to your backend:
-      // axios.post(`/api/rooms/${currentRoom}/participants`, requestData)
-      //   .then(response => {
-      //     // Update local state if needed
-      //     setSelectedUsers([]);
-      //     setShowAddParticipantsDialog(false);
-      //   });
-
-      // For now, just update mock data and close dialog
+      inviteRoomAPi(JOIN_CHAT_ROOM, requestData, InviteRoomCallBack, "Participants added successfully");
       room.participants = [
-        ...new Set([...room.participants, ...selectedUsers]),
+        ...new Set([...room.participants, ...selectedUsers.map((u) => u.name)]),
       ];
-      setSelectedUsers([]);
-      setShowAddParticipantsDialog(false);
+
     }
   };
 
@@ -568,8 +603,11 @@ const ChatPage = () => {
                         p: 2,
                         borderRadius: 2,
                         bgcolor:
-                          msg.senderId === userId ? "#33b4d4" : "background.paper",
-                        color: msg.senderId === userId ? "#ffffff" : "text.primary",
+                          msg.senderId === userId
+                            ? "#33b4d4"
+                            : "background.paper",
+                        color:
+                          msg.senderId === userId ? "#ffffff" : "text.primary",
                         boxShadow: 1,
                       }}
                     >
@@ -700,8 +738,8 @@ const ChatPage = () => {
               {selectedUsers.length > 0 ? (
                 selectedUsers.map((user) => (
                   <Chip
-                    key={user}
-                    label={user}
+                    key={user.id}
+                    label={user.name}
                     onDelete={() => handleRemoveParticipant(user)}
                   />
                 ))
@@ -718,23 +756,27 @@ const ChatPage = () => {
             </Typography>
             <List>
               {availableUsers
-                .filter(
-                  (user) =>
-                    !rooms
-                      .find((r) => r.id === currentRoom)
-                      ?.participants.includes(user)
-                )
+                .filter((user) => {
+                  const room = rooms.find((r) => r.roomId === currentRoom);
+                  // If no room or no participants, show all users
+                  if (!room || !room.participants) return true;
+                  // If participants are objects with id, compare by id
+                  return !room.participants.some(
+                    (participant) => (participant.id ?? participant) === user.id
+                  );
+                })
                 .map((user) => (
                   <ListItem
-                    key={user}
+                    key={user.id}
                     onClick={() => handleAddParticipant(user)}
-                    disabled={selectedUsers.includes(user)}
+                    disabled={selectedUsers.some((u) => u.id === user.id)}
+                    sx={{ cursor: "pointer" }}
                   >
                     <ListItemAvatar>
-                      <Avatar>{user.charAt(0)}</Avatar>
+                      <Avatar>{user.name.charAt(0)}</Avatar>
                     </ListItemAvatar>
-                    <ListItemText primary={user} />
-                    {selectedUsers.includes(user) && (
+                    <ListItemText primary={user.name} />
+                    {selectedUsers.some((u) => u.id === user.id) && (
                       <AddIcon color="primary" />
                     )}
                   </ListItem>
@@ -759,31 +801,7 @@ const ChatPage = () => {
         open={roomPopupOpen}
         onClose={() => setRoomPopupOpen(false)}
         users={mockUsers}
-        onCreateRoom={(roomName, selectedUserIds) => {
-          const selectedDoctors = mockUsers
-            .filter(
-              (user) =>
-                selectedUserIds.includes(user.id) && user.role === "Doctor"
-            )
-            .map((user) => ({
-              id: user.id,
-              name: user.name,
-            }));
-
-          const requestData = {
-            roomName,
-            participants: selectedDoctors,
-          };
-
-          // Print the request data to console
-          console.log("Request data to backend:", requestData);
-
-          // Optional: Close popup
-          setRoomPopupOpen(false);
-
-          // Optional: handleRoomSelect / UI logic can stay or be removed for now
-          // handleRoomSelect(newRoom.roomId);
-        }}
+        onCreateRoom={handleCreateRoom}
       />
     </Box>
   );
