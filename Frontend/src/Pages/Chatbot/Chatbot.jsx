@@ -155,10 +155,10 @@ const Chatbot = () => {
                                     Welcome to MediCare AI
                                 </Typography>
                                 <Typography variant="body1">
-                                    Ask me anything about medical symptoms, conditions, or treatments.
+                                    Ask me anything related to autism symptoms, associated conditions, or available treatments.
                                 </Typography>
                                 <Typography variant="body2" sx={{ mt: 2 }}>
-                                    Example: "What are the symptoms of diabetes?"
+                                    Example: "Define "echolalia" and its relevance to ASD?"
                                 </Typography>
                             </Box>
                         </Fade>
