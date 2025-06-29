@@ -298,7 +298,7 @@ const ProfilePage = () => {
                                             {/* Use fetched userId */}
                                         </Typography>
                                         {/* Create Room Button (for both roles, or conditional if needed) */}
-                                        <Button
+                                      {/*  <Button
                                             variant="contained"
                                             startIcon={<PostAdd />}
                                             onClick={() =>
@@ -314,9 +314,9 @@ const ProfilePage = () => {
                                             }}
                                         >
                                             Create Room
-                                        </Button>
+                                        </Button>*/}
                                         {/* Chat Room Button */}
-                                        <Button
+                                        {/*<Button
                                             variant="contained"
                                             startIcon={<Schedule />}
                                             onClick={() =>
@@ -331,7 +331,7 @@ const ProfilePage = () => {
                                             }}
                                         >
                                             Chat Room
-                                        </Button>
+                                        </Button>*/}
                                     </Box>
                                     <Divider sx={{ mb: 2 }} />{" "}
                                     {/* Divider below buttons */}

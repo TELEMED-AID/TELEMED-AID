@@ -2,6 +2,7 @@ package com.telemidAid.patient_service.service;
 
 import com.telemidAid.patient_service.dtos.CreatePatientRequest;
 import com.telemidAid.patient_service.dtos.GetPatientRequest;
+import com.telemidAid.patient_service.dtos.SimplifiedPatientDto;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
 import com.telemidAid.patient_service.entity.Patient;
 import com.telemidAid.patient_service.repository.PatientRepository;
@@ -66,5 +67,15 @@ public class PatientService {
 
         patientRepository.save(patient);
         return true;
+    }
+    @Transactional(readOnly = true)
+    public List<SimplifiedPatientDto> getAllSimplifiedDoctors() {
+        List<Patient> patients = patientRepository.findAll();
+        return patients.stream()
+                .map(patient -> SimplifiedPatientDto.builder()
+                        .userId(patient.getUserId())
+                        .name(patient.getName())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

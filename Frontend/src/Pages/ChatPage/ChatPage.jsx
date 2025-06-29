@@ -23,7 +23,13 @@ import {
   DialogActions,
   Chip,
   InputAdornment,
+  Checkbox,
+  ListItemSecondaryAction
 } from "@mui/material";
+import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
+import PersonIcon from '@mui/icons-material/Person';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import RoomCreationPopup from "../../Pages/RoomCreationPopup/RoomCreationPopup ";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SendIcon from "@mui/icons-material/Send";
@@ -65,8 +71,7 @@ const ChatPage = () => {
   const messagesContainerRef = useRef(null);
   const [roomPopupOpen, setRoomPopupOpen] = useState(false);
   const { loading: createRoomLoading, postItem: createRoomApi } = usePostItem();
-    const { loading: inviteRoomLoading, postItem: inviteRoomAPi } = usePostItem();
-
+  const { loading: inviteRoomLoading, postItem: inviteRoomAPi } = usePostItem();
   const {
     loading: getAllChatsLoading,
     getItem: getAllChats,
@@ -75,73 +80,47 @@ const ChatPage = () => {
   const { loading: getChatMessagesLoading, getItem: getChatMessages } =
     useGet();
   const Doctor = "DOCTOR";
+  const Patient = "PATIENT";
   const [connected, setConnected] = useState(false);
   const [rooms, setRooms] = useState([]);
-
   const stompClient = useRef(null);
-
   const [availableUsers, setAvailableUsers] = useState([]);
-  const [mockUsers, setMockUsers] = useState([]);
+  const [CurrentUser, setcurrentUser] = useState();
 
-    // Fetch simplified doctor data
-    useEffect(() => {
-      const fetchDoctors = async () => {
-        try {
-          const response = await getItem('/api/doctor/simplified', false);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        // Fetch doctors
+        const doctorsResponse = await getItem('/api/doctor/simplified', false);
+        const formattedDoctors = doctorsResponse.map(doctor => ({
+          id: doctor.userId,
+          name: doctor.name,
+          role: Doctor,
+          specialization: doctor.specializationName,
+          careerLevel: doctor.careerLevelName
+        }));
 
-          if (response) {
-            // Transform data for availableUsers (just names)
-            const doctorNames = response.map(doctor => doctor.name);
-            setAvailableUsers(doctorNames);
-            console.log('Available Users:', doctorNames);
+        // Fetch patients
+        const patientsResponse = await getItem('/api/patient/simplified', false);
+        const formattedPatients = patientsResponse.map(patient => ({
+          id: patient.userId,
+          name: patient.name,
+          role: Patient
+        }));
 
-            // Transform data for mockUsers (with id, name, role)
-            const formattedDoctors = response.map(doctor => ({
-              id: doctor.userId,  // matches SimplifiedDoctorDto.userId
-              name: doctor.name,  // matches SimplifiedDoctorDto.name
-              role: Doctor,
-              specialization: doctor.specializationName,  // from DTO
-              careerLevel: doctor.careerLevelName  // from DTO
-            }));
+        // Combine both lists
+        const allUsers = [...formattedDoctors, ...formattedPatients];
+        setcurrentUser(allUsers.find(user => user.id === userId));
+        setAvailableUsers(allUsers);
+        console.log('Available Users:', allUsers);
+        console.log('current user', CurrentUser.name)
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
 
-            setMockUsers(formattedDoctors);
-            console.log('Mock Users:', formattedDoctors);
-          }
-        } catch (error) {
-          console.error("Error fetching doctors:", error);
-          // Fallback to default data if API fails
-          // setAvailableUsers([
-          //   "Dr. Brown",
-          //   "Nurse Jane",
-          //   "Patient Carol",
-          //   "Dr. Miller",
-          //   "Patient Dave"
-          // ]);
-          // setMockUsers([
-          //   { id: 1, name: "Dr. Smith", role: "Doctor" },
-          //   { id: 2, name: "Dr. Johnson", role: "Doctor" },
-          //   { id: 3, name: "Dr. Alice", role: "Doctor" },
-          //   { id: 4, name: "Dr. Bob", role: "Doctor" }
-          // ]);
-        }
-      };
-
-      fetchDoctors();
-  }, []); // Empty dependency array
-  // useEffect(() => {
-  //   // setMessages(mockMessages[currentRoom] || []);
-  //   setAvailableUsers([
-  //     { id: 6, name: "Dr. Johnson", role: "Doctor" },
-  //     { id: 7, name: "Dr. Alice", role: "Doctor" },
-  //     { id: 5, name: "Dr. Bob", role: "Doctor" },
-  //   ]);
-  //   setMockUsers([
-  //     { id: 1, name: "kimo", role: "Doctor" },
-  //     { id: 6, name: "Dr. Johnson", role: "Doctor" },
-  //     { id: 7, name: "Dr. Alice", role: "Doctor" },
-  //     { id: 8, name: "Dr. Bob", role: "Doctor" },
-  //   ]);
-  // }, []);
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -156,11 +135,12 @@ const ChatPage = () => {
     setRoomPopupOpen(false);
     window.location.reload();
   };
-   const InviteRoomCallBack = (data) => {
+
+  const InviteRoomCallBack = (data) => {
     console.log("Participants added successfully:", data);
-      setSelectedUsers([]);
-      setShowAddParticipantsDialog(false);
-    };
+    setSelectedUsers([]);
+    setShowAddParticipantsDialog(false);
+  };
 
   const formatDateFields = (date) => {
     const d = new Date(date);
@@ -207,9 +187,6 @@ const ChatPage = () => {
         body: JSON.stringify(chatMessage),
       });
     }
-
-    // setMessages([...messages, newMessage]);
-    // setMessage("");
   };
 
   const getChatMessagesCallBack = (data) => {
@@ -275,22 +252,21 @@ const ChatPage = () => {
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
+
   const handleCreateRoom = (roomName, selectedUserIds) => {
-    const selectedDoctors = mockUsers
+    const selectedUsers = availableUsers
       .filter((user) => selectedUserIds.includes(user.id))
       .map((user) => ({
         id: user.id,
         name: user.name,
       }));
-    selectedDoctors.push({
-      id: userId,
-      name: "Owner",
-    });
-
     const requestData = {
       roomName,
       ownerId: userId,
-      users: selectedDoctors,
+      users: [
+        ...selectedUsers,
+        { id: userId, name: CurrentUser.name } // Add current user
+      ],
     };
 
     createRoomApi(
@@ -314,13 +290,10 @@ const ChatPage = () => {
     setSelectedUsers(selectedUsers.filter((user) => user !== userToRemove));
   };
 
-  // Adjust this kareem to send the request with room id and new participants of the specified room ***********************
   const handleInviteParticipants = () => {
-    // Get the current room
     const room = rooms.find((r) => r.roomId === currentRoom);
 
     if (room) {
-      // Prepare the request data
       const requestData = {
         roomId: currentRoom,
         users: selectedUsers.map((user) => ({
@@ -329,14 +302,12 @@ const ChatPage = () => {
         })),
       };
 
-      // Print the request data to console
       console.log("Request to add participants:", requestData);
 
       inviteRoomAPi(JOIN_CHAT_ROOM, requestData, InviteRoomCallBack, "Participants added successfully");
       room.participants = [
         ...new Set([...room.participants, ...selectedUsers.map((u) => u.name)]),
       ];
-
     }
   };
 
@@ -352,7 +323,17 @@ const ChatPage = () => {
       </Box>
     );
   }
+  // Utility functions for filtering
+  const filterCurrentUser = (users, currentUserId) =>
+    users.filter(user => user.id !== currentUserId);
 
+
+const filterExistingParticipants = (users, participantsString) => {
+    // Split the string back into an array (or use empty array if undefined)
+    const participantNames = participantsString ? participantsString.split(", ") : [];
+    console.log(participantNames)
+    return users.filter(user => !participantNames.includes(user.name));
+  };
   return (
     <Box
       sx={{
@@ -466,25 +447,10 @@ const ChatPage = () => {
                       >
                         {room.roomName}
                       </Typography>
-                      {/* {room.unreadCount > 0 && (
-                                                <Badge
-                                                    badgeContent={
-                                                        room.unreadCount
-                                                    }
-                                                    sx={{
-                                                        "& .MuiBadge-badge": {
-                                                            backgroundColor:
-                                                                "#33b4d4",
-                                                            color: "#ffffff",
-                                                        },
-                                                    }}
-                                                />
-                                            )} */}
                     </Box>
                   }
                   secondary={
                     <Typography
-                      // noWrap
                       sx={{
                         color:
                           currentRoom === room.roomId
@@ -512,13 +478,12 @@ const ChatPage = () => {
           display: "flex",
           flexDirection: "column",
           width: { xs: "100%", md: "calc(100% - 300px)" },
-          height: isMobile ? "calc(100vh - 56px)" : "100vh", // Subtract mobile header height
-          overflow: "hidden", // Prevent nested scrolling
+          height: isMobile ? "calc(100vh - 56px)" : "100vh",
+          overflow: "hidden",
         }}
       >
         {currentRoom ? (
           getChatMessagesLoading ? (
-            // Show loading spinner while messages are loading
             <Box
               sx={{
                 flex: 1,
@@ -574,9 +539,9 @@ const ChatPage = () => {
                   py: 2,
                   px: 5,
                   backgroundImage: `
-                                    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
-                                    url(${chatWallpaper})
-                                    `,
+                    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)),
+                    url(${chatWallpaper})
+                  `,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -722,7 +687,7 @@ const ChatPage = () => {
 
       {/* Add Participants Dialog */}
       <Dialog
-        disableRestoreFocus // Add this line
+        disableRestoreFocus
         open={showAddParticipantsDialog}
         onClose={() => setShowAddParticipantsDialog(false)}
         fullWidth
@@ -732,7 +697,7 @@ const ChatPage = () => {
         <DialogContent>
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle1" gutterBottom>
-              Selected Participants
+              Selected Participants ({selectedUsers.length})
             </Typography>
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
               {selectedUsers.length > 0 ? (
@@ -740,7 +705,21 @@ const ChatPage = () => {
                   <Chip
                     key={user.id}
                     label={user.name}
+                    avatar={
+                      <Avatar sx={{
+                        width: 24,
+                        height: 24,
+                        bgcolor: user.role === Doctor ? '#33b4d4' : 'primary'
+                      }}>
+                        {user.role === Doctor ? (
+                          <MedicalInformationIcon fontSize="small" />
+                        ) : (
+                          <PersonIcon fontSize="small" />
+                        )}
+                      </Avatar>
+                    }
                     onDelete={() => handleRemoveParticipant(user)}
+                    color={user.role === Doctor ? "primary" : "default"}
                   />
                 ))
               ) : (
@@ -750,57 +729,105 @@ const ChatPage = () => {
               )}
             </Box>
           </Box>
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              Available Users
-            </Typography>
-            <List>
-              {availableUsers
-                .filter((user) => {
-                  const room = rooms.find((r) => r.roomId === currentRoom);
-                  // If no room or no participants, show all users
-                  if (!room || !room.participants) return true;
-                  // If participants are objects with id, compare by id
-                  return !room.participants.some(
-                    (participant) => (participant.id ?? participant) === user.id
-                  );
-                })
-                .map((user) => (
-                  <ListItem
-                    key={user.id}
-                    onClick={() => handleAddParticipant(user)}
-                    disabled={selectedUsers.some((u) => u.id === user.id)}
-                    sx={{ cursor: "pointer" }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar>{user.name.charAt(0)}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText primary={user.name} />
-                    {selectedUsers.some((u) => u.id === user.id) && (
-                      <AddIcon color="primary" />
+
+          <Divider sx={{ my: 2 }} />
+
+          <Typography variant="subtitle1" gutterBottom>
+            Available Users
+          </Typography>
+          <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+            {filterCurrentUser(
+              filterExistingParticipants(
+                availableUsers,
+                rooms.find((r) => r.roomId === currentRoom)?.participants?.join(", ") || ""
+              ),
+              userId
+            ).map((user) => (
+              <ListItem
+                key={user.id}
+                button
+                onClick={() => handleAddParticipant(user)}
+                disabled={selectedUsers.some(u => u.id === user.id)}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{
+                    bgcolor: user.role === Doctor ? '#33b4d4' : 'default'
+                  }}>
+                    {user.role === Doctor ? (
+                      <MedicalInformationIcon />
+                    ) : (
+                      <PersonIcon />
                     )}
-                  </ListItem>
-                ))}
-            </List>
-          </Box>
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={user.name}
+                  secondary={
+                    user.role === Doctor ? (
+                      <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                        <Chip
+                          label={user.specialization}
+                          size="small"
+                          color="primary"
+                          variant="outlined"
+                        />
+                        {user.careerLevel && (
+                          <Chip
+                            label={user.careerLevel}
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                          />
+                        )}
+                      </Box>
+                    ) : (
+                      "Patient"
+                    )
+                  }
+                />
+                <ListItemSecondaryAction>
+                  <Checkbox
+                    edge="end"
+                    checked={selectedUsers.some((u) => u.id === user.id)}
+                    onChange={() => handleAddParticipant(user)}
+                    icon={<CheckBoxOutlineBlankIcon />}
+                    checkedIcon={<CheckBoxIcon />}
+                    color={user.role === Doctor ? "primary" : "default"}
+                  />
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowAddParticipantsDialog(false)}>
+          <Button
+            onClick={() => setShowAddParticipantsDialog(false)}
+            sx={{
+              color: '#c2185b',
+              '&:hover': {
+                backgroundColor: 'rgba(194, 24, 91, 0.08)'
+              }
+            }}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleInviteParticipants}
-            color="primary"
+            variant="contained"
             disabled={selectedUsers.length === 0}
+            sx={{
+              bgcolor: "#33b4d4",
+              "&:hover": { bgcolor: "#2a9cb3" },
+            }}
           >
-            Invite
+            Invite Participants
           </Button>
         </DialogActions>
       </Dialog>
       <RoomCreationPopup
         open={roomPopupOpen}
         onClose={() => setRoomPopupOpen(false)}
-        users={mockUsers}
+        users={filterCurrentUser(availableUsers, userId)}
         onCreateRoom={handleCreateRoom}
       />
     </Box>

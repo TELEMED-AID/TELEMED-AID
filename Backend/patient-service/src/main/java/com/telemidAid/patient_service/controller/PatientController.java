@@ -2,6 +2,7 @@ package com.telemidAid.patient_service.controller;
 
 import com.telemidAid.patient_service.dtos.CreatePatientRequest;
 import com.telemidAid.patient_service.dtos.GetPatientRequest;
+import com.telemidAid.patient_service.dtos.SimplifiedPatientDto;
 import com.telemidAid.patient_service.dtos.UpdatePatientRequest;
 import com.telemidAid.patient_service.service.PatientService;
 import lombok.NoArgsConstructor;
@@ -62,5 +63,10 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Invalid request: " + e.getMessage());
         }
+    }
+    @GetMapping("/simplified")
+    public ResponseEntity<List<SimplifiedPatientDto>> getAllSimplifiedDoctors() {
+        List<SimplifiedPatientDto> doctors = patientService.getAllSimplifiedDoctors();
+        return ResponseEntity.ok(doctors);
     }
 }
