@@ -3,9 +3,7 @@ package com.appointments.appointmentservice;
 import com.appointments.appointmentservice.Config.AppointmentEnrichmentFlowConfig;
 import com.appointments.appointmentservice.DTOs.AppointmentResponseDTO;
 import com.appointments.appointmentservice.DTOs.DoctorDataDTO;
-import com.appointments.appointmentservice.Entities.Appointment;
-import com.appointments.appointmentservice.Entities.AppointmentID;
-import com.appointments.appointmentservice.Entities.AppointmentState;
+import com.appointments.appointmentservice.Entities.*;
 import com.appointments.appointmentservice.Repositories.MakeAppointment;
 import com.appointments.appointmentservice.Service.AppointmentCleanup;
 import com.appointments.appointmentservice.Service.AppointmentQueryService;
@@ -57,13 +55,21 @@ class AppointmentServiceApplicationTests {
         assertEquals(1, result.size());
     }
 
-    /// TC-APP-1: Valid Appointment Booking
+
     @Test
     void shouldBookValidAppointment() {
         MakeAppointment makeAppointment = mock(MakeAppointment.class);
         BookAppointment bookAppointment = new BookAppointment(makeAppointment);
         when(makeAppointment.existsById(any())).thenReturn(false);
-        boolean result = bookAppointment.bookAppointment(userId, doctorId, LocalDate.now(), LocalTime.now().plusHours(1));
+
+        boolean result = bookAppointment.bookAppointment(
+                userId,
+                doctorId,
+                LocalDate.now(),
+                LocalTime.now().plusHours(1),
+                UserRole.PATIENT
+        );
+
         assertTrue(result);
         verify(makeAppointment).save(any(Appointment.class));
     }
@@ -74,10 +80,12 @@ class AppointmentServiceApplicationTests {
         MakeAppointment repo = mock(MakeAppointment.class);
         BookAppointment booker = new BookAppointment(repo);
 
-        assertFalse(booker.bookAppointment(null, doctorId, futureDate, appointmentTime));
-        assertFalse(booker.bookAppointment(userId, null, futureDate, appointmentTime));
-        assertFalse(booker.bookAppointment(userId, doctorId, null, appointmentTime));
-        assertFalse(booker.bookAppointment(userId, doctorId, futureDate, null));
+        // Test each parameter being null, including UserRole
+        assertFalse(booker.bookAppointment(null, doctorId, futureDate, appointmentTime, UserRole.PATIENT));
+        assertFalse(booker.bookAppointment(userId, null, futureDate, appointmentTime, UserRole.PATIENT));
+        assertFalse(booker.bookAppointment(userId, doctorId, null, appointmentTime, UserRole.PATIENT));
+        assertFalse(booker.bookAppointment(userId, doctorId, futureDate, null, UserRole.PATIENT));
+        assertFalse(booker.bookAppointment(userId, doctorId, futureDate, appointmentTime, null));
     }
 
     /// TC-APP-3: Booking in the Past
@@ -86,34 +94,89 @@ class AppointmentServiceApplicationTests {
         MakeAppointment repo = mock(MakeAppointment.class);
         BookAppointment booker = new BookAppointment(repo);
 
-        assertFalse(booker.bookAppointment(userId, doctorId, LocalDate.now().minusDays(1), appointmentTime));
-        assertFalse(booker.bookAppointment(userId, doctorId, LocalDate.now(), LocalTime.now().minusHours(1)));
+        // Test past date with valid time
+        assertFalse(booker.bookAppointment(
+                userId,
+                doctorId,
+                LocalDate.now().minusDays(1),
+                appointmentTime,
+                UserRole.PATIENT  // Added UserRole parameter
+        ));
+
+        // Test current date with past time
+        assertFalse(booker.bookAppointment(
+                userId,
+                doctorId,
+                LocalDate.now(),
+                LocalTime.now().minusHours(1),
+                UserRole.PATIENT  // Added UserRole parameter
+        ));
+
         verify(repo, never()).save(any());
     }
 
     /// TC-APP-4: Duplicate Appointment Booking
     @Test
     void shouldNotBookDuplicateAppointment() {
-        MakeAppointment repo = mock(MakeAppointment.class);
-        BookAppointment booker = new BookAppointment(repo);
-        when(repo.existsById(any())).thenReturn(true);
+        // Setup - Use FIXED date/time instead of dynamic now()
+        LocalDate testDate = LocalDate.of(2025, 7, 15); // Fixed future date
+        LocalTime testTime = LocalTime.of(14, 30);      // Fixed time
 
-        boolean result = booker.bookAppointment(userId, doctorId, futureDate, appointmentTime);
+        // Create the expected ID object
+        AppointmentID expectedId = new AppointmentID(userId, doctorId, testDate, testTime);
+
+        // Mock the repository
+        MakeAppointment repo = mock(MakeAppointment.class);
+        when(repo.existsById(expectedId)).thenReturn(true); // Duplicate exists
+
+        // Test
+        BookAppointment booker = new BookAppointment(repo);
+        boolean result = booker.bookAppointment(
+                userId,
+                doctorId,
+                testDate,      // Same date as in expectedId
+                testTime,      // Same time as in expectedId
+                UserRole.PATIENT
+        );
+
+        // Verify
         assertFalse(result);
-        verify(repo).existsById(any());
+        verify(repo).existsById(expectedId); // Verify exact ID was checked
+        verify(repo, never()).save(any());
     }
 
     /// TC-APP-5: Exception During Booking
     @Test
     void shouldHandleExceptionDuringBooking() {
-        MakeAppointment repo = mock(MakeAppointment.class);
-        BookAppointment booker = new BookAppointment(repo);
-        when(repo.existsById(any())).thenReturn(false);
-        doThrow(new RuntimeException("DB error")).when(repo).save(any());
+        // Setup with fixed time values
+        Long userId = 123L;
+        Long doctorId = 456L;
+        LocalDate date = LocalDate.now().plusDays(1); // Future date
+        LocalTime time = LocalTime.now().plusHours(1); // Future time
 
-        boolean result = booker.bookAppointment(userId, doctorId, futureDate, appointmentTime);
-        assertFalse(result);
-        verify(repo).save(any());
+        // Create mock repository
+        MakeAppointment mockRepository = mock(MakeAppointment.class);
+        BookAppointment booker = new BookAppointment(mockRepository);
+
+        // Mock the repository behavior
+        when(mockRepository.existsById(any())).thenReturn(false); // No duplicate
+        doThrow(new RuntimeException("DB error"))
+                .when(mockRepository)
+                .save(any(Appointment.class));
+
+        // Execute and verify exception
+        boolean result = booker.bookAppointment(
+                userId,
+                doctorId,
+                date,
+                time,
+                UserRole.PATIENT
+        );
+
+        // Verify
+        assertFalse(result, "Should return false when save fails");
+        verify(mockRepository).existsById(any());
+        verify(mockRepository).save(any(Appointment.class));
     }
 
     /// TC-APP-6: Valid Appointment Cancellation
@@ -121,13 +184,22 @@ class AppointmentServiceApplicationTests {
     void shouldCancelValidAppointment() {
         MakeAppointment repo = mock(MakeAppointment.class);
         CancelAppointment canceler = new CancelAppointment(repo);
-        doNothing().when(repo).deleteById(any());
+
+        // Create the appointment ID that will be checked
+        AppointmentID appointmentId = new AppointmentID(userId, doctorId, futureDate, appointmentTime);
+
+        // Mock the existence check to return true
+        when(repo.existsById(appointmentId)).thenReturn(true);
+
+        // Mock the delete operation to return 1 (success)
+        when(repo.deleteAppointment(userId, doctorId, futureDate, appointmentTime)).thenReturn(1);
 
         boolean result = canceler.cancelAppointment(userId, doctorId, futureDate, appointmentTime);
-        assertTrue(result);
-        verify(repo).deleteById(any());
-    }
 
+        assertTrue(result);
+        verify(repo).existsById(appointmentId);
+        verify(repo).deleteAppointment(userId, doctorId, futureDate, appointmentTime);
+    }
     /// TC-APP-7: Retrieve Appointments for Patient
     @Test
     void shouldRetrieveAppointmentsForPatient() {
@@ -206,17 +278,31 @@ class AppointmentServiceApplicationTests {
 
     @Test
     void cancelAppointment_RepositoryThrowsException_ShouldReturnFalse() {
+        // Setup test data with fixed values
+        Long userId = 123L;
+        Long doctorId = 456L;
+        LocalDate date = LocalDate.of(2023, 7, 15); // Fixed date
+        LocalTime time = LocalTime.of(14, 30);      // Fixed time
+
+        // Create mock repository
         MakeAppointment mockRepository = mock(MakeAppointment.class);
         CancelAppointment cancelAppointment = new CancelAppointment(mockRepository);
 
-        doThrow(new RuntimeException("DB error"))
-                .when(mockRepository)
-                .deleteById(any(AppointmentID.class));
+        // Create expected ID
+        AppointmentID expectedId = new AppointmentID(userId, doctorId, date, time);
 
-        boolean result = cancelAppointment.cancelAppointment(123L, 1L, LocalDate.now(), LocalTime.now());
+        // Mock repository behavior
+        when(mockRepository.existsById(expectedId)).thenReturn(true);
+        when(mockRepository.deleteAppointment(userId, doctorId, date, time))
+                .thenThrow(new RuntimeException("DB error"));
 
-        assertFalse(result);
-        verify(mockRepository, times(1)).deleteById(any(AppointmentID.class));
+        // Execute
+        boolean result = cancelAppointment.cancelAppointment(userId, doctorId, date, time);
+
+        // Verify
+        assertFalse(result, "Should return false when repository throws exception");
+        verify(mockRepository).existsById(expectedId);
+        verify(mockRepository).deleteAppointment(userId, doctorId, date, time);
     }
 
     @Autowired
@@ -227,23 +313,44 @@ class AppointmentServiceApplicationTests {
 
     @Test
     void shouldUpdateOldAppointmentsToCompleted() {
-        doNothing().when(makeAppointment).updateAppointmentStateByDateBefore(
-                AppointmentState.PENDING, AppointmentState.COMPLETED, LocalDate.now());
+        // Arrange
+        int expectedUpdatedCount = 5;
+        when(makeAppointment.updateAppointmentStateByDateBefore(
+                AppointmentState.PENDING,
+                AppointmentState.COMPLETED,
+                LocalDate.now()
+        )).thenReturn(expectedUpdatedCount);
 
-        appointmentCleanup.updateAppointmentsToCompleted();
+        // Act
+        int actualUpdatedCount = appointmentCleanup.updateAppointmentsToCompleted();
 
+        // Assert
+        assertEquals(expectedUpdatedCount, actualUpdatedCount);
         verify(makeAppointment).updateAppointmentStateByDateBefore(
-                AppointmentState.PENDING, AppointmentState.COMPLETED, LocalDate.now());
+                AppointmentState.PENDING,
+                AppointmentState.COMPLETED,
+                LocalDate.now()
+        );
     }
 
     @Test
-    void testUpdateAppointmentsToCompleted_ExceptionHandling() {
-        doThrow(new RuntimeException("Database error")).when(makeAppointment)
-                .updateAppointmentStateByDateBefore(AppointmentState.PENDING, AppointmentState.COMPLETED, LocalDate.now());
+    void shouldHandleUpdateFailureGracefully() {
+        // Arrange
+        RuntimeException dbError = new RuntimeException("Database connection failed");
+        when(makeAppointment.updateAppointmentStateByDateBefore(
+                any(), any(), any()
+        )).thenThrow(dbError);
 
-        appointmentCleanup.updateAppointmentsToCompleted();
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> {
+            appointmentCleanup.updateAppointmentsToCompleted();
+        });
 
-        verify(makeAppointment, times(1)).updateAppointmentStateByDateBefore(
-                AppointmentState.PENDING, AppointmentState.COMPLETED, LocalDate.now());
+        verify(makeAppointment).updateAppointmentStateByDateBefore(
+                AppointmentState.PENDING,
+                AppointmentState.COMPLETED,
+                LocalDate.now()
+        );
     }
+
 }

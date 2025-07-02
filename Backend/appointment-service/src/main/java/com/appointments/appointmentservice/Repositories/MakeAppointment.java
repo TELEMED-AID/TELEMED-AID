@@ -28,7 +28,7 @@ public interface MakeAppointment extends JpaRepository<Appointment, AppointmentI
     @Modifying
     @Query("UPDATE Appointment a SET a.appointmentState = :newState " +
             "WHERE a.appointmentState = :currentState AND a.id.appointmentDate < :currentDate")
-    void updateAppointmentStateByDateBefore(
+    int updateAppointmentStateByDateBefore(
             @Param("currentState") AppointmentState currentState,
             @Param("newState") AppointmentState newState,
             @Param("currentDate") LocalDate currentDate);
@@ -40,6 +40,19 @@ public interface MakeAppointment extends JpaRepository<Appointment, AppointmentI
             "AND a.id.appointmentDate = :date " +
             "AND a.id.appointmentTime = :time")
     int deleteAppointment(
+            @Param("userId") Long userId,
+            @Param("doctorId") Long doctorId,
+            @Param("date") LocalDate date,
+            @Param("time") LocalTime time);
+
+    @Modifying
+    @Query("UPDATE Appointment a SET a.appointmentState = 'COMPLETED' " +
+            "WHERE a.id.userId = :userId " +
+            "AND a.id.doctorId = :doctorId " +
+            "AND a.id.appointmentDate = :date " +
+            "AND a.id.appointmentTime = :time " +
+            "AND a.appointmentState = 'PENDING'")  // Only update PENDING appointments
+    int completeAppointment(
             @Param("userId") Long userId,
             @Param("doctorId") Long doctorId,
             @Param("date") LocalDate date,

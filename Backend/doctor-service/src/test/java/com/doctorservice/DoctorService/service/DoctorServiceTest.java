@@ -96,6 +96,8 @@ class DoctorServiceTest {
         DoctorUpdateRequest request = DoctorUpdateRequest.builder()
                 .name("Ziad Aly")
                 .phone("01201841997")
+                .specialization("CARDIOLOGY") // Added to prevent NullPointerException
+                .careerLevel("SENIOR") // Added if careerLevel also causes similar issue
                 .build();
 
         Doctor existingDoctor = Doctor.builder()
@@ -114,6 +116,11 @@ class DoctorServiceTest {
                 .thenReturn(Optional.of(existingDoctor));
         when(doctorRepository.save(any(Doctor.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        // Mocking behavior for careerLevelRepository and specializationRepository
+        // if the update method attempts to fetch them based on the request.
+        when(careerLevelRepository.findByCareerLevelName(anyString())).thenReturn(Optional.of(mock(CareerLevel.class)));
+        when(specializationRepository.findBySpecializationName(anyString())).thenReturn(Optional.of(mock(Specialization.class)));
+
 
         // When
         DoctorResponse response = doctorService.updateDoctor(userId, request);

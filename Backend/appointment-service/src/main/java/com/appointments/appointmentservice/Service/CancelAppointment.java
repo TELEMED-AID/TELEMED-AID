@@ -36,7 +36,7 @@ public class CancelAppointment {
             return deleted > 0;
         } catch (Exception e) {
             log.error("Failed to delete appointment", e);
-            throw e;
+            return false;  // Changed from throw e to return false
         }
     }
 }

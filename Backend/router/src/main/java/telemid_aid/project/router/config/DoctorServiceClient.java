@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import telemid_aid.project.router.dto.UserRequest;
 
-@FeignClient(name = "doctor-service", url = "http://localhost:8082")
+@FeignClient(name = "doctor-service", url = "${doctor.service.url}")
 public interface DoctorServiceClient {
     @PostMapping("/api/doctor")
     ResponseEntity<String> createDoctor(@RequestBody UserRequest request);

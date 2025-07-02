@@ -30,7 +30,7 @@ import ScrollToTop from "../../Components/ScrollToTop/ScrollToTop";
 import useGet from "../../Hooks/useGet";
 import useDelete from "../../Hooks/useDelete";
 import usePost from "../../Hooks/usePost";
-
+import usePut from "../../Hooks/usePut";
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [error, setError] = useState(null);
@@ -40,10 +40,13 @@ const MyAppointments = () => {
     const { loading: bookingLoading, postItem } = usePost(); // Get postItem from usePost
     const [doctorAppointmentCount, setDoctorAppointmentCount] = useState(0); // New state for count
     const { loading: countLoading, getItem: getCount } = useGet(); // New getter for count
-    const [registeredUsers, setRegisteredUsers] = useState({ patients: [], doctors: [] });
+    const [registeredUsers, setRegisteredUsers] = useState({
+        patients: [],
+        doctors: [],
+    });
     const [usersLoading, setUsersLoading] = useState(false);
     const [usersError, setUsersError] = useState(null);
-
+    const { loading: completeLoading, putItem } = usePut(); // Add this with other hooks
     useEffect(() => {
         if (userId) {
             fetchAppointments();
@@ -54,7 +57,7 @@ const MyAppointments = () => {
     // Fetch registered users when component mounts
     useEffect(() => {
         const fetchRegisteredUsers = async () => {
-            if (role !== 'DOCTOR' || !userId) return;
+            if (role !== "DOCTOR" || !userId) return;
 
             setUsersLoading(true);
             setUsersError(null);
@@ -71,12 +74,18 @@ const MyAppointments = () => {
                 }
 
                 // Process patient appointments
-                const patientAppointments = userIdsResponse.patientAppointments || [];
-                const patientIds = patientAppointments.map(appt => Number(appt.userId)).filter(id => !isNaN(id));
+                const patientAppointments =
+                    userIdsResponse.patientAppointments || [];
+                const patientIds = patientAppointments
+                    .map((appt) => Number(appt.userId))
+                    .filter((id) => !isNaN(id));
 
                 // Process doctor appointments
-                const doctorAppointments = userIdsResponse.doctorAppointments || [];
-                const doctorIds = doctorAppointments.map(appt => Number(appt.userId)).filter(id => !isNaN(id));
+                const doctorAppointments =
+                    userIdsResponse.doctorAppointments || [];
+                const doctorIds = doctorAppointments
+                    .map((appt) => Number(appt.userId))
+                    .filter((id) => !isNaN(id));
 
                 console.log("Patient IDs:", patientIds);
                 console.log("Doctor IDs:", doctorIds);
@@ -95,20 +104,24 @@ const MyAppointments = () => {
                             (data, sent) => {
                                 console.log("Received patients:", data); // data is the Map in object form
                             },
-                            () => { },
+                            () => {},
                             "Failed to load patients",
                             null,
                             false
                         );
                         // Merge patient data with appointment details
-                        patientsResult = patientAppointments.map(appt => {
-                            const patientData = patientsResponse ? patientsResponse[appt.userId] : {};
-                            return {
-                                ...patientData,
-                                date: appt.date,
-                                time: appt.time
-                            };
-                        }).filter(user => user.userId); // Filter out invalid entries
+                        patientsResult = patientAppointments
+                            .map((appt) => {
+                                const patientData = patientsResponse
+                                    ? patientsResponse[appt.userId]
+                                    : {};
+                                return {
+                                    ...patientData,
+                                    date: appt.date,
+                                    time: appt.time,
+                                };
+                            })
+                            .filter((user) => user.userId); // Filter out invalid entries
                     } catch (error) {
                         console.error("Error fetching patients:", error);
                         // Continue even if patients fail
@@ -125,20 +138,24 @@ const MyAppointments = () => {
                             (data, sent) => {
                                 console.log("Received patients:", data); // data is the Map in object form
                             },
-                            () => { },
+                            () => {},
                             "Failed to load doctors",
                             null,
                             false
                         );
                         // Merge doctor data with appointment details
-                        doctorsResult = doctorAppointments.map(appt => {
-                            const doctorData = doctorsResponse ? doctorsResponse[appt.userId] : {};
-                            return {
-                                ...doctorData,
-                                date: appt.date,
-                                time: appt.time
-                            };
-                        }).filter(user => user.userId); // Filter out invalid entries
+                        doctorsResult = doctorAppointments
+                            .map((appt) => {
+                                const doctorData = doctorsResponse
+                                    ? doctorsResponse[appt.userId]
+                                    : {};
+                                return {
+                                    ...doctorData,
+                                    date: appt.date,
+                                    time: appt.time,
+                                };
+                            })
+                            .filter((user) => user.userId); // Filter out invalid entries
                     } catch (error) {
                         console.error("Error fetching doctors:", error);
                         // Continue even if doctors fail
@@ -148,13 +165,18 @@ const MyAppointments = () => {
                 // Update state with whatever data we could fetch
                 setRegisteredUsers({
                     patients: patientsResult,
-                    doctors: doctorsResult
+                    doctors: doctorsResult,
                 });
 
-                console.log("Registered Users:", { patients: patientsResult, doctors: doctorsResult });
+                console.log("Registered Users:", {
+                    patients: patientsResult,
+                    doctors: doctorsResult,
+                });
             } catch (error) {
                 console.error("Error in main fetch process:", error);
-                setUsersError("Failed to load some user data. Please try again.");
+                setUsersError(
+                    "Failed to load some user data. Please try again."
+                );
             } finally {
                 setUsersLoading(false);
             }
@@ -197,7 +219,43 @@ const MyAppointments = () => {
             );
         }
     };
+    const isAppointmentTimeReached = (dateString, timeString) => {
+        const appointmentDate = new Date(dateString);
+        const [hours, minutes] = timeString.split(":").map(Number);
 
+        // Set the time portion of the date
+        appointmentDate.setHours(hours, minutes, 0, 0);
+
+        const now = new Date();
+        return now >= appointmentDate;
+    };
+    const handleCompleteAppointment = async (appointment) => {
+        const completionData = {
+            userId: userId,
+            doctorId: appointment.doctorDetails.userId,
+            date: appointment.date,
+            time: appointment.time,
+            state: "PENDING",
+        };
+        console.log(completionData);
+        await putItem(
+            `/api/appointment/complete`,
+            completionData,
+            async () => {
+                // Success callback - refresh appointments
+                await fetchAppointments();
+                if (role === "DOCTOR") {
+                    await fetchDoctorAppointmentCount(); // Refresh doctor count if user is a doctor
+                }
+            },
+            "Appointment marked as completed successfully", // successMessage
+            "Failed to complete appointment", // errorMessage
+            (err) => {
+                console.error("Error completing appointment:", err);
+            },
+            true // showSnackbar
+        );
+    };
     const getInitials = (name) =>
         name
             ?.split(" ")
@@ -227,7 +285,7 @@ const MyAppointments = () => {
                         startTime: appointment.time,
                         booked: false,
                     },
-                    () => { },
+                    () => {},
                     "Time slot unbooked successfully!",
                     "Failed to update time slot status"
                 );
@@ -325,14 +383,25 @@ const MyAppointments = () => {
                 ) : (
                     <Box
                         sx={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                            display: "grid",
+                            gridTemplateColumns:
+                                "repeat(auto-fill, minmax(300px, 1fr))",
                             gap: 2,
                         }}
                     >
-                        {users.map(user => (
-                            <Paper key={user.userId} elevation={1} sx={{ p: 2 }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        {users.map((user) => (
+                            <Paper
+                                key={user.userId}
+                                elevation={1}
+                                sx={{ p: 2 }}
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        mb: 1,
+                                    }}
+                                >
                                     <Avatar src={user.avatar} sx={{ mr: 2 }}>
                                         {getInitials(user.name).charAt(0)}
                                     </Avatar>
@@ -341,27 +410,47 @@ const MyAppointments = () => {
                                             {user.name}
                                         </Typography>
                                         {user.date && user.time && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                {formatDate(user.date)} at {formatTime(user.time)}
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                            >
+                                                {formatDate(user.date)} at{" "}
+                                                {formatTime(user.time)}
                                             </Typography>
                                         )}
                                     </Box>
                                 </Box>
-                                <Typography variant="body2" color="text.secondary">
-                                    Phone: {user.phone || 'N/A'}
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    Phone: {user.phone || "N/A"}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Gender: {user.gender || 'N/A'}
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    Gender: {user.gender || "N/A"}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Country: {user.countryName || 'N/A'}
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                >
+                                    Country: {user.countryName || "N/A"}
                                 </Typography>
-                                {role === 'DOCTOR' && user.specialization && (
+                                {role === "DOCTOR" && user.specialization && (
                                     <Box>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Specialization: {user.specialization}
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                        >
+                                            Specialization:{" "}
+                                            {user.specialization}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                        >
                                             Career Level: {user.careerLevel}
                                         </Typography>
                                     </Box>
@@ -369,7 +458,11 @@ const MyAppointments = () => {
                                 <Chip
                                     label={role}
                                     size="small"
-                                    color={role === 'PATIENT' ? 'secondary' : 'primary'}
+                                    color={
+                                        role === "PATIENT"
+                                            ? "secondary"
+                                            : "primary"
+                                    }
                                     sx={{ mt: 1 }}
                                 />
                             </Paper>
@@ -412,13 +505,14 @@ const MyAppointments = () => {
                                         height: "100%",
                                         boxShadow:
                                             "0px 10px 25px rgba(0, 0, 0, 0.1)",
-                                        borderLeft: `10px solid ${appointment.state === "COMPLETED"
-                                            ? "#4caf50"
-                                            : appointment.state ===
-                                                "PENDING"
+                                        borderLeft: `10px solid ${
+                                            appointment.state === "COMPLETED"
+                                                ? "#4caf50"
+                                                : appointment.state ===
+                                                  "PENDING"
                                                 ? "#ff9800"
                                                 : "#f44336"
-                                            }`,
+                                        }`,
                                         transition: "transform 0.2s",
                                         "&:hover": {
                                             transform: "translateY(-5px)",
@@ -605,8 +699,44 @@ const MyAppointments = () => {
                                                 gap: 1,
                                             }}
                                         >
-                                            {appointment.state === "PENDING" ||
+                                            {/* Add this new Button */}
+                                            {(appointment.state === "PENDING" ||
                                                 appointment.state ===
+                                                    "CONFIRMED") && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="success"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        handleCompleteAppointment(
+                                                            appointment
+                                                        )
+                                                    }
+                                                    disabled={
+                                                        completeLoading ||
+                                                        !isAppointmentTimeReached(
+                                                            appointment.date,
+                                                            appointment.time
+                                                        )
+                                                    }
+                                                    sx={{
+                                                        textTransform: "none",
+                                                        fontWeight: "bold",
+                                                        borderRadius: "",
+                                                    }}
+                                                >
+                                                    {completeLoading ? (
+                                                        <CircularProgress
+                                                            size={24}
+                                                        />
+                                                    ) : (
+                                                        "Done"
+                                                    )}
+                                                </Button>
+                                            )}
+
+                                            {appointment.state === "PENDING" ||
+                                            appointment.state ===
                                                 "CONFIRMED" ? (
                                                 <Button
                                                     variant="contained"
@@ -637,7 +767,7 @@ const MyAppointments = () => {
                                                 label={appointment.state}
                                                 color={
                                                     statusColors[
-                                                    appointment.state
+                                                        appointment.state
                                                     ] || "default"
                                                 }
                                                 variant="outlined"
@@ -764,8 +894,8 @@ const MyAppointments = () => {
                         </Paper>
                     )} */}
             </Box>
-            {role === 'DOCTOR' && (
-                <Box sx={{ p: 3, maxWidth: 1200, margin: '0 auto' }}>
+            {role === "DOCTOR" && (
+                <Box sx={{ p: 3, maxWidth: 1200, margin: "0 auto" }}>
                     <Typography variant="h5" gutterBottom>
                         Users Registered With Me
                     </Typography>
@@ -777,12 +907,18 @@ const MyAppointments = () => {
                             <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
                                 Patients ({registeredUsers.patients.length})
                             </Typography>
-                            <UserGrid users={registeredUsers.patients} role="PATIENT" />
+                            <UserGrid
+                                users={registeredUsers.patients}
+                                role="PATIENT"
+                            />
 
                             <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
                                 Doctors ({registeredUsers.doctors.length})
                             </Typography>
-                            <UserGrid users={registeredUsers.doctors} role="DOCTOR" />
+                            <UserGrid
+                                users={registeredUsers.doctors}
+                                role="DOCTOR"
+                            />
                         </>
                     )}
                 </Box>

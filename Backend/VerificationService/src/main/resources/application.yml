@@ -6,7 +6,7 @@ spring:
       enabled: false
 
 server:
-  port: 8084
+  port: ${SERVER_PORT:8084}
 
 eureka:
   instance:
@@ -15,7 +15,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
 
 management:
   endpoints:
@@ -35,9 +35,8 @@ endpoints:
   shutdown:
     enabled: true
 
-
 persona:
-  secret-key: persona_sandbox_0d767e24-8333-43a3-b73c-15a8e21f7ae0
+  secret-key: ${PERSONA_SECRET_KEY:persona_sandbox_0d767e24-8333-43a3-b73c-15a8e21f7ae0}
 
 inquiry:
-  template-id: itmpl_HHfacNC4rg2pKAFVmzkgUGbmStoH
+  template-id: ${INQUIRY_TEMPLATE_ID:itmpl_HHfacNC4rg2pKAFVmzkgUGbmStoH}

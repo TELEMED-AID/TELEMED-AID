@@ -6,6 +6,7 @@ import com.example.article_microservice.Model.*;
 import com.example.article_microservice.Repository.*;
 import com.example.article_microservice.Service.Implementation.ArticleServiceImpl;
 import com.example.article_microservice.Service.Implementation.QuestionServiceImpl;
+import com.example.article_microservice.Service.NotificationProducerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -21,6 +22,9 @@ import static org.mockito.Mockito.*;
 
 public class QuestionServiceImplTest {
 
+    @InjectMocks
+    private QuestionServiceImpl questionService;
+
     @Mock
     private QuestionRepository questionRepository;
 
@@ -33,8 +37,8 @@ public class QuestionServiceImplTest {
     @Mock
     private VoteRepository voteRepository;
 
-    @InjectMocks
-    private QuestionServiceImpl questionService;
+    @Mock
+    private NotificationProducerService notificationProducerService;
 
     @BeforeEach
     void setUp() {
@@ -322,10 +326,8 @@ public class QuestionServiceImplTest {
         // Add comment to the question
         question.setComments(Collections.singletonList(comment));
 
-        // Mock the repository method for finding a question
+        // Mock repository calls
         when(questionRepository.findById(questionId)).thenReturn(Optional.of(question));
-
-        // Mock enrichedDoctorRepository to return the enrichedDoctor when fetching by ID in service if needed
         when(enrichedDoctorRepository.findById(enrichedDoctor.getId())).thenReturn(Optional.of(enrichedDoctor));
 
         // Act
@@ -333,18 +335,21 @@ public class QuestionServiceImplTest {
 
         // Assert
         assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody() instanceof QuestionDetailsResponseDTO);
+        assertTrue(response.getBody() instanceof List<?>);
 
-        QuestionDetailsResponseDTO responseBody = (QuestionDetailsResponseDTO) response.getBody();
-        assertEquals(questionId, responseBody.getId());
-        assertEquals("How to stay hydrated?", responseBody.getTitle());
-        assertEquals("Drink water regularly", responseBody.getContent());
-        assertEquals(1, responseBody.getComments().size());
+        @SuppressWarnings("unchecked")
+        List<CommentResponseDTO> comments = (List<CommentResponseDTO>) response.getBody();
 
-        assertEquals("Drink more water", responseBody.getComments().get(0).getContent());
-        assertEquals("Dr. Smith", responseBody.getComments().get(0).getDoctorName());
-        assertEquals(0, responseBody.getComments().get(0).getVoteCount());  // 1 - 1 = 0
+        assertEquals(1, comments.size());
+
+        CommentResponseDTO responseComment = comments.get(0);
+        assertEquals("Drink more water", responseComment.getContent());
+        assertEquals("Dr. Smith", responseComment.getDoctorName());
+        assertEquals("Senior", responseComment.getDoctorCareerLevel());
+        assertEquals("Cardiology", responseComment.getDoctorSpecialization());
+        assertEquals(0, responseComment.getVoteCount()); // 1 - 1 = 0
     }
+
 
     //  TC-ART-21: Retrieve Comments on Non-Existent Question
     @Test

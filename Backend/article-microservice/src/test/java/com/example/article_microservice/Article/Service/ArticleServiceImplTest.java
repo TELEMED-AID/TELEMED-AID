@@ -1,11 +1,12 @@
 package com.example.article_microservice.Article.Service;
 
-import com.example.article_microservice.DTO.Article.ReceivedArticleDTO;
+import com.example.article_microservice.DTO.Article.*;
 import com.example.article_microservice.Model.Article;
 import com.example.article_microservice.Model.EnrichedDoctor;
 import com.example.article_microservice.Repository.ArticleRepository;
 import com.example.article_microservice.Repository.EnrichedDoctorRepository;
 import com.example.article_microservice.Service.Implementation.ArticleServiceImpl;
+import com.example.article_microservice.Service.NotificationProducerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -29,6 +30,9 @@ public class ArticleServiceImplTest {
     @Mock
     private EnrichedDoctorRepository enrichedDoctorRepository;
 
+    @Mock
+    private NotificationProducerService notificationProducerService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -47,14 +51,23 @@ public class ArticleServiceImplTest {
         EnrichedDoctor doctor = new EnrichedDoctor();
         doctor.setId(12345678901234L);
 
-        when(enrichedDoctorRepository.findById(dto.getDoctorId())).thenReturn(Optional.of(doctor));
+        when(enrichedDoctorRepository.findById(dto.getDoctorId()))
+                .thenReturn(Optional.of(doctor));
+
+        // Optional: mock save() if needed
+        when(articleRepository.save(any(Article.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // return saved article
+
+        // Optional: do nothing on notification
+        doNothing().when(notificationProducerService)
+                .sendPublicNotification(anyString(), anyString());
 
         ResponseEntity<?> response = articleService.publishArticle(dto);
 
         assertEquals(201, response.getStatusCodeValue());
         verify(articleRepository, times(1)).save(any(Article.class));
+        verify(notificationProducerService, times(1)).sendPublicNotification(eq("PATIENT"), contains("Heart Health Tips"));
     }
-
     // TC-ART-2: Invalid Article Publishing Request (non-existent doctor)
     @Test
     void testPublishArticle_DoctorNotFound_ReturnsNotFound() {
@@ -137,10 +150,27 @@ public class ArticleServiceImplTest {
         article.setArticleTime(Instant.now());
         article.setEnrichedDoctorId(123L);
 
+        // Mocking the enrichedDoctorRepository as well, since enrichDoctorData is called
+        EnrichedDoctor enrichedDoctor = new EnrichedDoctor();
+        enrichedDoctor.setId(123L);
+        enrichedDoctor.setName("Dr. John Doe");
+        // Ensure all fields accessed by SingleArticleResponseDTO.enrichDoctorData are set
+        enrichedDoctor.setCareerLevel("Senior");
+        enrichedDoctor.setSpecializationName("Cardiology");
+
         when(articleRepository.findById(1L)).thenReturn(Optional.of(article));
+        when(enrichedDoctorRepository.findById(123L)).thenReturn(Optional.of(enrichedDoctor));
+
 
         ResponseEntity<?> response = articleService.getCertainArticle(1L);
         assertEquals(200, response.getStatusCodeValue());
+        // Optionally, assert on the body content if you have a way to verify the DTO
+        assertTrue(response.getBody() instanceof SingleArticleResponseDTO);
+        SingleArticleResponseDTO responseDto = (SingleArticleResponseDTO) response.getBody();
+        assertEquals("T1", responseDto.getTitle());
+        assertEquals("Dr. John Doe", responseDto.getDoctorName());
+        assertEquals("Senior", responseDto.getDoctorCareerLevel());
+        assertEquals("Cardiology", responseDto.getDoctorSpecialization());
     }
 
     // TC-ART-9: Non-existent Article ID

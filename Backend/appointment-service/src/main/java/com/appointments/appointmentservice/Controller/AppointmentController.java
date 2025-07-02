@@ -6,6 +6,7 @@ import com.appointments.appointmentservice.DTOs.UserIdsByRoleDTO;
 import com.appointments.appointmentservice.Service.AppointmentQueryService;
 import com.appointments.appointmentservice.Service.BookAppointment;
 import com.appointments.appointmentservice.Service.CancelAppointment;
+import com.appointments.appointmentservice.Service.AppointmentCleanup;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ public class AppointmentController {
     private final BookAppointment bookAppointmentService;
     private final CancelAppointment cancelAppointmentService;
     private final AppointmentQueryService appointmentQueryService;
+    private final AppointmentCleanup appointmentCleanup;
 
     @PostMapping("/book")
     public ResponseEntity<String> bookAppointment(@RequestBody MakeAppointmentDTO request) {
@@ -78,5 +80,16 @@ public class AppointmentController {
             @PathVariable Long userId,
             @PathVariable Long doctorId) {
         return ResponseEntity.ok(appointmentQueryService.getAppointmentsForUser(userId, doctorId));
+    }
+
+    @PutMapping("/complete")
+    public ResponseEntity<?> completeAppointment(@RequestBody MakeAppointmentDTO request) {
+        boolean success = appointmentCleanup.completeAppointment(
+                request.getUserId(),
+                request.getDoctorId(),
+                request.getDate(),
+                request.getTime()
+        );
+        return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 }

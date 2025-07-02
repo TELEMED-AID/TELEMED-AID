@@ -30,14 +30,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
-    @Autowired
-    private QuestionRepository questionRepository;
-    @Autowired
-    private EnrichedDoctorRepository enrichedDoctorRepository;
-    @Autowired
-    private CommentRepository commentRepository;
-    @Autowired
-    private VoteRepository voteRepository;
+
+    private final QuestionRepository questionRepository;
+    private final EnrichedDoctorRepository enrichedDoctorRepository;
+    private final CommentRepository commentRepository;
+    private final VoteRepository voteRepository;
     private final NotificationProducerService notificationProducerService;
 
     @Transactional
