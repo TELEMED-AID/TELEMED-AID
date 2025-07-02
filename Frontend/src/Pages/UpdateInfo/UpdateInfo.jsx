@@ -17,7 +17,7 @@ import Footer from "../../Components/Footer/Footer";
 import { useSelector } from 'react-redux';
 
 const UpdateInfo = () => {
-    const { userId, role, isLogged } = useSelector((state) => state.user);
+    const { userId, role } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const { loading: getLoading, getItem } = useGet();
     const { loading: putLoading, putItem } = usePut(); // Destructure putItem and its loading state
@@ -81,7 +81,7 @@ const UpdateInfo = () => {
         };
 
         fetchUserData();
-    }, [role]);
+    }, [role, userId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

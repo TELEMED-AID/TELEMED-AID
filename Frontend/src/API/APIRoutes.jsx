@@ -25,4 +25,3 @@ export const GET_CHAT_ROOMS = `${CHAT_URL}/rooms`;
 export const GET_CHAT_ROOM_MESSAGES = `${CHAT_URL}/messages`;
 export const CREATE_CHAT_ROOM = `${CHAT_URL}/create-room`;
 export const JOIN_CHAT_ROOM = `${CHAT_URL}/join-room`;
-

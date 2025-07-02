@@ -7,9 +7,8 @@ import AddArticle from "../Pages/Article/AddArticle";
 import ShowArticles from "../Pages/Article/ShowArticles";
 import AddQuestion from "../Pages/Question/AddQuestion";
 import ShowQuestions from "../Pages/Question/ShowQuestions";
-import RoomCreationPopup from "../Pages/RoomCreationPopup/RoomCreationPopup ";
 import ProfilePage from "../Pages/ProfilePage/ProfilePage";
-import Home_page from "../Pages/Home_page/Home_page";
+import HomePage from "../Pages/HomePage/HomePage";    // Like this
 import UpdateInfo from "../Pages/UpdateInfo/UpdateInfo";
 import UpdatePassword from "../Pages/UpdatePassword/UpdatePassword";
 import Availability from "../Pages/Availability/Availability";
@@ -40,7 +39,7 @@ export default function Paths() {
                 />
                 <Route
                     path={DefaultRoutes.home}
-                    element={isLogged ? <Home_page /> : <Navigate to={DefaultRoutes.Login} replace />}
+                    element={isLogged ? <HomePage /> : <Navigate to={DefaultRoutes.Login} replace />}
                 />
                 <Route
                     path={DefaultRoutes.updateInfo}

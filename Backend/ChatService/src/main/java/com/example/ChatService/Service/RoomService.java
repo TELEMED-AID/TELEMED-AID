@@ -87,7 +87,7 @@ public class RoomService {
                             .roomId(room.getId())
                             .roomName(room.getRoomName())
                             .ownerId(room.getOwnerId())
-                            .lastMessage(room.getMessages().isEmpty() ? "" : room.getMessages().getLast().getContent())
+                            .lastMessage(room.getMessages().isEmpty() ? "" : room.getMessages().get(room.getMessages().size() - 1).getContent())
                             .participants(room.getRoomUsers().stream()
                                     .map(RoomUser::getUserName)
                                     .toList())

@@ -32,14 +32,13 @@ import {
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { Chip, IconButton } from "@mui/material";
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete";
 import useDelete from "../../Hooks/useDelete"; // You'll need to create this hook
 // Assume these paths are correct relative to your ProfilePage.js
 import RoomCreationPopup from "../../Pages/RoomCreationPopup/RoomCreationPopup ";
 import Navbar from "../../Components/Navbar/Navbar";
 import Footer from "../../Components/Footer/Footer";
 import useGet from "../../Hooks/useGet"; // Import your custom useGet hook
-
 
 const ProfilePage = () => {
     // State for the room creation popup
@@ -60,7 +59,7 @@ const ProfilePage = () => {
     const isDoctor = role === "DOCTOR";
     const fetchAvailability = async () => {
         if (!isDoctor || !userId) return;
-        
+
         await getItem(
             `/api/doctor/${userId}/availability`,
             false, // Don't show snackbar
@@ -96,8 +95,7 @@ const ProfilePage = () => {
                         (response) => {
                             // On successful fetch, update the fetchedUserData state
                             setFetchedUserData(response);
-                            console.log("Fetched User Data:", response);
-                            if (isDoctor) fetchAvailability(); 
+                            if (isDoctor) fetchAvailability();
                         },
                         () => {
                             // On error, clear the fetchedUserData
@@ -123,29 +121,29 @@ const ProfilePage = () => {
     // Format birth date, handling the case where it might not be loaded yet
     const formattedBirthDate = userDataToDisplay.birthDate
         ? new Date(userDataToDisplay.birthDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-        })
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+          })
         : "N/A";
-        
-        const handleDeleteDay = async (dayOfWeek) => {
-            try {
-                await deleteItem(
-                    `/api/doctor/${userId}/availability/${dayOfWeek}`,
-                    false,
-                    () => {
-                        // On success, refetch availability
-                        fetchAvailability();
-                    },
-                    (error) => {
-                        console.error("Error deleting availability:", error);
-                    }
-                );
-            } catch (error) {
-                console.error("Error:", error);
-            }
-        };
+
+    const handleDeleteDay = async (dayOfWeek) => {
+        try {
+            await deleteItem(
+                `/api/doctor/${userId}/availability/${dayOfWeek}`,
+                false,
+                () => {
+                    // On success, refetch availability
+                    fetchAvailability();
+                },
+                (error) => {
+                    console.error("Error deleting availability:", error);
+                }
+            );
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    };
     // Handler for navigation buttons
 
     const handleButtonClick = (action) => {
@@ -246,8 +244,7 @@ const ProfilePage = () => {
                                         width={100}
                                         height={100}
                                         mb={3}
-                                    >
-                                    </Box>
+                                    ></Box>
                                     <Typography
                                         variant="h5"
                                         gutterBottom
@@ -298,7 +295,7 @@ const ProfilePage = () => {
                                             {/* Use fetched userId */}
                                         </Typography>
                                         {/* Create Room Button (for both roles, or conditional if needed) */}
-                                      {/*  <Button
+                                        {/*  <Button
                                             variant="contained"
                                             startIcon={<PostAdd />}
                                             onClick={() =>
@@ -391,11 +388,13 @@ const ProfilePage = () => {
                                             </ListItemIcon>
                                             <ListItemText
                                                 primary="Country"
-                                                secondary={`${userDataToDisplay.countryName ||
+                                                secondary={`${
+                                                    userDataToDisplay.countryName ||
                                                     "N/A"
-                                                    } (${userDataToDisplay.countryId ||
+                                                } (${
+                                                    userDataToDisplay.countryId ||
                                                     "N/A"
-                                                    })`}
+                                                })`}
                                             />
                                         </ListItem>
 
@@ -522,32 +521,71 @@ const ProfilePage = () => {
                                     </Box>
                                     {isDoctor && (
                                         <Box sx={{ mt: 4 }}>
-                                            <Typography variant="h6" gutterBottom>
+                                            <Typography
+                                                variant="h6"
+                                                gutterBottom
+                                            >
                                                 My Availability
                                             </Typography>
                                             {availability.length > 0 ? (
                                                 <List>
                                                     {availability.map((day) => (
-                                                        <Paper key={day.day} elevation={2} sx={{ mb: 2 }}>
+                                                        <Paper
+                                                            key={day.day}
+                                                            elevation={2}
+                                                            sx={{ mb: 2 }}
+                                                        >
                                                             <ListItem>
                                                                 <ListItemText
-                                                                    primary={day.day.charAt(0).toUpperCase() + day.day.slice(1).toLowerCase()}
+                                                                    primary={
+                                                                        day.day
+                                                                            .charAt(
+                                                                                0
+                                                                            )
+                                                                            .toUpperCase() +
+                                                                        day.day
+                                                                            .slice(
+                                                                                1
+                                                                            )
+                                                                            .toLowerCase()
+                                                                    }
                                                                     secondary={
-                                                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                                            {day.timeSlots.map((slot, index) => (
-                                                                                <Chip
-                                                                                    key={index}
-                                                                                    label={`${slot.startTime} (${slot.duration} hrs)`}
-                                                                                    size="small"
-                                                                                />
-                                                                            ))}
-                                                                        </Box>
+                                                                        <Typography component="span">
+                                                                            <Box
+                                                                                sx={{
+                                                                                    display:
+                                                                                        "flex",
+                                                                                    flexWrap:
+                                                                                        "wrap",
+                                                                                    gap: 1,
+                                                                                }}
+                                                                            >
+                                                                                {day.timeSlots.map(
+                                                                                    (
+                                                                                        slot,
+                                                                                        index
+                                                                                    ) => (
+                                                                                        <Chip
+                                                                                            key={
+                                                                                                index
+                                                                                            }
+                                                                                            label={`${slot.startTime} (${slot.duration} hrs)`}
+                                                                                            size="small"
+                                                                                        />
+                                                                                    )
+                                                                                )}
+                                                                            </Box>
+                                                                        </Typography>
                                                                     }
                                                                 />
                                                                 <IconButton
                                                                     edge="end"
                                                                     aria-label="delete"
-                                                                    onClick={() => handleDeleteDay(day.day)}
+                                                                    onClick={() =>
+                                                                        handleDeleteDay(
+                                                                            day.day
+                                                                        )
+                                                                    }
                                                                     color="error"
                                                                 >
                                                                     <DeleteIcon />
@@ -557,8 +595,18 @@ const ProfilePage = () => {
                                                     ))}
                                                 </List>
                                             ) : (
-                                                <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic', mt: 2 }}>
-                                                    No availability days set yet. Click "Set Availability" to add your working hours.
+                                                <Typography
+                                                    variant="body1"
+                                                    color="text.secondary"
+                                                    sx={{
+                                                        fontStyle: "italic",
+                                                        mt: 2,
+                                                    }}
+                                                >
+                                                    No availability days set
+                                                    yet. Click "Set
+                                                    Availability" to add your
+                                                    working hours.
                                                 </Typography>
                                             )}
                                         </Box>
@@ -573,15 +621,16 @@ const ProfilePage = () => {
                                     textAlign="center"
                                     // height="200px"
                                     sx={{
-                                        mt: { xs: "auto", md: "150px" }
+                                        mt: { xs: "auto", md: "150px" },
                                     }}
-
                                 >
-
-                                    <Alert severity="error" sx={{
-                                        width: "500px",
-                                        textAlign: "center"
-                                    }} >
+                                    <Alert
+                                        severity="error"
+                                        sx={{
+                                            width: "500px",
+                                            textAlign: "center",
+                                        }}
+                                    >
                                         Failed to load profile data or not
                                         logged in.
                                     </Alert>
@@ -613,7 +662,6 @@ const ProfilePage = () => {
                         };
 
                         // Print the request data to console
-                        console.log("Request data to backend:", requestData);
 
                         // Optional: Close popup
                         setRoomPopupOpen(false);

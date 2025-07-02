@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     AppBar,
     Toolbar,
@@ -18,34 +18,19 @@ import {
     Typography,
     Paper,
     CircularProgress,
-    Tooltip
+    Tooltip,
 } from "@mui/material";
-import { Logout as LogoutIcon, SmartToy as RobotIcon } from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+    SmartToy as RobotIcon,
+} from "@mui/icons-material";
+import { useSelector } from "react-redux";
+import { Link, useLocation } from "react-router-dom";
 import logo from "../../Assets/logo.png";
 import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { removeUser } from "../../Redux/userSlice";
 import useGet from "../../Hooks/useGet";
 import { formatDistanceToNow } from "date-fns";
-
-// Notification type colors and labels mapping
-const NOTIFICATION_TYPES = {
-    PRIVATE: {
-        color: "primary",
-        label: "Private"
-    },
-    ALL_DOCTORS: {
-        color: "secondary",
-        label: "All Doctors"
-    },
-    ALL_PATIENTS: {
-        color: "success",
-        label: "All Patients"
-    }
-};
 
 function HideOnScroll(props) {
     const { children } = props;
@@ -68,14 +53,11 @@ const Navbar = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [notifications, setNotifications] = useState([]);
     const [loadingNotifications, setLoadingNotifications] = useState(false);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
     const location = useLocation();
     const { getItem } = useGet();
-    
+
     // Get current user from Redux store
-    const currentUser = useSelector(state => state.user.currentUser);
-    const { userId, role, isLogged } = useSelector((state) => state.user);
+    const { userId } = useSelector((state) => state.user);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -89,7 +71,30 @@ const Navbar = () => {
     const handleMailClose = () => {
         setAnchorEl(null);
     };
-
+    const handleLogout = async () => {
+        localStorage.clear();
+        try {
+            // Send logout request to the backend
+            const response = await fetch('http://localhost:8080/auth/logout', {
+                method: 'POST',
+                credentials: 'include', // This is important for cookies to be sent/received
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+    
+            if (response.ok) {
+                // Clear any client-side authentication state
+                localStorage.removeItem('user'); // or whatever you use to store user data
+                // Optionally redirect to login page
+                window.location.href = '/login';
+            } else {
+                console.error('Logout failed:', await response.text());
+            }
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
+    };
     const fetchNotifications = async () => {
         setLoadingNotifications(true);
         try {
@@ -97,9 +102,11 @@ const Navbar = () => {
             console.log("Notifications data:", data);
             if (data) {
                 // Filter notifications based on type and targetId
-                const filteredNotifications = data.filter(notification => 
-                    notification.type === "ALL_PATIENTS" || 
-                    (notification.type === "PRIVATE" && notification.targetId === userId)
+                const filteredNotifications = data.filter(
+                    (notification) =>
+                        notification.type === "ALL_PATIENTS" ||
+                        (notification.type === "PRIVATE" &&
+                            notification.targetId === userId)
                 );
                 setNotifications(filteredNotifications);
             }
@@ -111,7 +118,7 @@ const Navbar = () => {
     };
 
     const open = Boolean(anchorEl);
-    const id = open ? 'mail-popover' : undefined;
+    const id = open ? "mail-popover" : undefined;
 
     const navItems = [
         { name: "Home", path: "/home" },
@@ -180,7 +187,11 @@ const Navbar = () => {
                         },
                     }}
                 >
-                    <Badge badgeContent={notifications.length} color="info" sx={{ mr: 2 }}>
+                    <Badge
+                        badgeContent={notifications.length}
+                        color="info"
+                        sx={{ mr: 2 }}
+                    >
                         <MailIcon />
                     </Badge>
                     <ListItemText primary="Notifications" />
@@ -190,10 +201,7 @@ const Navbar = () => {
                     <Button
                         fullWidth
                         variant="contained"
-                        onClick={() => {
-                            dispatch(removeUser());
-                            navigate("/");
-                        }}
+                        onClick={handleLogout}
                         sx={{
                             mx: 1,
                             fontSize: "18px",
@@ -216,7 +224,7 @@ const Navbar = () => {
             {/* Floating Robot Icon Button - Top Right */}
             <Box
                 sx={{
-                    position: 'fixed',
+                    position: "fixed",
                     top: 150,
                     right: 24,
                     zIndex: 1200,
@@ -227,28 +235,30 @@ const Navbar = () => {
                         component={Link}
                         to="/chatbot"
                         sx={{
-                            backgroundColor: '#33b4d4',
-                            color: 'white',
+                            backgroundColor: "#33b4d4",
+                            color: "white",
                             width: 50,
                             height: 50,
-                            '&:hover': {
-                                backgroundColor: '#2a96b3',
-                                transform: 'scale(1.1)',
+                            "&:hover": {
+                                backgroundColor: "#2a96b3",
+                                transform: "scale(1.1)",
                             },
-                            transition: 'all 0.3s ease',
+                            transition: "all 0.3s ease",
                             boxShadow: 3,
-                            animation: 'pulse 2s infinite',
-                            '@keyframes pulse': {
-                                '0%': {
-                                    boxShadow: '0 0 0 0 rgba(51, 180, 212, 0.7)'
+                            animation: "pulse 2s infinite",
+                            "@keyframes pulse": {
+                                "0%": {
+                                    boxShadow:
+                                        "0 0 0 0 rgba(51, 180, 212, 0.7)",
                                 },
-                                '70%': {
-                                    boxShadow: '0 0 0 10px rgba(51, 180, 212, 0)'
+                                "70%": {
+                                    boxShadow:
+                                        "0 0 0 10px rgba(51, 180, 212, 0)",
                                 },
-                                '100%': {
-                                    boxShadow: '0 0 0 0 rgba(51, 180, 212, 0)'
-                                }
-                            }
+                                "100%": {
+                                    boxShadow: "0 0 0 0 rgba(51, 180, 212, 0)",
+                                },
+                            },
                         }}
                     >
                         <RobotIcon sx={{ fontSize: 32 }} />
@@ -353,7 +363,10 @@ const Navbar = () => {
                                         },
                                     }}
                                 >
-                                    <Badge badgeContent={notifications.length} color="info">
+                                    <Badge
+                                        badgeContent={notifications.length}
+                                        color="info"
+                                    >
                                         <MailIcon />
                                     </Badge>
                                 </IconButton>
@@ -365,29 +378,35 @@ const Navbar = () => {
                                     anchorEl={anchorEl}
                                     onClose={handleMailClose}
                                     anchorOrigin={{
-                                        vertical: 'bottom',
-                                        horizontal: 'right',
+                                        vertical: "bottom",
+                                        horizontal: "right",
                                     }}
                                     transformOrigin={{
-                                        vertical: 'top',
-                                        horizontal: 'right',
+                                        vertical: "top",
+                                        horizontal: "right",
                                     }}
                                 >
                                     <Paper sx={{ p: 2, width: 350 }}>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center', 
-                                            mb: 1 
-                                        }}>
-                                            <Typography variant="h6">Notifications</Typography>
-                                            <Button 
-                                                size="small" 
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                justifyContent: "space-between",
+                                                alignItems: "center",
+                                                mb: 1,
+                                            }}
+                                        >
+                                            <Typography variant="h6">
+                                                Notifications
+                                            </Typography>
+                                            <Button
+                                                size="small"
                                                 onClick={fetchNotifications}
                                                 disabled={loadingNotifications}
                                                 startIcon={
                                                     loadingNotifications ? (
-                                                        <CircularProgress size={14} />
+                                                        <CircularProgress
+                                                            size={14}
+                                                        />
                                                     ) : null
                                                 }
                                             >
@@ -395,58 +414,98 @@ const Navbar = () => {
                                             </Button>
                                         </Box>
                                         <Divider sx={{ mb: 1 }} />
-                                        {loadingNotifications && notifications.length === 0 ? (
-                                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                        {loadingNotifications &&
+                                        notifications.length === 0 ? (
+                                            <Box
+                                                sx={{
+                                                    display: "flex",
+                                                    justifyContent: "center",
+                                                    p: 2,
+                                                }}
+                                            >
                                                 <CircularProgress size={24} />
                                             </Box>
                                         ) : notifications.length > 0 ? (
-                                            <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                                                {notifications.map((notification) => (
-                                                    <Box 
-                                                        key={notification._id} 
-                                                        sx={{ 
-                                                            mb: 2, 
-                                                            p: 1.5,
-                                                            borderRadius: 1,
-                                                            backgroundColor: 'background.paper',
-                                                            boxShadow: 1
-                                                        }}
-                                                    >
-                                                        <Box sx={{ 
-                                                            display: 'flex', 
-                                                            justifyContent: 'space-between', 
-                                                            alignItems: 'center',
-                                                            mb: 1 
-                                                        }}>
-                                                            <Typography variant="caption" color="text.secondary">
-                                                                {formatDistanceToNow(new Date(notification.timestamp), { 
-                                                                    addSuffix: true 
-                                                                })}
-                                                            </Typography>
-                                                        </Box>
-                                                        <Typography variant="body1" sx={{ mb: 1 }}>
-                                                            {notification.message}
-                                                        </Typography>
-                                                        {notification.type === "PRIVATE" && (
-                                                            <Typography 
-                                                                variant="caption" 
-                                                                color="text.secondary" 
-                                                                sx={{ fontStyle: 'italic' }}
+                                            <Box
+                                                sx={{
+                                                    maxHeight: 400,
+                                                    overflow: "auto",
+                                                }}
+                                            >
+                                                {notifications.map(
+                                                    (notification) => (
+                                                        <Box
+                                                            key={
+                                                                notification._id
+                                                            }
+                                                            sx={{
+                                                                mb: 2,
+                                                                p: 1.5,
+                                                                borderRadius: 1,
+                                                                backgroundColor:
+                                                                    "background.paper",
+                                                                boxShadow: 1,
+                                                            }}
+                                                        >
+                                                            <Box
+                                                                sx={{
+                                                                    display:
+                                                                        "flex",
+                                                                    justifyContent:
+                                                                        "space-between",
+                                                                    alignItems:
+                                                                        "center",
+                                                                    mb: 1,
+                                                                }}
                                                             >
-                                                                Private message
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="text.secondary"
+                                                                >
+                                                                    {formatDistanceToNow(
+                                                                        new Date(
+                                                                            notification.timestamp
+                                                                        ),
+                                                                        {
+                                                                            addSuffix: true,
+                                                                        }
+                                                                    )}
+                                                                </Typography>
+                                                            </Box>
+                                                            <Typography
+                                                                variant="body1"
+                                                                sx={{ mb: 1 }}
+                                                            >
+                                                                {
+                                                                    notification.message
+                                                                }
                                                             </Typography>
-                                                        )}
-                                                    </Box>
-                                                ))}
+                                                            {notification.type ===
+                                                                "PRIVATE" && (
+                                                                <Typography
+                                                                    variant="caption"
+                                                                    color="text.secondary"
+                                                                    sx={{
+                                                                        fontStyle:
+                                                                            "italic",
+                                                                    }}
+                                                                >
+                                                                    Private
+                                                                    message
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    )
+                                                )}
                                             </Box>
                                         ) : (
-                                            <Typography 
-                                                variant="body2" 
-                                                color="text.secondary" 
-                                                sx={{ 
-                                                    p: 2, 
-                                                    textAlign: 'center',
-                                                    fontStyle: 'italic'
+                                            <Typography
+                                                variant="body2"
+                                                color="text.secondary"
+                                                sx={{
+                                                    p: 2,
+                                                    textAlign: "center",
+                                                    fontStyle: "italic",
                                                 }}
                                             >
                                                 No notifications available
@@ -458,10 +517,7 @@ const Navbar = () => {
                                 {/* Logout Button */}
                                 <Button
                                     variant="contained"
-                                    onClick={() => {
-                                        dispatch(removeUser());
-                                        navigate("/");
-                                    }}
+                                    onClick={handleLogout}
                                     sx={{
                                         mx: 1,
                                         fontSize: "18px",

@@ -24,6 +24,7 @@
 		<spring-cloud.version>2024.0.1</spring-cloud.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 	</properties>
 

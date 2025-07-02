@@ -9,7 +9,6 @@ import {
   IconButton,
   InputAdornment,
 } from "@mui/material";
-import DropdownBox from "../../Components/DropDown/DropdownBox";
 import LogoTitle from "../../Components/LogoTitle/LogoTitle";
 import LoginPageStyles from "./LoginPageStyle";
 import { useForm } from "react-hook-form";
@@ -25,6 +24,7 @@ import { USER_LOGIN_URL, GET_CURRENT_USER } from "../../API/APIRoutes";
 import { home } from "../../AppRoutes/DefaultRoutes";
 import { useDispatch } from "react-redux";
 import { setUser } from "../../Redux/userSlice";
+import Cookies from 'js-cookie';
 const Login = () => {
   const {
     register,
@@ -40,7 +40,7 @@ const Login = () => {
   const [error, setError] = useState(false);
 
   const { loading, postItem } = usePostItem();
-  const { loading: getUserLoading, getItem } = useGet();
+  const { getItem } = useGet();
 
   const NationalIdField = useRef(null);
   const inputPassword = useRef(null);
@@ -61,7 +61,10 @@ const Login = () => {
   };
 
   useEffect(() => {
-    getItem(GET_CURRENT_USER, false, getCurrentUserCallBack);
+    const authToken = Cookies.get('jwt');
+    if (authToken) {
+      getItem(GET_CURRENT_USER, false, getCurrentUserCallBack);
+    }
   }, []);
 
   useEffect(() => {
@@ -184,29 +187,7 @@ const Login = () => {
                 </Typography>
               )}
             </Grid>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                width: "103%", // Ensures full row space is used
-              }}
-            >
-              <Typography
-                variant="body1"
-                sx={{ fontSize: "1rem", fontWeight: "bold" }}
-              >
-                Are You a Doctor?
-              </Typography>
-              <IconButton onClick={() => toggelRole(!isDoctor)}>
-                {isDoctor ? (
-                  <ToggleOnIcon color="primary" sx={{ fontSize: 50 }} />
-                ) : (
-                  <ToggleOffIcon color="disabled" sx={{ fontSize: 50 }} />
-                )}
-              </IconButton>
-            </Box>
-
+            
             <Button
               type="submit"
               fullWidth
