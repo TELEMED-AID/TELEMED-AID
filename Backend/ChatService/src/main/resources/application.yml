@@ -7,9 +7,9 @@ spring:
       enabled: false
 
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://pg-279e6e20-tarektempo015-db92.i.aivencloud.com:28688/defaultdb?ssl=true&sslmode=require}
-    username: ${POSTGRES_USER:avnadmin}
-    password: ${POSTGRES_PASSWORD:AVNS_RvLdahdOHCXA00EfjMN}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/chat}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:mody_aly2020}
     driver-class-name: org.postgresql.Driver
 
   jpa:

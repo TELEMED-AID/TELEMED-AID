@@ -225,8 +225,8 @@ const Navbar = () => {
             <Box
                 sx={{
                     position: "fixed",
-                    top: 150,
-                    right: 24,
+                    bottom: 140,
+                    right: 58,
                     zIndex: 1200,
                 }}
             >
@@ -237,8 +237,8 @@ const Navbar = () => {
                         sx={{
                             backgroundColor: "#33b4d4",
                             color: "white",
-                            width: 50,
-                            height: 50,
+                            width: 58,
+                            height: 58,
                             "&:hover": {
                                 backgroundColor: "#2a96b3",
                                 transform: "scale(1.1)",

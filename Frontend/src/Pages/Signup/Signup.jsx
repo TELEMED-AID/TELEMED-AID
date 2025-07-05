@@ -745,8 +745,8 @@ export default function Signup() {
                                     type="submit"
                                     variant="contained"
                                     disabled={
-                                        // !isSignupButtonEnabled || signupLoading
-                                        false
+                                        !isSignupButtonEnabled || signupLoading
+                                        // false
                                     }
                                     sx={{
                                         width: "100%",

@@ -40,7 +40,7 @@ const Chatbot = () => {
         const timeoutId = setTimeout(() => controllerRef.current.abort(), 600000);
 
         try {
-            const res = await fetch('http://localhost:5000/chatbot/get', {
+            const res = await fetch('http://13.62.55.241:5000/chatbot/get', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ msg: input }),
