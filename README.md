@@ -1,5 +1,7 @@
-# <center>**TELEMED-AID**</center>
-## <center>**AI-Integrated Healthcare Platform**</center>
+<center>
+  <h1>**TELEMED-AID**</h1>
+  <h3>**AI-Integrated Healthcare Platform**</h3>
+</center>
 
 ---
 
