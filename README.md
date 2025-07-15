@@ -1,6 +1,6 @@
 <center>
-  <h1>**TELEMED-AID**</h1>
-  <h3>**AI-Integrated Healthcare Platform**</h3>
+  <h1><b>TELEMED-AID</b></h1>
+  <h3><b>AI-Integrated Healthcare Platform</b></h3>
 </center>
 
 ---
